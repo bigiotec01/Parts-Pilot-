@@ -447,7 +447,8 @@ function AdminDashboard({ pedidos, talleres, getTaller, onSelect, onGoToPedidos 
   const pendientes = pedidos.filter(p => p.estado === 'pendiente').length;
   const enProceso = pedidos.filter(p => ['cotizando', 'pedido_fabrica', 'en_transito', 'recibido'].includes(p.estado)).length;
   const entregados = pedidos.filter(p => p.estado === 'entregado').length;
-  const recientes = [...pedidos].sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 4);
+  const toMs = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime();
+  const recientes = [...pedidos].sort((a, b) => toMs(b.fecha) - toMs(a.fecha)).slice(0, 4);
 
   return (
     <div className="space-y-6">
@@ -1128,7 +1129,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
         {activeTab === 'pedidos' && (
           misPedidos.length === 0 ? <EmptyState text="Aún no tienes pedidos registrados." /> : (
             <div className="grid sm:grid-cols-2 gap-3">
-              {[...misPedidos].sort((a, b) => b.fecha.localeCompare(a.fecha)).map(p => (
+              {[...misPedidos].sort((a, b) => { const t = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime(); return t(b.fecha) - t(a.fecha); }).map(p => (
                 <OrderCard key={p.id} order={p} onClick={() => setSelectedId(p.id)} />
               ))}
             </div>
