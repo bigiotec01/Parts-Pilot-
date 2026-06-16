@@ -81,7 +81,10 @@ function formatCurrency(n) {
 }
 
 function formatDate(d) {
-  const date = new Date(d + 'T00:00:00');
+  if (!d) return '—';
+  // Firestore Timestamp tiene .toDate(), string no
+  const date = d?.toDate ? d.toDate() : new Date(d + 'T00:00:00');
+  if (isNaN(date)) return '—';
   return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
@@ -690,18 +693,28 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
   const [notasEstimado, setNotasEstimado] = useState(order.estimado?.notas ?? '');
   const [archivo, setArchivo] = useState(order.estimado?.archivo ?? null);
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState('');
 
-  const handleSendEstimate = () => {
+  const handleSendEstimate = async () => {
     if (!monto) return;
-    onSendEstimate(order.id, { monto: Number(monto), notas: notasEstimado, archivo });
-    setSent(true);
-    setTimeout(() => setSent(false), 3000);
+    setSending(true);
+    setSendError('');
+    try {
+      await onSendEstimate(order.id, { monto: Number(monto), notas: notasEstimado, archivo });
+      setSent(true);
+      setTimeout(() => setSent(false), 3000);
+    } catch (err) {
+      setSendError('Error al enviar: ' + (err.message || err.code));
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleFile = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setArchivo({ name: file.name, type: file.type, url: URL.createObjectURL(file) });
+    setArchivo({ name: file.name, type: file.type, url: URL.createObjectURL(file), file });
     e.target.value = '';
   };
 
@@ -789,6 +802,11 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
             <CheckCircle2 className="w-4 h-4" /> Estimado enviado al taller.
           </div>
         )}
+        {sendError && (
+          <div className="mb-3 text-sm px-3 py-2 rounded-lg bg-red-50 text-red-700 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" /> {sendError}
+          </div>
+        )}
 
         <div className="space-y-3">
           <FormField label="Monto (USD)">
@@ -814,8 +832,8 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
               </label>
             )}
           </FormField>
-          <button onClick={handleSendEstimate} className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
-            <Send className="w-4 h-4" /> {order.estimado ? 'Actualizar y reenviar estimado' : 'Enviar estimado al taller'}
+          <button onClick={handleSendEstimate} disabled={sending} className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+            <Send className="w-4 h-4" /> {sending ? 'Enviando...' : order.estimado ? 'Actualizar y reenviar estimado' : 'Enviar estimado al taller'}
           </button>
           {taller?.email ? (
             <a href={buildMailto()} className="w-full bg-white border border-stone-200 hover:border-orange-300 hover:text-orange-600 text-stone-600 font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
