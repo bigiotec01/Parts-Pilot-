@@ -3,7 +3,7 @@ import {
   CarFront, Package, Truck, CheckCircle2, Clock, FileText, LogOut, Plus, Search,
   Building2, Phone, X, ThumbsUp, ThumbsDown, ChevronRight, AlertCircle,
   LayoutDashboard, ClipboardList, Users, Calendar, Send, Eye, EyeOff, MessageSquare, Paperclip, Mail,
-  Printer, Trash2, Pencil
+  Printer, Trash2, Pencil, History, UserCircle, CheckCheck
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -69,9 +69,11 @@ const ADMIN_TABS = [
 ];
 
 const CLIENT_TABS = [
-  { id: 'pedidos', label: 'Mis pedidos', icon: ClipboardList },
-  { id: 'estimados', label: 'Estimados', icon: FileText },
-  { id: 'nueva', label: 'Solicitar Estimado', icon: Plus },
+  { id: 'pedidos',   label: 'Mis pedidos',       icon: ClipboardList },
+  { id: 'historial', label: 'Historial',          icon: History },
+  { id: 'estimados', label: 'Estimados',          icon: FileText },
+  { id: 'nueva',     label: 'Solicitar Estimado', icon: Plus },
+  { id: 'perfil',    label: 'Mi Perfil',          icon: UserCircle },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -229,12 +231,20 @@ function StatusStepper({ estado }) {
   );
 }
 
-function OrderCard({ order, taller, showTaller, onClick }) {
+function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0 }) {
   return (
     <button onClick={onClick} className="w-full text-left bg-white border border-stone-200 rounded-xl p-4 hover:border-orange-300 hover:shadow-md transition-all">
       <div className="flex items-start justify-between gap-3 mb-2">
-        <div className="min-w-0">
-          <h3 className="font-semibold text-stone-900 truncate">{order.referencia || order.vehiculo}</h3>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-semibold text-stone-900 truncate">{order.referencia || order.vehiculo}</h3>
+            {unreadCount > 0 && (
+              <span className="flex items-center gap-1 text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse inline-block" />
+                {unreadCount} nuevo{unreadCount !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
           {order.referencia && <p className="text-sm text-stone-500 truncate">{order.vehiculo}</p>}
         </div>
         <StatusBadge estado={order.estado} />
@@ -1521,13 +1531,120 @@ function ClientNuevaSolicitud({ onCreate }) {
   );
 }
 
+function ClientProgressBar({ estado }) {
+  const idx = STATUS_ORDER.indexOf(estado);
+  const pct = Math.round((idx / (STATUS_ORDER.length - 1)) * 100);
+  return (
+    <div>
+      <div className="flex justify-between text-[11px] text-stone-400 mb-1.5">
+        <span>Inicio</span>
+        <span className="font-medium text-stone-600">{STATUS_CONFIG[estado].label}</span>
+        <span>Entregado</span>
+      </div>
+      <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+        <div className="h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function ClientHistorial({ pedidos, onSelect }) {
+  const toMs = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime();
+  const sorted = [...pedidos].sort((a, b) => toMs(b.fecha) - toMs(a.fecha));
+  if (sorted.length === 0) return <EmptyState text="Aún no tienes órdenes completadas." />;
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-stone-400">{sorted.length} orden{sorted.length !== 1 ? 'es' : ''} completada{sorted.length !== 1 ? 's' : ''}</p>
+      {sorted.map(p => (
+        <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left bg-white border border-stone-200 rounded-xl p-4 hover:border-orange-300 hover:shadow-sm transition-all">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="font-semibold text-stone-900 truncate">{p.referencia || p.vehiculo}</h3>
+              {p.referencia && <p className="text-sm text-stone-500 truncate">{p.vehiculo}</p>}
+            </div>
+            <StatusBadge estado={p.estado} />
+          </div>
+          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-dashed border-stone-200 text-xs text-stone-400">
+            <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{formatDate(p.fecha)}</span>
+            {p.folio && <span className="font-mono font-medium text-stone-500">{p.folio}</span>}
+            <span className="flex items-center gap-1 ml-auto text-teal-600"><CheckCheck className="w-3.5 h-3.5" />Completada</span>
+          </div>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ClientPerfil({ taller, onUpdate }) {
+  const [form, setForm] = useState({ nombre: taller.nombre || '', contacto: taller.contacto || '', telefono: taller.telefono || '', email: taller.email || '' });
+  const [saving, setSaving] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true); setError('');
+    try {
+      await onUpdate(form);
+      setDone(true);
+      setTimeout(() => setDone(false), 3000);
+    } catch (err) {
+      setError('Error al guardar: ' + err.message);
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="max-w-lg mx-auto">
+      <h2 className="font-semibold text-stone-900 mb-1 text-lg">Mi Perfil</h2>
+      <p className="text-sm text-stone-500 mb-4">Actualiza la información de tu taller.</p>
+      {done && <div className="mb-4 text-sm text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Cambios guardados.</div>}
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-stone-200 p-5 space-y-4">
+        <FormField label="Nombre del taller"><input value={form.nombre} onChange={e => set('nombre', e.target.value)} className={inputClass} required /></FormField>
+        <FormField label="Contacto"><input value={form.contacto} onChange={e => set('contacto', e.target.value)} className={inputClass} /></FormField>
+        <FormField label="Teléfono"><input value={form.telefono} onChange={e => set('telefono', e.target.value)} className={inputClass} /></FormField>
+        <FormField label="Correo electrónico"><input type="email" value={form.email} onChange={e => set('email', e.target.value)} className={inputClass} /></FormField>
+        {error && <div className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</div>}
+        <button type="submit" disabled={saving} className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors">
+          {saving ? 'Guardando…' : 'Guardar cambios'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 function ClientOrderDetail({ order, onRespond }) {
+  const handlePrint = () => {
+    const w = window.open('', '_blank');
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Pedido ${order.folio || order.id.slice(0,8)}</title>
+    <style>body{font-family:sans-serif;padding:32px;color:#1c1917}h1{font-size:18px;margin-bottom:4px}p{margin:4px 0;font-size:14px;color:#57534e}table{width:100%;border-collapse:collapse;margin-top:20px;font-size:13px}th{text-align:left;padding:8px 10px;background:#f5f5f4;font-weight:600}td{padding:8px 10px;border-bottom:1px solid #e7e5e4}.badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600;background:#f0fdf4;color:#15803d}</style>
+    </head><body>
+    <h1>${order.referencia || order.vehiculo}</h1>
+    <p>${order.referencia ? order.vehiculo : ''}</p>
+    <table><tr><th>Folio</th><td>${order.folio || order.id.slice(0,8)}</td></tr>
+    <tr><th>Vehículo</th><td>${order.vehiculo || '—'}</td></tr>
+    <tr><th>Estado</th><td>${STATUS_CONFIG[order.estado]?.label || order.estado}</td></tr>
+    <tr><th>Fecha registro</th><td>${order.fecha ? new Date(order.fecha?.toDate ? order.fecha.toDate() : order.fecha).toLocaleDateString('es-MX') : '—'}</td></tr>
+    ${order.fechaEntrega ? `<tr><th>Entrega estimada</th><td>${new Date(order.fechaEntrega + 'T00:00:00').toLocaleDateString('es-MX')}</td></tr>` : ''}
+    ${order.notas ? `<tr><th>Notas</th><td>${order.notas}</td></tr>` : ''}
+    ${order.estimado?.notas ? `<tr><th>Estimado</th><td>${order.estimado.notas}</td></tr>` : ''}
+    </table></body></html>`);
+    w.document.close(); w.print();
+  };
+
   return (
     <div className="space-y-5">
-      <div>
-        <h3 className="font-bold text-lg text-stone-900">{order.referencia || order.vehiculo}</h3>
-        {order.referencia && <p className="text-stone-500 text-sm">{order.vehiculo}</p>}
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="font-bold text-lg text-stone-900">{order.referencia || order.vehiculo}</h3>
+          {order.referencia && <p className="text-stone-500 text-sm">{order.vehiculo}</p>}
+        </div>
+        <button onClick={handlePrint} className="flex items-center gap-1.5 text-xs text-stone-500 hover:text-stone-700 border border-stone-200 rounded-lg px-2.5 py-1.5 hover:bg-stone-50 transition-colors flex-shrink-0">
+          <Printer className="w-3.5 h-3.5" /> Imprimir
+        </button>
       </div>
+
+      <ClientProgressBar estado={order.estado} />
 
       <div className="grid grid-cols-2 gap-3 text-sm">
         <InfoItem label="Fecha de registro" value={formatDate(order.fecha)} />
@@ -1579,17 +1696,40 @@ function ClientOrderDetail({ order, onRespond }) {
   );
 }
 
-function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate, onSendMessage }) {
+function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate, onSendMessage, onUpdateTaller }) {
   const [activeTab, setActiveTab] = useState('pedidos');
   const [selectedId, setSelectedId] = useState(null);
+  const [search, setSearch] = useState('');
 
   const solicitudes = pedidos.filter(p => p.tipo === 'solicitud');
   const misPedidos = pedidos.filter(p => p.tipo === 'pedido' || !p.tipo);
+  const pedidosActivos = misPedidos.filter(p => p.estado !== 'entregado');
+  const pedidosHistorial = misPedidos.filter(p => p.estado === 'entregado');
+  const toMs = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime();
+  const pedidosOrdenados = [...pedidosActivos].sort((a, b) => toMs(b.fecha) - toMs(a.fecha));
+  const pedidosFiltrados = search
+    ? pedidosOrdenados.filter(p => `${p.referencia || ''} ${p.vehiculo} ${p.folio || ''}`.toLowerCase().includes(search.toLowerCase()))
+    : pedidosOrdenados;
+
   const selectedOrder = pedidos.find(p => p.id === selectedId);
   const estimadosPorResponder = misPedidos.filter(p => p.estimado?.respuesta === 'pendiente').length;
 
+  const getSeenCount = (id) => parseInt(localStorage.getItem(`pp_seen_${id}`) || '0');
+  const markSeen = (order) => {
+    const n = (order.mensajes || []).filter(m => m.from === 'admin').length;
+    localStorage.setItem(`pp_seen_${order.id}`, String(n));
+  };
+  const getUnread = (order) => Math.max(0, (order.mensajes || []).filter(m => m.from === 'admin').length - getSeenCount(order.id));
+  const totalUnread = pedidosActivos.reduce((s, p) => s + getUnread(p), 0);
+
+  const handleSelect = (id) => {
+    const order = pedidos.find(p => p.id === id);
+    if (order) markSeen(order);
+    setSelectedId(id);
+  };
+
   const tabs = CLIENT_TABS.map(t => {
-    if (t.id === 'pedidos') return { ...t, badge: estimadosPorResponder };
+    if (t.id === 'pedidos') return { ...t, badge: estimadosPorResponder + totalUnread };
     if (t.id === 'estimados') return { ...t, badge: solicitudes.length };
     return t;
   });
@@ -1597,21 +1737,43 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
   return (
     <div className="min-h-screen bg-stone-50">
       <Header title="Parts Pilot" subtitle={taller.nombre} userLabel={taller.contacto} onLogout={onLogout} maxWidth="max-w-2xl" />
-      <NavTabs tabs={tabs} active={activeTab} onChange={(t) => { setActiveTab(t); setSelectedId(null); }} maxWidth="max-w-2xl" />
+      <NavTabs tabs={tabs} active={activeTab} onChange={(t) => { setActiveTab(t); setSelectedId(null); setSearch(''); }} maxWidth="max-w-2xl" />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-16">
+
+        {/* Mini resumen — visible siempre */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="bg-white rounded-xl border border-stone-200 px-3 py-3 text-center">
+            <p className="text-2xl font-bold text-orange-500">{pedidosActivos.length}</p>
+            <p className="text-[11px] text-stone-400 mt-0.5">Activos</p>
+          </div>
+          <div className="bg-white rounded-xl border border-stone-200 px-3 py-3 text-center">
+            <p className={`text-2xl font-bold ${solicitudes.length > 0 ? 'text-amber-500' : 'text-stone-300'}`}>{solicitudes.length}</p>
+            <p className="text-[11px] text-stone-400 mt-0.5">Estimados</p>
+          </div>
+          <div className="bg-white rounded-xl border border-stone-200 px-3 py-3 text-center">
+            <p className="text-2xl font-bold text-teal-500">{pedidosHistorial.length}</p>
+            <p className="text-[11px] text-stone-400 mt-0.5">Completados</p>
+          </div>
+        </div>
+
         {activeTab === 'pedidos' && (
-          misPedidos.length === 0 ? <EmptyState text="Aún no tienes pedidos activos. Cuando el depto. de piezas prepare tu estimado aparecerá aquí." /> : (
-            <div className="flex flex-col gap-3">
-              {[...misPedidos].sort((a, b) => { const t = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime(); return t(b.fecha) - t(a.fecha); }).map(p => (
-                <OrderCard key={p.id} order={p} onClick={() => setSelectedId(p.id)} />
-              ))}
+          <div className="space-y-3">
+            <div className="relative">
+              <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio…" className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-stone-200 bg-white text-sm outline-none focus:ring-2 focus:ring-orange-300" />
             </div>
-          )
+            {pedidosFiltrados.length === 0
+              ? <EmptyState text={search ? 'Sin resultados para esa búsqueda.' : 'Aún no tienes pedidos activos. Cuando el depto. de piezas prepare tu estimado aparecerá aquí.'} />
+              : pedidosFiltrados.map(p => <OrderCard key={p.id} order={p} onClick={() => handleSelect(p.id)} unreadCount={getUnread(p)} />)
+            }
+          </div>
         )}
+        {activeTab === 'historial' && <ClientHistorial pedidos={pedidosHistorial} onSelect={handleSelect} />}
         {activeTab === 'estimados' && <ClientEstimados solicitudes={solicitudes} />}
         {activeTab === 'nueva' && (
           <ClientNuevaSolicitud onCreate={(data) => { onCreateOrder({ ...data, tallerId: taller.id }); setActiveTab('estimados'); }} />
         )}
+        {activeTab === 'perfil' && <ClientPerfil taller={taller} onUpdate={(data) => onUpdateTaller(taller.id, data)} />}
       </main>
       {selectedOrder && (
         <OrderModal
@@ -1692,6 +1854,7 @@ export default function App() {
       onCreateOrder={(data) => crearPedido({ ...data, tallerId: user.uid, tipo: 'solicitud' })}
       onRespondEstimate={(id, respuesta) => responderEstimado(id, respuesta)}
       onSendMessage={(id, texto, from, attachment) => enviarMensaje(id, texto, from, attachment)}
+      onUpdateTaller={(uid, data) => actualizarTaller(uid, data)}
     />
   );
 }
