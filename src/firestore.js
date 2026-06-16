@@ -58,13 +58,21 @@ export function useTalleres(user) {
 
 // ── Crear pedido ────────────────────────────────────────────────────
 export async function crearPedido(data) {
-  await addDoc(collection(db, 'pedidos'), {
-    ...data,
+  const { archivo, ...rest } = data;
+  const docRef = await addDoc(collection(db, 'pedidos'), {
+    ...rest,
     fecha: serverTimestamp(),
     estado: 'pendiente',
     estimado: null,
     mensajes: [],
+    archivo: null,
   });
+  if (archivo?.file) {
+    const storageRef = ref(storage, `solicitudes/${docRef.id}/${archivo.name}`);
+    await uploadBytes(storageRef, archivo.file);
+    const url = await getDownloadURL(storageRef);
+    await updateDoc(docRef, { archivo: { name: archivo.name, url } });
+  }
 }
 
 // ── Cambiar estatus ─────────────────────────────────────────────────
@@ -76,16 +84,17 @@ export async function cambiarEstatus(pedidoId, estado, fechaEntrega) {
 }
 
 // ── Enviar estimado ─────────────────────────────────────────────────
-export async function enviarEstimado(pedidoId, { monto, notas, archivo }) {
+export async function enviarEstimado(pedidoId, { notas, archivo }) {
   let archivoData = null;
   if (archivo?.file) {
     const storageRef = ref(storage, `estimados/${pedidoId}/${archivo.name}`);
     await uploadBytes(storageRef, archivo.file);
     const url = await getDownloadURL(storageRef);
     archivoData = { name: archivo.name, url };
+  } else if (archivo?.url) {
+    archivoData = { name: archivo.name, url: archivo.url };
   }
   const nuevoEstimado = {
-    monto,
     notas,
     archivo: archivoData,
     fecha: new Date().toISOString().split('T')[0],

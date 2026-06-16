@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   CarFront, Package, Truck, CheckCircle2, Clock, FileText, LogOut, Plus, Search,
   Building2, Phone, X, ThumbsUp, ThumbsDown, ChevronRight, AlertCircle,
-  LayoutDashboard, ClipboardList, Users, DollarSign, Calendar, Send, Eye, EyeOff, MessageSquare, Paperclip, Mail
+  LayoutDashboard, ClipboardList, Users, Calendar, Send, Eye, EyeOff, MessageSquare, Paperclip, Mail
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -23,40 +23,40 @@ const STATUS_CONFIG = {
 };
 
 const PEDIDOS_INICIAL = [
-  { id: 'OP-2026-001', tallerId: 1, vehiculo: 'Toyota Corolla 2020', pieza: 'Fascia delantera', cantidad: 1, notas: '', fecha: '2026-05-20', estado: 'entregado',
-    estimado: { monto: 3450, notas: 'Pieza original, incluye soportes nuevos.', fecha: '2026-05-21', respuesta: 'aceptado' } },
+  { id: 'OP-2026-001', tallerId: 1, vehiculo: 'Toyota Corolla 2020', pieza: 'Fascia delantera', notas: '', fecha: '2026-05-20', estado: 'entregado',
+    estimado: { notas: 'Pieza original, incluye soportes nuevos.', fecha: '2026-05-21', respuesta: 'aceptado' } },
 
-  { id: 'OP-2026-002', tallerId: 1, vehiculo: 'Nissan Versa 2019', pieza: 'Faro delantero derecho', cantidad: 1, notas: 'Cliente requiere pieza original, no genérica.', fecha: '2026-06-05', estado: 'en_transito',
-    estimado: { monto: 1850, notas: 'Disponible en almacén CDMX, llega en 2 días.', fecha: '2026-06-06', respuesta: 'aceptado' },
+  { id: 'OP-2026-002', tallerId: 1, vehiculo: 'Nissan Versa 2019', pieza: 'Faro delantero derecho', notas: 'Cliente requiere pieza original, no genérica.', fecha: '2026-06-05', estado: 'en_transito',
+    estimado: { notas: 'Disponible en almacén CDMX, llega en 2 días.', fecha: '2026-06-06', respuesta: 'aceptado' },
     mensajes: [
       { from: 'taller', texto: 'Buenas, ¿ya se sabe cuándo llega el faro?', hora: 'Ayer, 10:15 a.m.' },
       { from: 'admin', texto: 'Sí, va en tránsito desde CDMX, llega mañana por la tarde.', hora: 'Ayer, 10:22 a.m.' },
       { from: 'taller', texto: 'Perfecto, gracias por el seguimiento.', hora: 'Ayer, 10:23 a.m.' },
     ] },
 
-  { id: 'OP-2026-003', tallerId: 1, vehiculo: 'Toyota Hilux 2022', pieza: 'Defensa trasera', cantidad: 1, notas: '', fecha: '2026-06-10', estado: 'cotizando',
-    estimado: { monto: 4200, notas: 'Pieza original importada, tiempo de entrega 10 días hábiles.', fecha: '2026-06-11', respuesta: 'pendiente' },
+  { id: 'OP-2026-003', tallerId: 1, vehiculo: 'Toyota Hilux 2022', pieza: 'Defensa trasera', notas: '', fecha: '2026-06-10', estado: 'cotizando',
+    estimado: { notas: 'Pieza original importada, tiempo de entrega 10 días hábiles.', fecha: '2026-06-11', respuesta: 'pendiente' },
     mensajes: [
       { from: 'admin', texto: 'Te envié el estimado de la defensa, quedo atento a tu respuesta.', hora: 'Ayer, 4:40 p.m.' },
     ] },
 
-  { id: 'OP-2026-004', tallerId: 2, vehiculo: 'Honda CR-V 2021', pieza: 'Espejo lateral izquierdo c/ direccional', cantidad: 1, notas: '', fecha: '2026-06-08', estado: 'recibido',
-    estimado: { monto: 2100, notas: '', fecha: '2026-06-09', respuesta: 'aceptado' } },
+  { id: 'OP-2026-004', tallerId: 2, vehiculo: 'Honda CR-V 2021', pieza: 'Espejo lateral izquierdo c/ direccional', notas: '', fecha: '2026-06-08', estado: 'recibido',
+    estimado: { notas: '', fecha: '2026-06-09', respuesta: 'aceptado' } },
 
-  { id: 'OP-2026-005', tallerId: 2, vehiculo: 'Mazda 3 2020', pieza: 'Cofre', cantidad: 1, notas: 'Verificar color antes de pintar.', fecha: '2026-06-12', estado: 'pedido_fabrica',
-    estimado: { monto: 5600, notas: 'Pedido especial a fábrica, tiempo estimado 15 días.', fecha: '2026-06-12', respuesta: 'aceptado' } },
+  { id: 'OP-2026-005', tallerId: 2, vehiculo: 'Mazda 3 2020', pieza: 'Cofre', notas: 'Verificar color antes de pintar.', fecha: '2026-06-12', estado: 'pedido_fabrica',
+    estimado: { notas: 'Pedido especial a fábrica, tiempo estimado 15 días.', fecha: '2026-06-12', respuesta: 'aceptado' } },
 
-  { id: 'OP-2026-006', tallerId: 3, vehiculo: 'Chevrolet Aveo 2018', pieza: 'Parrilla frontal', cantidad: 1, notas: 'Urgente, cliente espera el auto.', fecha: '2026-06-13', estado: 'pendiente',
+  { id: 'OP-2026-006', tallerId: 3, vehiculo: 'Chevrolet Aveo 2018', pieza: 'Parrilla frontal', notas: 'Urgente, cliente espera el auto.', fecha: '2026-06-13', estado: 'pendiente',
     estimado: null,
     mensajes: [
       { from: 'taller', texto: 'Es urgente, el cliente está esperando el auto. ¿Cuándo me pueden dar el estimado?', hora: 'Hoy, 9:05 a.m.' },
     ] },
 
-  { id: 'OP-2026-007', tallerId: 2, vehiculo: 'Toyota Camry 2023', pieza: 'Puerta delantera derecha', cantidad: 1, notas: '', fecha: '2026-06-14', estado: 'cotizando',
-    estimado: { monto: 8900, notas: 'Pieza con pintura de fábrica color blanco perlado, confirmar código.', fecha: '2026-06-14', respuesta: 'pendiente' } },
+  { id: 'OP-2026-007', tallerId: 2, vehiculo: 'Toyota Camry 2023', pieza: 'Puerta delantera derecha', notas: '', fecha: '2026-06-14', estado: 'cotizando',
+    estimado: { notas: 'Pieza con pintura de fábrica color blanco perlado, confirmar código.', fecha: '2026-06-14', respuesta: 'pendiente' } },
 
-  { id: 'OP-2026-008', tallerId: 3, vehiculo: 'Kia Rio 2021', pieza: 'Faro trasero izquierdo', cantidad: 1, notas: '', fecha: '2026-05-28', estado: 'entregado',
-    estimado: { monto: 1320, notas: '', fecha: '2026-05-29', respuesta: 'aceptado' } },
+  { id: 'OP-2026-008', tallerId: 3, vehiculo: 'Kia Rio 2021', pieza: 'Faro trasero izquierdo', notas: '', fecha: '2026-05-28', estado: 'entregado',
+    estimado: { notas: '', fecha: '2026-05-29', respuesta: 'aceptado' } },
 ];
 
 const ADMIN_TABS = [
@@ -68,17 +68,15 @@ const ADMIN_TABS = [
 
 const CLIENT_TABS = [
   { id: 'pedidos', label: 'Mis pedidos', icon: ClipboardList },
-  { id: 'estimados', label: 'Estimados', icon: DollarSign },
-  { id: 'nueva', label: 'Solicitar pieza', icon: Plus },
+  { id: 'estimados', label: 'Estimados', icon: FileText },
+  { id: 'nueva', label: 'Solicitar Estimado', icon: Plus },
 ];
 
 /* ------------------------------------------------------------------ */
 /*  HELPERS                                                            */
 /* ------------------------------------------------------------------ */
 
-function formatCurrency(n) {
-  return `$${Number(n).toLocaleString('en-US')} USD`;
-}
+
 
 function formatDate(d) {
   if (!d) return '—';
@@ -201,7 +199,7 @@ function OrderCard({ order, taller, showTaller, onClick }) {
           {order.mensajes?.length > 0 && (
             <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" />{order.mensajes.length}</span>
           )}
-          {order.estimado && <span className="font-semibold text-stone-700">{formatCurrency(order.estimado.monto)}</span>}
+          {order.estimado && <span className="flex items-center gap-1 text-orange-500"><FileText className="w-3.5 h-3.5" />Estimado</span>}
         </div>
       </div>
     </button>
@@ -709,7 +707,6 @@ function AdminNuevoPedido({ talleres, onCreate }) {
 }
 
 function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
-  const [monto, setMonto] = useState(order.estimado?.monto ?? '');
   const [notasEstimado, setNotasEstimado] = useState(order.estimado?.notas ?? '');
   const [archivo, setArchivo] = useState(order.estimado?.archivo ?? null);
   const [sent, setSent] = useState(false);
@@ -717,11 +714,10 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
   const [sendError, setSendError] = useState('');
 
   const handleSendEstimate = async () => {
-    if (!monto) return;
     setSending(true);
     setSendError('');
     try {
-      await onSendEstimate(order.id, { monto: Number(monto), notas: notasEstimado, archivo });
+      await onSendEstimate(order.id, { notas: notasEstimado, archivo });
       setSent(true);
       setTimeout(() => setSent(false), 3000);
     } catch (err) {
@@ -746,7 +742,6 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
       '',
       `Te compartimos el estimado para tu pedido ${order.id} (${order.vehiculo}):`,
       '',
-      `Monto: ${formatCurrency(Number(monto) || 0)}`,
     ];
     if (notasEstimado) lineas.push(`Notas: ${notasEstimado}`);
     lineas.push('', 'Puedes ver el detalle completo, fotos y archivos desde Parts Pilot.');
@@ -778,6 +773,20 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
           {order.notas}
         </div>
       )}
+      {order.archivo && (
+        <div>
+          <p className="font-medium text-stone-700 text-sm mb-1.5">Archivo adjunto del taller</p>
+          {order.archivo.type?.startsWith('image/') || order.archivo.url?.match(/\.(jpg|jpeg|png|webp|gif)/i) ? (
+            <a href={order.archivo.url} target="_blank" rel="noreferrer">
+              <img src={order.archivo.url} alt={order.archivo.name} className="rounded-lg max-h-40 object-cover border border-stone-200" />
+            </a>
+          ) : (
+            <a href={order.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 hover:border-orange-300 hover:text-orange-600 transition-colors w-fit">
+              <FileText className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{order.archivo.name}</span>
+            </a>
+          )}
+        </div>
+      )}
 
       <div>
         <p className="font-medium text-stone-700 text-sm mb-3">Estatus del pedido</p>
@@ -806,7 +815,7 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
       </div>
 
       <div className="border-t border-dashed border-stone-200 pt-4 sm:border-t-0 sm:pt-0 sm:border-l sm:border-solid sm:pl-6">
-        <p className="font-medium text-stone-700 text-sm mb-2 flex items-center gap-2"><DollarSign className="w-4 h-4" /> Estimado</p>
+        <p className="font-medium text-stone-700 text-sm mb-2 flex items-center gap-2"><Send className="w-4 h-4" /> Estimado</p>
 
         {order.estimado?.respuesta === 'pendiente' && (
           <div className="mb-3 text-sm px-3 py-2 rounded-lg bg-amber-50 text-amber-700 flex items-center gap-2">
@@ -831,9 +840,6 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
         )}
 
         <div className="space-y-3">
-          <FormField label="Monto (USD)">
-            <input type="number" value={monto} onChange={e => setMonto(e.target.value)} placeholder="0.00" className={inputClass} />
-          </FormField>
           <FormField label="Notas para el taller">
             <textarea value={notasEstimado} onChange={e => setNotasEstimado(e.target.value)} rows={2} placeholder="Tiempo de entrega, condiciones, etc." className={`${inputClass} resize-none`} />
           </FormField>
@@ -936,15 +942,17 @@ function EstimateCard({ order }) {
   const { estimado } = order;
   return (
     <div className="bg-white rounded-xl border border-stone-200 p-4">
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <div className="min-w-0">
-          <p className="text-[11px] text-stone-400 font-mono tracking-wider">{order.id}</p>
-          <h3 className="font-semibold text-stone-900 truncate">{order.pieza}</h3>
-          <p className="text-sm text-stone-500 truncate">{order.vehiculo}</p>
-        </div>
-        <p className="font-bold text-lg text-stone-900 flex-shrink-0">{formatCurrency(estimado.monto)}</p>
+      <div className="mb-2">
+        <p className="text-[11px] text-stone-400 font-mono tracking-wider">{order.id}</p>
+        <h3 className="font-semibold text-stone-900 truncate">{order.pieza}</h3>
+        <p className="text-sm text-stone-500 truncate">{order.vehiculo}</p>
       </div>
-      {estimado.notas && <p className="text-sm text-stone-500 mb-3 bg-stone-50 rounded-lg p-2">{estimado.notas}</p>}
+      {estimado.notas && <p className="text-sm text-stone-600 mb-3 bg-stone-50 rounded-lg p-2">{estimado.notas}</p>}
+      {estimado.archivo && (
+        <a href={estimado.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 hover:border-orange-300 hover:text-orange-600 transition-colors mb-3">
+          <FileText className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{estimado.archivo.name}</span>
+        </a>
+      )}
       <EstimateActions order={order} />
     </div>
   );
@@ -987,15 +995,17 @@ function ClientEstimados({ pedidos, onRespond }) {
           <div className="grid sm:grid-cols-2 gap-3">
             {pendientes.map(p => (
               <div key={p.id} className="bg-white rounded-xl border border-stone-200 p-4">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="min-w-0">
-                    <p className="text-[11px] text-stone-400 font-mono tracking-wider">{p.id}</p>
-                    <h3 className="font-semibold text-stone-900 truncate">{p.pieza}</h3>
-                    <p className="text-sm text-stone-500 truncate">{p.vehiculo}</p>
-                  </div>
-                  <p className="font-bold text-lg text-stone-900 flex-shrink-0">{formatCurrency(p.estimado.monto)}</p>
+                <div className="mb-2">
+                  <p className="text-[11px] text-stone-400 font-mono tracking-wider">{p.id}</p>
+                  <h3 className="font-semibold text-stone-900 truncate">{p.pieza}</h3>
+                  <p className="text-sm text-stone-500 truncate">{p.vehiculo}</p>
                 </div>
-                {p.estimado.notas && <p className="text-sm text-stone-500 mb-3 bg-stone-50 rounded-lg p-2">{p.estimado.notas}</p>}
+                {p.estimado.notas && <p className="text-sm text-stone-600 mb-3 bg-stone-50 rounded-lg p-2">{p.estimado.notas}</p>}
+                {p.estimado.archivo && (
+                  <a href={p.estimado.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 hover:border-orange-300 hover:text-orange-600 transition-colors mb-3">
+                    <FileText className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{p.estimado.archivo.name}</span>
+                  </a>
+                )}
                 <EstimateActions order={p} onRespond={onRespond} />
               </div>
             ))}
@@ -1015,22 +1025,31 @@ function ClientEstimados({ pedidos, onRespond }) {
 }
 
 function ClientNuevaSolicitud({ onCreate }) {
-  const [form, setForm] = useState({ vehiculo: '', pieza: '', cantidad: 1, notas: '' });
+  const [form, setForm] = useState({ vehiculo: '', pieza: '', notas: '' });
+  const [archivo, setArchivo] = useState(null);
   const [done, setDone] = useState(false);
 
   const handleChange = (field, value) => setForm(f => ({ ...f, [field]: value }));
 
+  const handleFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setArchivo({ name: file.name, type: file.type, url: URL.createObjectURL(file), file });
+    e.target.value = '';
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onCreate({ ...form, cantidad: Number(form.cantidad) || 1 });
-    setForm({ vehiculo: '', pieza: '', cantidad: 1, notas: '' });
+    onCreate({ ...form, archivo });
+    setForm({ vehiculo: '', pieza: '', notas: '' });
+    setArchivo(null);
     setDone(true);
     setTimeout(() => setDone(false), 3000);
   };
 
   return (
     <div className="max-w-lg">
-      <h2 className="font-semibold text-stone-900 mb-1 text-lg">Solicitar pieza</h2>
+      <h2 className="font-semibold text-stone-900 mb-1 text-lg">Solicitar Estimado</h2>
       <p className="text-sm text-stone-500 mb-4">El departamento de piezas recibirá tu solicitud y te enviará un estimado.</p>
       {done && (
         <div className="mb-4 text-sm text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg flex items-center gap-2">
@@ -1044,11 +1063,28 @@ function ClientNuevaSolicitud({ onCreate }) {
         <FormField label="Pieza solicitada">
           <input value={form.pieza} onChange={e => handleChange('pieza', e.target.value)} placeholder="ej. Salpicadera delantera derecha" className={inputClass} required />
         </FormField>
-        <FormField label="Cantidad">
-          <input type="number" min="1" value={form.cantidad} onChange={e => handleChange('cantidad', e.target.value)} className={`${inputClass} max-w-[140px]`} />
-        </FormField>
         <FormField label="Notas adicionales">
           <textarea value={form.notas} onChange={e => handleChange('notas', e.target.value)} rows={3} placeholder="Color, urgencia, observaciones..." className={`${inputClass} resize-none`} />
+        </FormField>
+        <FormField label="Foto o archivo (opcional)">
+          {archivo ? (
+            <div className="flex items-center justify-between gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2">
+              {archivo.type?.startsWith('image/') ? (
+                <img src={archivo.url} alt={archivo.name} className="w-12 h-12 object-cover rounded-lg flex-shrink-0" />
+              ) : (
+                <FileText className="w-5 h-5 text-stone-500 flex-shrink-0" />
+              )}
+              <span className="text-sm text-stone-700 truncate flex-1">{archivo.name}</span>
+              <button type="button" onClick={() => setArchivo(null)} className="text-stone-400 hover:text-red-500 flex-shrink-0">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <label className="flex items-center justify-center gap-2 border border-dashed border-stone-300 rounded-lg px-3 py-2.5 text-sm text-stone-500 hover:border-orange-300 hover:text-orange-600 cursor-pointer transition-colors">
+              <Paperclip className="w-4 h-4" /> Adjuntar foto o PDF
+              <input type="file" accept="image/*,application/pdf" onChange={handleFile} className="hidden" />
+            </label>
+          )}
         </FormField>
         <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 rounded-lg transition-colors">
           Enviar solicitud
@@ -1096,12 +1132,15 @@ function ClientOrderDetail({ order, onRespond }) {
 
       {order.estimado && (
         <div className="border-t border-dashed border-stone-200 pt-4">
-          <p className="font-medium text-stone-700 text-sm mb-2 flex items-center gap-2"><DollarSign className="w-4 h-4" /> Estimado recibido</p>
+          <p className="font-medium text-stone-700 text-sm mb-2 flex items-center gap-2"><FileText className="w-4 h-4" /> Estimado recibido</p>
           <div className="bg-stone-50 rounded-lg p-3 mb-3 space-y-2">
-            <p className="font-bold text-xl text-stone-900">{formatCurrency(order.estimado.monto)}</p>
-            {order.estimado.notas && <p className="text-sm text-stone-500">{order.estimado.notas}</p>}
+            {order.estimado.notas ? (
+              <p className="text-sm text-stone-700">{order.estimado.notas}</p>
+            ) : (
+              <p className="text-sm text-stone-400 italic">Sin notas adicionales.</p>
+            )}
             {order.estimado.archivo && (
-              <a href={order.estimado.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 hover:border-orange-300 hover:text-orange-600 transition-colors w-fit">
+              <a href={order.estimado.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 hover:border-orange-300 hover:text-orange-600 transition-colors">
                 <FileText className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{order.estimado.archivo.name}</span>
               </a>
             )}
