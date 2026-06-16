@@ -8,9 +8,10 @@ import {
   ref, uploadBytes, getDownloadURL
 } from 'firebase/storage';
 import {
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword, getAuth
 } from 'firebase/auth';
-import { auth } from './firebase';
+import { initializeApp, deleteApp } from 'firebase/app';
+import { auth, firebaseConfig } from './firebase';
 import { setDoc } from 'firebase/firestore';
 
 // ── Pedidos en tiempo real ──────────────────────────────────────────
@@ -126,14 +127,19 @@ export async function eliminarTaller(uid) {
 
 // ── Crear taller (admin) ────────────────────────────────────────────
 export async function crearTaller({ nombre, contacto, telefono, email, usuario, password }) {
-  // Crear usuario en Firebase Auth
-  const cred = await createUserWithEmailAndPassword(auth, email, password);
-  // Guardar perfil en Firestore
-  await setDoc(doc(db, 'talleres', cred.user.uid), {
-    nombre,
-    contacto,
-    telefono,
-    email,
-    usuario,
-  });
+  // App secundaria para no cerrar la sesión del admin al crear el usuario
+  const secondaryApp = initializeApp(firebaseConfig, `create-taller-${Date.now()}`);
+  const secondaryAuth = getAuth(secondaryApp);
+  try {
+    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    await setDoc(doc(db, 'talleres', cred.user.uid), {
+      nombre,
+      contacto,
+      telefono,
+      email,
+      usuario,
+    });
+  } finally {
+    await deleteApp(secondaryApp);
+  }
 }
