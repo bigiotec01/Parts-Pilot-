@@ -211,7 +211,7 @@ function OrderCard({ order, taller, showTaller, onClick }) {
 function Modal({ title, onClose, children }) {
   return (
     <div className="fixed inset-0 bg-stone-900/50 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-3xl max-h-[95vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100 sticky top-0 bg-white">
           <h2 className="font-mono tracking-wider text-sm text-stone-500">{title}</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-stone-100">
@@ -756,7 +756,8 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="sm:grid sm:grid-cols-2 sm:gap-6 flex flex-col gap-5">
+      <div className="space-y-5">
       <div>
         <div className="flex items-center gap-2 text-sm text-stone-500 mb-1">
           <Building2 className="w-4 h-4" /> {taller?.nombre}
@@ -802,8 +803,9 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
           )}
         </div>
       )}
+      </div>
 
-      <div className="border-t border-dashed border-stone-200 pt-4">
+      <div className="border-t border-dashed border-stone-200 pt-4 sm:border-t-0 sm:pt-0 sm:border-l sm:border-solid sm:pl-6">
         <p className="font-medium text-stone-700 text-sm mb-2 flex items-center gap-2"><DollarSign className="w-4 h-4" /> Estimado</p>
 
         {order.estimado?.respuesta === 'pendiente' && (
