@@ -1101,93 +1101,63 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
 }
 
 /* ------------------------------------------------------------------ */
-/*  APP RAÍZ                                                           */
+/*  APP RAÍZ — conectada a Firebase                                    */
 /* ------------------------------------------------------------------ */
 
+import { useAuth } from './useAuth';
+import { usePedidos, useTalleres, crearPedido, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller } from './firestore';
+
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [error, setError] = useState('');
-  const [pedidos, setPedidos] = useState(PEDIDOS_INICIAL);
-  const [talleres, setTalleres] = useState(TALLERES_INICIAL);
+  const { user, perfil, cargando, error, login, logout, setError } = useAuth();
+  const pedidos = usePedidos(user);
+  const talleres = useTalleres();
 
-  const handleLogin = (usuario, password) => {
-    if (usuario === ADMIN_ACCOUNT.usuario && password === ADMIN_ACCOUNT.password) {
-      setUser({ role: 'admin' });
-      setError('');
-      return;
-    }
-    const taller = talleres.find(t => t.usuario === usuario && t.password === password);
-    if (taller) {
-      setUser({ role: 'taller', tallerId: taller.id });
-      setError('');
-      return;
-    }
-    setError('Usuario o contraseña incorrectos.');
-  };
-
-  const handleLogout = () => { setUser(null); setError(''); };
-
-  const handleChangeStatus = (orderId, estado, fechaEntrega) => {
-    setPedidos(prev => prev.map(p => {
-      if (p.id !== orderId) return p;
-      return { ...p, estado, ...(fechaEntrega !== undefined ? { fechaEntrega } : {}) };
-    }));
-  };
-
-  const handleSendEstimate = (orderId, { monto, notas, archivo }) => {
-    setPedidos(prev => prev.map(p => {
-      if (p.id !== orderId) return p;
-      const nuevoEstado = p.estado === 'pendiente' ? 'cotizando' : p.estado;
-      return { ...p, estado: nuevoEstado, estimado: { monto, notas, archivo, fecha: '2026-06-15', respuesta: 'pendiente' } };
-    }));
-  };
-
-  const handleRespondEstimate = (orderId, respuesta) => {
-    setPedidos(prev => prev.map(p => {
-      if (p.id !== orderId) return p;
-      const estimado = { ...p.estimado, respuesta };
-      const nuevoEstado = (respuesta === 'aceptado' && p.estado === 'cotizando') ? 'pedido_fabrica' : p.estado;
-      return { ...p, estimado, estado: nuevoEstado };
-    }));
-  };
-
-  const handleCreateOrder = (data) => {
-    const nextNum = pedidos.length + 1;
-    const id = `OP-2026-${String(nextNum).padStart(3, '0')}`;
-    setPedidos(prev => [...prev, { id, ...data, fecha: '2026-06-15', estado: 'pendiente', estimado: null }]);
-  };
-
-  const handleSendMessage = (orderId, texto, from, attachment) => {
-    setPedidos(prev => prev.map(p => {
-      if (p.id !== orderId) return p;
-      const nuevoMensaje = { from, texto, hora: 'Ahora', ...(attachment ? { attachment } : {}) };
-      return { ...p, mensajes: [...(p.mensajes || []), nuevoMensaje] };
-    }));
-  };
-
-  const handleCreateTaller = (data) => {
-    const nextId = talleres.length ? Math.max(...talleres.map(t => t.id)) + 1 : 1;
-    setTalleres(prev => [...prev, { id: nextId, ...data }]);
-  };
-
-  if (!user) return <LoginScreen onLogin={handleLogin} error={error} />;
-
-  if (user.role === 'admin') {
+  if (cargando) {
     return (
-      <AdminApp
-        pedidos={pedidos} talleres={talleres} onLogout={handleLogout}
-        onChangeStatus={handleChangeStatus} onSendEstimate={handleSendEstimate} onCreateOrder={handleCreateOrder}
-        onSendMessage={handleSendMessage} onCreateTaller={handleCreateTaller}
+      <div className="min-h-screen bg-stone-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-2xl bg-orange-500 flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <CarFront className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-stone-400 text-sm">Cargando Parts Pilot...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <LoginScreen
+        onLogin={(email, password) => login(email, password)}
+        error={error}
       />
     );
   }
 
-  const taller = talleres.find(t => t.id === user.tallerId);
+  if (user.role === 'admin') {
+    return (
+      <AdminApp
+        pedidos={pedidos}
+        talleres={talleres}
+        onLogout={logout}
+        onChangeStatus={(id, estado, fechaEntrega) => cambiarEstatus(id, estado, fechaEntrega)}
+        onSendEstimate={(id, data) => enviarEstimado(id, data)}
+        onCreateOrder={(data) => crearPedido(data)}
+        onSendMessage={(id, texto, from, attachment) => enviarMensaje(id, texto, from, attachment)}
+        onCreateTaller={(data) => crearTaller(data)}
+      />
+    );
+  }
+
+  const taller = talleres.find(t => t.uid === user.uid) || { nombre: perfil?.nombre, contacto: perfil?.contacto, uid: user.uid };
   return (
     <ClientApp
-      taller={taller} pedidos={pedidos} onLogout={handleLogout}
-      onCreateOrder={handleCreateOrder} onRespondEstimate={handleRespondEstimate}
-      onSendMessage={handleSendMessage}
+      taller={{ ...taller, id: user.uid }}
+      pedidos={pedidos}
+      onLogout={logout}
+      onCreateOrder={(data) => crearPedido({ ...data, tallerId: user.uid })}
+      onRespondEstimate={(id, respuesta) => responderEstimado(id, respuesta)}
+      onSendMessage={(id, texto, from, attachment) => enviarMensaje(id, texto, from, attachment)}
     />
   );
 }
