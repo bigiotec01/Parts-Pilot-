@@ -92,6 +92,55 @@ function formatDate(d) {
 /*  COMPONENTES COMPARTIDOS                                            */
 /* ------------------------------------------------------------------ */
 
+function AdminHeader({ tabs, activeTab, onChange, userLabel, onLogout }) {
+  return (
+    <header className="bg-stone-900 text-white sticky top-0 z-20 shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center h-14 gap-6">
+        {/* Logo */}
+        <div className="flex items-center gap-2.5 flex-shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
+            <CarFront className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-bold text-base tracking-tight">Parts Pilot</span>
+        </div>
+
+        {/* Nav links */}
+        <nav className="flex items-center gap-1 flex-1 overflow-x-auto">
+          {tabs.map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => onChange(tab.id)}
+                className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                  isActive
+                    ? 'bg-orange-500 text-white'
+                    : 'text-stone-400 hover:text-white hover:bg-stone-800'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {tab.label}
+                {tab.badge > 0 && (
+                  <span className="bg-white text-orange-600 text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">{tab.badge}</span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Usuario + logout */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className="hidden sm:inline text-sm text-stone-400">{userLabel}</span>
+          <button onClick={onLogout} className="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 transition-colors" title="Cerrar sesión">
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}
+
 function Header({ title, subtitle, userLabel, onLogout, maxWidth = 'max-w-6xl' }) {
   return (
     <header className="bg-stone-900 text-white">
@@ -448,52 +497,98 @@ function StatCard({ label, value, icon: Icon, color, highlight }) {
   );
 }
 
-function AdminDashboard({ pedidos, solicitudes, talleres, getTaller, onSelect, onGoToPedidos, onGoToEstimados }) {
+function AdminDashboard({ pedidos, solicitudes, talleres, getTaller, onSelect, onGoToPedidos, onGoToEstimados, onGoToNuevo, onShowReporte }) {
   const total = pedidos.length;
   const enProceso = pedidos.filter(p => ['cotizando', 'pedido_fabrica', 'en_transito', 'recibido'].includes(p.estado)).length;
   const entregados = pedidos.filter(p => p.estado === 'entregado').length;
   const toMs = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime();
-  const recientes = [...pedidos].sort((a, b) => toMs(b.fecha) - toMs(a.fecha)).slice(0, 4);
+  const recientes = [...pedidos].sort((a, b) => toMs(b.fecha) - toMs(a.fecha)).slice(0, 6);
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Solicitudes nuevas" value={solicitudes.length} icon={FileText} color="text-amber-600 bg-amber-50" highlight={solicitudes.length > 0} />
-        <StatCard label="Total de pedidos" value={total} icon={ClipboardList} color="text-stone-600 bg-stone-100" />
-        <StatCard label="En proceso" value={enProceso} icon={Truck} color="text-violet-600 bg-violet-50" />
-        <StatCard label="Orden Completa" value={entregados} icon={CheckCircle2} color="text-teal-600 bg-teal-50" />
-      </div>
-      {solicitudes.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-              <FileText className="w-5 h-5 text-amber-600" />
+    <div className="space-y-5">
+      {/* Fila superior */}
+      <div className="grid lg:grid-cols-3 gap-4">
+        {/* Panel principal */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-stone-200 p-6">
+          <h2 className="font-bold text-stone-900">Panel principal</h2>
+          <p className="text-sm text-stone-400 mb-6">Vista rápida del estado actual del sistema.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+            <div>
+              <p className={`text-3xl font-bold ${solicitudes.length > 0 ? 'text-amber-500' : 'text-stone-300'}`}>{solicitudes.length}</p>
+              <p className="text-xs text-stone-500 mt-1">Solicitudes nuevas</p>
             </div>
             <div>
-              <p className="font-semibold text-amber-900 text-sm">{solicitudes.length} solicitud{solicitudes.length !== 1 ? 'es' : ''} de estimado pendiente{solicitudes.length !== 1 ? 's' : ''}</p>
-              <p className="text-xs text-amber-700">Los talleres esperan respuesta.</p>
+              <p className="text-3xl font-bold text-violet-500">{enProceso}</p>
+              <p className="text-xs text-stone-500 mt-1">En proceso</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-orange-500">{total}</p>
+              <p className="text-xs text-stone-500 mt-1">Total pedidos</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-teal-500">{talleres.length}</p>
+              <p className="text-xs text-stone-500 mt-1">Talleres activos</p>
             </div>
           </div>
-          <button onClick={onGoToEstimados} className="flex items-center gap-1 text-sm font-medium text-amber-700 hover:text-amber-900 flex-shrink-0">
-            Ver <ChevronRight className="w-4 h-4" />
-          </button>
         </div>
-      )}
 
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-stone-900">Actividad reciente</h2>
+        {/* Acciones rápidas */}
+        <div className="bg-white rounded-2xl border border-stone-200 p-6">
+          <h2 className="font-bold text-stone-900 mb-4">Acciones rápidas</h2>
+          <div className="flex flex-col gap-2">
+            <button onClick={onGoToEstimados} className="w-full text-sm font-medium text-stone-700 border border-stone-200 rounded-xl px-4 py-2.5 hover:bg-stone-50 transition-colors flex items-center gap-2">
+              <FileText className="w-4 h-4 text-amber-500 flex-shrink-0" />
+              Ver Estimados
+              {solicitudes.length > 0 && (
+                <span className="ml-auto bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">{solicitudes.length}</span>
+              )}
+            </button>
+            <button onClick={onGoToNuevo} className="w-full text-sm font-medium text-stone-700 border border-stone-200 rounded-xl px-4 py-2.5 hover:bg-stone-50 transition-colors flex items-center gap-2">
+              <Plus className="w-4 h-4 text-orange-500 flex-shrink-0" />
+              Nuevo Pedido
+            </button>
+            <button onClick={onShowReporte} className="w-full text-sm font-medium text-stone-700 border border-stone-200 rounded-xl px-4 py-2.5 hover:bg-stone-50 transition-colors flex items-center gap-2">
+              <Printer className="w-4 h-4 text-stone-400 flex-shrink-0" />
+              Generar Reporte
+            </button>
+          </div>
+          <p className="text-xs text-stone-400 mt-4">Atajos: <kbd className="bg-stone-100 px-1 rounded">E</kbd> estimados &nbsp; <kbd className="bg-stone-100 px-1 rounded">N</kbd> nuevo pedido</p>
+        </div>
+      </div>
+
+      {/* Pedidos recientes */}
+      <div className="bg-white rounded-2xl border border-stone-200 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold text-stone-900">Pedidos recientes</h2>
           <button onClick={onGoToPedidos} className="text-sm text-orange-600 font-medium hover:text-orange-700 flex items-center gap-1">
             Ver todos <ChevronRight className="w-4 h-4" />
           </button>
         </div>
-        <div className="grid sm:grid-cols-2 gap-3">
-          {recientes.map(p => <OrderCard key={p.id} order={p} taller={getTaller(p.tallerId)} showTaller onClick={() => onSelect(p.id)} />)}
-        </div>
-      </div>
-
-      <div className="bg-stone-100 border border-dashed border-stone-300 rounded-xl p-4 text-sm text-stone-500">
-        <strong className="text-stone-700">Talleres activos:</strong> {talleres.length} — cada uno solo ve sus propios folios, estatus y estimados.
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-stone-100 text-left">
+              <th className="pb-2 text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Folio</th>
+              <th className="pb-2 text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Taller</th>
+              <th className="pb-2 text-[11px] font-semibold text-stone-400 uppercase tracking-wider hidden sm:table-cell">Vehículo</th>
+              <th className="pb-2 text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Estado</th>
+              <th className="pb-2 text-[11px] font-semibold text-stone-400 uppercase tracking-wider hidden sm:table-cell">Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recientes.length === 0 && (
+              <tr><td colSpan={5} className="py-8 text-center text-stone-400 text-sm">Sin pedidos aún.</td></tr>
+            )}
+            {recientes.map(p => (
+              <tr key={p.id} onClick={() => onSelect(p.id)} className="border-b border-stone-50 last:border-0 hover:bg-stone-50 cursor-pointer transition-colors">
+                <td className="py-3 text-sm font-semibold text-stone-800">{p.folio || p.id.slice(0, 8)}</td>
+                <td className="py-3 text-sm text-stone-600 max-w-[140px] truncate">{getTaller(p.tallerId)?.nombre || '—'}</td>
+                <td className="py-3 text-sm text-stone-500 hidden sm:table-cell max-w-[160px] truncate">{p.vehiculo || '—'}</td>
+                <td className="py-3"><StatusBadge estado={p.estado} /></td>
+                <td className="py-3 text-sm text-stone-400 hidden sm:table-cell">{formatDate(p.fecha)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -1222,8 +1317,7 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <Header title="Parts Pilot" subtitle={perfil?.nombre || 'Administrador'} userLabel="Administrador" onLogout={onLogout} />
-      <NavTabs tabs={tabsConBadge} active={activeTab} onChange={(t) => { setActiveTab(t); setSelectedId(null); }} />
+      <AdminHeader tabs={tabsConBadge} activeTab={activeTab} onChange={(t) => { setActiveTab(t); setSelectedId(null); }} userLabel="Administrador" onLogout={onLogout} />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-16">
         {activeTab === 'dashboard' && (
           <AdminDashboard
@@ -1231,6 +1325,8 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
             getTaller={getTaller} onSelect={setSelectedId}
             onGoToPedidos={() => setActiveTab('pedidos')}
             onGoToEstimados={() => setActiveTab('estimados')}
+            onGoToNuevo={() => setActiveTab('nuevo')}
+            onShowReporte={() => setShowReporte(true)}
           />
         )}
         {activeTab === 'pedidos' && (
