@@ -723,6 +723,8 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
+  const [showEmail, setShowEmail] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleSendEstimate = async () => {
     setSending(true);
@@ -745,20 +747,28 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
     e.target.value = '';
   };
 
-  const buildMailto = () => {
-    if (!taller?.email) return '#';
+  const buildEmailContent = () => {
     const subject = `Estimado · ${order.referencia || order.vehiculo}`;
     const lineas = [
       `Hola ${taller.contacto || ''},`,
       '',
-      `Te compartimos el estimado para tu pedido ${order.id} (${order.vehiculo}):`,
+      `Te compartimos el estimado para tu pedido (${order.vehiculo}):`,
       '',
     ];
     if (notasEstimado) lineas.push(`Notas: ${notasEstimado}`);
     lineas.push('', 'Puedes ver el detalle completo, fotos y archivos desde Parts Pilot.');
     if (archivo) lineas.push('', `No olvides adjuntar el PDF "${archivo.name}" a este correo.`);
     lineas.push('', 'Saludos.');
-    return `mailto:${taller.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lineas.join('\n'))}`;
+    return { subject, body: lineas.join('\n') };
+  };
+
+  const handleCopyEmail = () => {
+    const { subject, body } = buildEmailContent();
+    const texto = `Para: ${taller.email}\nAsunto: ${subject}\n\n${body}`;
+    navigator.clipboard.writeText(texto).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    });
   };
 
   return (
@@ -875,9 +885,35 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
             <Send className="w-4 h-4" /> {sending ? 'Enviando...' : order.estimado ? 'Actualizar y reenviar estimado' : 'Enviar estimado al taller'}
           </button>
           {taller?.email ? (
-            <a href={buildMailto()} className="w-full bg-white border border-stone-200 hover:border-orange-300 hover:text-orange-600 text-stone-600 font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
-              <Mail className="w-4 h-4" /> Enviar también por correo a {taller.email}
-            </a>
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowEmail(v => !v)}
+                className="w-full bg-white border border-stone-200 hover:border-orange-300 hover:text-orange-600 text-stone-600 font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <Mail className="w-4 h-4" /> Enviar por correo a {taller.email}
+              </button>
+              {showEmail && (() => {
+                const { subject, body } = buildEmailContent();
+                return (
+                  <div className="mt-2 bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-2 text-sm">
+                    <div><span className="font-medium text-stone-500">Para:</span> <span className="text-stone-700">{taller.email}</span></div>
+                    <div><span className="font-medium text-stone-500">Asunto:</span> <span className="text-stone-700">{subject}</span></div>
+                    <div>
+                      <span className="font-medium text-stone-500 block mb-1">Cuerpo:</span>
+                      <textarea readOnly value={body} rows={6} className="w-full text-xs text-stone-600 bg-white border border-stone-200 rounded-lg p-2 resize-none focus:outline-none" />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCopyEmail}
+                      className="w-full bg-stone-800 hover:bg-stone-900 text-white text-sm font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                      {copied ? <><CheckCircle2 className="w-4 h-4" /> ¡Copiado!</> : <><Paperclip className="w-4 h-4" /> Copiar correo completo</>}
+                    </button>
+                  </div>
+                );
+              })()}
+            </div>
           ) : (
             <p className="text-xs text-stone-400 text-center">Este taller no tiene correo registrado — agrégalo en la pestaña "Talleres".</p>
           )}
