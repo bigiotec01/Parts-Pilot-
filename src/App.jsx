@@ -759,12 +759,7 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
 
   const buildEmailContent = () => {
     const subject = `Estimado · ${order.referencia || order.vehiculo}`;
-    const lineas = [
-      `Hola ${taller.contacto || ''},`,
-      '',
-      `Te compartimos el estimado para tu pedido (${order.vehiculo}):`,
-      '',
-    ];
+    const lineas = [`Hola ${taller.contacto || ''},`, '', `Te compartimos el estimado para tu pedido (${order.vehiculo}):`, ''];
     if (notasEstimado) lineas.push(`Notas: ${notasEstimado}`);
     lineas.push('', 'Puedes ver el detalle completo, fotos y archivos desde Parts Pilot.');
     if (archivo) lineas.push('', `No olvides adjuntar el PDF "${archivo.name}" a este correo.`);
@@ -774,150 +769,165 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
 
   const handleCopyEmail = () => {
     const { subject, body } = buildEmailContent();
-    const texto = `Para: ${taller.email}\nAsunto: ${subject}\n\n${body}`;
-    navigator.clipboard.writeText(texto).then(() => {
+    navigator.clipboard.writeText(`Para: ${taller.email}\nAsunto: ${subject}\n\n${body}`).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     });
   };
 
   return (
-    <div className="sm:grid sm:grid-cols-2 sm:gap-6 flex flex-col gap-5">
-      <div className="space-y-5">
-      <div>
-        <div className="flex items-center gap-2 text-sm text-stone-500 mb-1">
-          <Building2 className="w-4 h-4" /> {taller?.nombre}
+    <div className="space-y-4">
+      {/* ── Encabezado del pedido ── */}
+      <div className="flex items-center justify-between bg-stone-50 rounded-xl px-4 py-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-lg bg-white border border-stone-200 flex items-center justify-center flex-shrink-0">
+            <Building2 className="w-4 h-4 text-stone-500" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-semibold text-stone-800 text-sm truncate">{taller?.nombre}</p>
+            <p className="text-xs text-stone-400 font-mono">{order.id.slice(0, 14)}</p>
+          </div>
         </div>
-        <h3 className="font-bold text-lg text-stone-900">{order.referencia || order.vehiculo}</h3>
-        {order.referencia && <p className="text-stone-500 text-sm">{order.vehiculo}</p>}
+        <StatusBadge estado={order.estado} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        <InfoItem label="Fecha de registro" value={formatDate(order.fecha)} />
-        <InfoItem label="Folio" value={order.id.slice(0, 12)} />
-        {order.fechaEntrega && <InfoItem label="Fecha de entrega est." value={formatDate(order.fechaEntrega)} />}
-      </div>
-
-      {order.notas && (
-        <div className="bg-stone-50 rounded-lg p-3 text-sm text-stone-600">
-          <p className="font-medium text-stone-700 mb-1">Notas del taller</p>
-          {order.notas}
-        </div>
-      )}
-      {order.archivo && (
-        <div>
-          <p className="font-medium text-stone-700 text-sm mb-1.5">Archivo adjunto del taller</p>
-          {order.archivo.type?.startsWith('image/') || order.archivo.url?.match(/\.(jpg|jpeg|png|webp|gif)/i) ? (
-            <a href={order.archivo.url} target="_blank" rel="noreferrer">
-              <img src={order.archivo.url} alt={order.archivo.name} className="rounded-lg max-h-40 object-cover border border-stone-200" />
-            </a>
-          ) : (
-            <a href={order.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 hover:border-orange-300 hover:text-orange-600 transition-colors w-fit">
-              <FileText className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{order.archivo.name}</span>
-            </a>
-          )}
-        </div>
-      )}
-
-      <div>
-        <p className="font-medium text-stone-700 text-sm mb-3">Estatus del pedido</p>
-        <StatusStepper estado={order.estado} />
-        <select value={order.estado} onChange={e => onChangeStatus(order.id, e.target.value)} className={`${inputClass} bg-white mt-3`}>
-          {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
-        </select>
-      </div>
-
-      {['pedido_fabrica', 'en_transito', 'recibido', 'entregado'].includes(order.estado) && (
-        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-          <p className="font-medium text-blue-800 text-sm mb-2 flex items-center gap-2">
-            <Calendar className="w-4 h-4" /> Fecha estimada de entrega al taller
-          </p>
-          <input
-            type="date"
-            defaultValue={order.fechaEntrega || ''}
-            onChange={e => onChangeStatus(order.id, order.estado, e.target.value)}
-            className={`${inputClass} bg-white`}
-          />
-          {order.fechaEntrega && (
-            <p className="text-xs text-blue-600 mt-1.5">El taller verá esta fecha en su portal.</p>
-          )}
-        </div>
-      )}
-      </div>
-
-      <div className="border-t border-dashed border-stone-200 pt-4 sm:border-t-0 sm:pt-0 sm:border-l sm:border-solid sm:pl-6">
-        <p className="font-medium text-stone-700 text-sm mb-2 flex items-center gap-2"><Send className="w-4 h-4" /> Estimado</p>
-
-        {order.estimado?.respuesta === 'pendiente' && (
-          <div className="mb-3 text-sm px-3 py-2 rounded-lg bg-amber-50 text-amber-700 flex items-center gap-2">
-            <Clock className="w-4 h-4" /> Esperando respuesta del taller...
-          </div>
-        )}
-        {order.estimado?.respuesta && order.estimado.respuesta !== 'pendiente' && (
-          <div className={`mb-3 text-sm px-3 py-2 rounded-lg flex items-center gap-2 ${order.estimado.respuesta === 'aceptado' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
-            {order.estimado.respuesta === 'aceptado' ? <ThumbsUp className="w-4 h-4" /> : <ThumbsDown className="w-4 h-4" />}
-            El taller {order.estimado.respuesta === 'aceptado' ? 'aceptó' : 'rechazó'} este estimado.
-          </div>
-        )}
-        {sent && (
-          <div className="mb-3 text-sm px-3 py-2 rounded-lg bg-emerald-50 text-emerald-700 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4" /> Estimado enviado al taller.
-          </div>
-        )}
-        {sendError && (
-          <div className="mb-3 text-sm px-3 py-2 rounded-lg bg-red-50 text-red-700 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" /> {sendError}
-          </div>
-        )}
-
+      <div className="grid sm:grid-cols-2 gap-4">
+        {/* ── COLUMNA IZQUIERDA: Info + Estado ── */}
         <div className="space-y-3">
-          <FormField label="Notas para el taller">
-            <textarea value={notasEstimado} onChange={e => setNotasEstimado(e.target.value)} rows={2} placeholder="Tiempo de entrega, condiciones, etc." className={`${inputClass} resize-none`} />
-          </FormField>
-          <FormField label="PDF del estimado (opcional)">
-            {archivo ? (
-              <div className="flex items-center justify-between gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2">
-                <a href={archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-stone-700 truncate hover:underline">
-                  <FileText className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{archivo.name}</span>
+
+          {/* Fechas */}
+          <div className="grid grid-cols-2 gap-2">
+            <InfoItem label="Fecha de registro" value={formatDate(order.fecha)} />
+            {order.fechaEntrega
+              ? <InfoItem label="Entrega estimada" value={formatDate(order.fechaEntrega)} />
+              : <InfoItem label="Folio" value={order.id.slice(0, 10)} />}
+          </div>
+
+          {/* Notas del taller */}
+          {order.notas && (
+            <div className="bg-amber-50 border border-amber-100 rounded-xl p-3">
+              <p className="text-[10px] font-semibold text-amber-600 uppercase tracking-wider mb-1">Notas del taller</p>
+              <p className="text-sm text-amber-900">{order.notas}</p>
+            </div>
+          )}
+
+          {/* Archivo del taller */}
+          {order.archivo && (
+            <div className="bg-stone-50 rounded-xl p-3">
+              <p className="text-[10px] font-semibold text-stone-500 uppercase tracking-wider mb-2">Archivo del taller</p>
+              {order.archivo.type?.startsWith('image/') || order.archivo.url?.match(/\.(jpg|jpeg|png|webp|gif)/i) ? (
+                <a href={order.archivo.url} target="_blank" rel="noreferrer">
+                  <img src={order.archivo.url} alt={order.archivo.name} className="rounded-lg max-h-36 object-cover border border-stone-200" />
                 </a>
-                <button type="button" onClick={() => setArchivo(null)} className="text-stone-400 hover:text-red-500 flex-shrink-0">
-                  <X className="w-4 h-4" />
-                </button>
+              ) : (
+                <a href={order.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 hover:border-orange-300 hover:text-orange-600 transition-colors w-fit">
+                  <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{order.archivo.name}</span>
+                </a>
+              )}
+            </div>
+          )}
+
+          {/* Estado */}
+          <div className="bg-stone-50 rounded-xl p-4">
+            <p className="text-[10px] font-semibold text-stone-500 uppercase tracking-wider mb-3">Estado del pedido</p>
+            <StatusStepper estado={order.estado} />
+            <select value={order.estado} onChange={e => onChangeStatus(order.id, e.target.value)} className={`${inputClass} bg-white mt-3`}>
+              {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
+            </select>
+          </div>
+
+          {/* Fecha de entrega */}
+          {['pedido_fabrica', 'en_transito', 'recibido', 'entregado'].includes(order.estado) && (
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+              <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5" /> Fecha estimada de entrega
+              </p>
+              <input
+                type="date"
+                defaultValue={order.fechaEntrega || ''}
+                onChange={e => onChangeStatus(order.id, order.estado, e.target.value)}
+                className={`${inputClass} bg-white`}
+              />
+              {order.fechaEntrega && <p className="text-xs text-blue-500 mt-1.5">El taller verá esta fecha en su portal.</p>}
+            </div>
+          )}
+        </div>
+
+        {/* ── COLUMNA DERECHA: Estimado ── */}
+        <div className="space-y-3">
+          <div className="bg-stone-50 rounded-xl p-4 space-y-3">
+            <p className="text-[10px] font-semibold text-stone-500 uppercase tracking-wider flex items-center gap-1.5">
+              <Send className="w-3.5 h-3.5" /> Estimado
+            </p>
+
+            {order.estimado?.respuesta === 'pendiente' && (
+              <div className="text-sm px-3 py-2 rounded-lg bg-amber-50 border border-amber-100 text-amber-700 flex items-center gap-2">
+                <Clock className="w-4 h-4 flex-shrink-0" /> Esperando respuesta del taller…
               </div>
-            ) : (
-              <label className="flex items-center justify-center gap-2 border border-dashed border-stone-300 rounded-lg px-3 py-2.5 text-sm text-stone-500 hover:border-orange-300 hover:text-orange-600 cursor-pointer transition-colors">
-                <Paperclip className="w-4 h-4" /> Adjuntar PDF
-                <input type="file" accept="application/pdf" onChange={handleFile} className="hidden" />
-              </label>
             )}
-          </FormField>
-          <button onClick={handleSendEstimate} disabled={sending} className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
-            <Send className="w-4 h-4" /> {sending ? 'Enviando...' : order.estimado ? 'Actualizar y reenviar estimado' : 'Enviar estimado al taller'}
-          </button>
+            {order.estimado?.respuesta && order.estimado.respuesta !== 'pendiente' && (
+              <div className={`text-sm px-3 py-2 rounded-lg flex items-center gap-2 ${order.estimado.respuesta === 'aceptado' ? 'bg-emerald-50 border border-emerald-100 text-emerald-700' : 'bg-red-50 border border-red-100 text-red-700'}`}>
+                {order.estimado.respuesta === 'aceptado' ? <ThumbsUp className="w-4 h-4 flex-shrink-0" /> : <ThumbsDown className="w-4 h-4 flex-shrink-0" />}
+                El taller {order.estimado.respuesta === 'aceptado' ? 'aceptó' : 'rechazó'} este estimado.
+              </div>
+            )}
+            {sent && (
+              <div className="text-sm px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> Estimado enviado al taller.
+              </div>
+            )}
+            {sendError && (
+              <div className="text-sm px-3 py-2 rounded-lg bg-red-50 border border-red-100 text-red-700 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" /> {sendError}
+              </div>
+            )}
+
+            <FormField label="Notas para el taller">
+              <textarea value={notasEstimado} onChange={e => setNotasEstimado(e.target.value)} rows={3} placeholder="Tiempo de entrega, condiciones, etc." className={`${inputClass} bg-white resize-none`} />
+            </FormField>
+
+            <FormField label="PDF del estimado (opcional)">
+              {archivo ? (
+                <div className="flex items-center justify-between gap-2 bg-white border border-stone-200 rounded-lg px-3 py-2">
+                  <a href={archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-stone-700 truncate hover:underline">
+                    <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{archivo.name}</span>
+                  </a>
+                  <button type="button" onClick={() => setArchivo(null)} className="text-stone-400 hover:text-red-500 flex-shrink-0"><X className="w-4 h-4" /></button>
+                </div>
+              ) : (
+                <label className="flex items-center justify-center gap-2 border border-dashed border-stone-300 rounded-lg px-3 py-2.5 text-sm text-stone-500 hover:border-orange-300 hover:text-orange-600 cursor-pointer transition-colors bg-white">
+                  <Paperclip className="w-4 h-4" /> Adjuntar PDF
+                  <input type="file" accept="application/pdf" onChange={handleFile} className="hidden" />
+                </label>
+              )}
+            </FormField>
+
+            <button onClick={handleSendEstimate} disabled={sending} className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+              <Send className="w-4 h-4" /> {sending ? 'Enviando…' : order.estimado ? 'Actualizar y reenviar' : 'Enviar estimado al taller'}
+            </button>
+          </div>
+
+          {/* Email */}
           {taller?.email ? (
-            <div>
+            <div className="space-y-2">
               <button
                 type="button"
                 onClick={() => setShowEmail(v => !v)}
-                className="w-full bg-white border border-stone-200 hover:border-orange-300 hover:text-orange-600 text-stone-600 font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-white border border-stone-200 hover:border-orange-300 hover:text-orange-600 text-stone-600 font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
               >
-                <Mail className="w-4 h-4" /> Enviar por correo a {taller.email}
+                <Mail className="w-4 h-4" /> Correo a {taller.email}
               </button>
               {showEmail && (() => {
                 const { subject, body } = buildEmailContent();
                 return (
-                  <div className="mt-2 bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-2 text-sm">
+                  <div className="bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-2 text-sm">
                     <div><span className="font-medium text-stone-500">Para:</span> <span className="text-stone-700">{taller.email}</span></div>
                     <div><span className="font-medium text-stone-500">Asunto:</span> <span className="text-stone-700">{subject}</span></div>
                     <div>
                       <span className="font-medium text-stone-500 block mb-1">Cuerpo:</span>
-                      <textarea readOnly value={body} rows={6} className="w-full text-xs text-stone-600 bg-white border border-stone-200 rounded-lg p-2 resize-none focus:outline-none" />
+                      <textarea readOnly value={body} rows={5} className="w-full text-xs text-stone-600 bg-white border border-stone-200 rounded-lg p-2 resize-none focus:outline-none" />
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleCopyEmail}
-                      className="w-full bg-stone-800 hover:bg-stone-900 text-white text-sm font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
+                    <button type="button" onClick={handleCopyEmail} className="w-full bg-stone-800 hover:bg-stone-900 text-white text-sm font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
                       {copied ? <><CheckCircle2 className="w-4 h-4" /> ¡Copiado!</> : <><Paperclip className="w-4 h-4" /> Copiar correo completo</>}
                     </button>
                   </div>
@@ -925,18 +935,14 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
               })()}
             </div>
           ) : (
-            <p className="text-xs text-stone-400 text-center">Este taller no tiene correo registrado — agrégalo en la pestaña "Talleres".</p>
+            <p className="text-xs text-stone-400 text-center py-1">Este taller no tiene correo registrado.</p>
           )}
-        </div>
-        <div className="mt-4 pt-4 border-t border-dashed border-stone-200">
+
+          {/* Eliminar */}
           <button
             type="button"
-            onClick={() => {
-              if (window.confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.')) {
-                onDeleteOrder(order.id);
-              }
-            }}
-            className="w-full flex items-center justify-center gap-2 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 py-2 rounded-lg transition-colors border border-dashed border-red-200"
+            onClick={() => { if (window.confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.')) onDeleteOrder(order.id); }}
+            className="w-full flex items-center justify-center gap-2 text-sm text-red-400 hover:text-red-600 hover:bg-red-50 py-2.5 rounded-lg transition-colors border border-dashed border-red-200"
           >
             <Trash2 className="w-4 h-4" /> Eliminar pedido
           </button>
@@ -1024,7 +1030,7 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
       {selectedOrder && (
         <OrderModal
           order={selectedOrder}
-          title={selectedOrder.id}
+          title={selectedOrder.referencia || selectedOrder.vehiculo}
           onClose={() => setSelectedId(null)}
           detailContent={<AdminOrderDetail order={selectedOrder} taller={getTaller(selectedOrder.tallerId)} onChangeStatus={onChangeStatus} onSendEstimate={onSendEstimate} onDeleteOrder={async (id) => { await onDeleteOrder(id); setSelectedId(null); }} />}
           chatProps={{
