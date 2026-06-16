@@ -92,10 +92,10 @@ function formatDate(d) {
 /*  COMPONENTES COMPARTIDOS                                            */
 /* ------------------------------------------------------------------ */
 
-function Header({ title, subtitle, userLabel, onLogout }) {
+function Header({ title, subtitle, userLabel, onLogout, maxWidth = 'max-w-6xl' }) {
   return (
     <header className="bg-stone-900 text-white">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <div className={`${maxWidth} mx-auto px-4 sm:px-6 py-4 flex items-center justify-between`}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0">
             <CarFront className="w-5 h-5 text-white" />
@@ -116,10 +116,10 @@ function Header({ title, subtitle, userLabel, onLogout }) {
   );
 }
 
-function NavTabs({ tabs, active, onChange }) {
+function NavTabs({ tabs, active, onChange, maxWidth = 'max-w-6xl' }) {
   return (
     <nav className="bg-white border-b border-stone-200 sticky top-0 z-10">
-      <div className="max-w-6xl mx-auto px-2 sm:px-6 flex gap-1 overflow-x-auto">
+      <div className={`${maxWidth} mx-auto px-2 sm:px-6 flex gap-1 overflow-x-auto`}>
         {tabs.map(tab => {
           const Icon = tab.icon;
           const isActive = active === tab.id;
@@ -1500,12 +1500,12 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <Header title="Parts Pilot" subtitle={taller.nombre} userLabel={taller.contacto} onLogout={onLogout} />
-      <NavTabs tabs={tabs} active={activeTab} onChange={(t) => { setActiveTab(t); setSelectedId(null); }} />
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-16">
+      <Header title="Parts Pilot" subtitle={taller.nombre} userLabel={taller.contacto} onLogout={onLogout} maxWidth="max-w-2xl" />
+      <NavTabs tabs={tabs} active={activeTab} onChange={(t) => { setActiveTab(t); setSelectedId(null); }} maxWidth="max-w-2xl" />
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-16">
         {activeTab === 'pedidos' && (
           misPedidos.length === 0 ? <EmptyState text="Aún no tienes pedidos activos. Cuando el depto. de piezas prepare tu estimado aparecerá aquí." /> : (
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-3">
               {[...misPedidos].sort((a, b) => { const t = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime(); return t(b.fecha) - t(a.fecha); }).map(p => (
                 <OrderCard key={p.id} order={p} onClick={() => setSelectedId(p.id)} />
               ))}
