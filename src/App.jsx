@@ -489,6 +489,7 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
   const [form, setForm] = useState({ nombre: '', contacto: '', telefono: '', email: '', usuario: '', password: '' });
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const handleChange = (field, value) => setForm(f => ({ ...f, [field]: value }));
 
@@ -496,20 +497,33 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
     handleChange('password', Math.random().toString(36).slice(-8));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const usuario = form.usuario.trim().toLowerCase();
     if (!usuario || !form.password.trim() || !form.nombre.trim()) return;
-    if (talleres.some(t => t.usuario.toLowerCase() === usuario)) {
+    if (talleres.some(t => t.usuario?.toLowerCase() === usuario)) {
       setError('Ese usuario ya existe, elige otro.');
       return;
     }
-    onCreateTaller({ ...form, usuario });
-    setForm({ nombre: '', contacto: '', telefono: '', email: '', usuario: '', password: '' });
+    setSaving(true);
     setError('');
-    setShowForm(false);
-    setDone(true);
-    setTimeout(() => setDone(false), 4000);
+    try {
+      await onCreateTaller({ ...form, usuario });
+      setForm({ nombre: '', contacto: '', telefono: '', email: '', usuario: '', password: '' });
+      setShowForm(false);
+      setDone(true);
+      setTimeout(() => setDone(false), 4000);
+    } catch (err) {
+      if (err.code === 'auth/email-already-in-use') {
+        setError('Ese correo ya está registrado. Usa otro correo.');
+      } else if (err.code === 'permission-denied') {
+        setError('Sin permisos para crear talleres. Verifica las reglas de Firestore.');
+      } else {
+        setError('Error al crear el taller: ' + err.message);
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -564,8 +578,8 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
               <AlertCircle className="w-4 h-4 flex-shrink-0" /> {error}
             </div>
           )}
-          <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 rounded-lg transition-colors">
-            Crear taller
+          <button type="submit" disabled={saving} className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors">
+            {saving ? 'Creando...' : 'Crear taller'}
           </button>
         </form>
       )}
