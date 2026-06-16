@@ -803,7 +803,7 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
   );
 }
 
-function AdminApp({ pedidos, talleres, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onSendMessage, onCreateTaller }) {
+function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onSendMessage, onCreateTaller }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
@@ -822,7 +822,7 @@ function AdminApp({ pedidos, talleres, onLogout, onChangeStatus, onSendEstimate,
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <Header title="Parts Pilot" subtitle={ADMIN_ACCOUNT.nombre} userLabel="Administrador" onLogout={onLogout} />
+      <Header title="Parts Pilot" subtitle={perfil?.nombre || 'Administrador'} userLabel="Administrador" onLogout={onLogout} />
       <NavTabs tabs={ADMIN_TABS} active={activeTab} onChange={(t) => { setActiveTab(t); setSelectedId(null); }} />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-16">
         {activeTab === 'dashboard' && (
@@ -1131,6 +1131,7 @@ export default function App() {
       <AdminApp
         pedidos={pedidos}
         talleres={talleres}
+        perfil={perfil}
         onLogout={logout}
         onChangeStatus={(id, estado, fechaEntrega) => cambiarEstatus(id, estado, fechaEntrega)}
         onSendEstimate={(id, data) => enviarEstimado(id, data)}
