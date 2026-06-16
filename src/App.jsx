@@ -170,7 +170,7 @@ function Header({ title, subtitle, userLabel, onLogout, maxWidth = 'max-w-6xl' }
 function NavTabs({ tabs, active, onChange, maxWidth = 'max-w-6xl' }) {
   return (
     <nav className="bg-white border-b border-stone-200 sticky top-0 z-10">
-      <div className={`${maxWidth} mx-auto px-2 sm:px-6 flex gap-1 overflow-x-auto`}>
+      <div className={`${maxWidth} mx-auto px-2 sm:px-4 flex gap-0 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]`}>
         {tabs.map(tab => {
           const Icon = tab.icon;
           const isActive = active === tab.id;
@@ -178,7 +178,7 @@ function NavTabs({ tabs, active, onChange, maxWidth = 'max-w-6xl' }) {
             <button
               key={tab.id}
               onClick={() => onChange(tab.id)}
-              className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${isActive ? 'border-orange-500 text-stone-900' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
+              className={`relative flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${isActive ? 'border-orange-500 text-stone-900' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
             >
               <Icon className="w-4 h-4" />
               {tab.label}
