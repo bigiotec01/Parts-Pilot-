@@ -39,14 +39,15 @@ export function usePedidos(user) {
 }
 
 // ── Talleres en tiempo real ─────────────────────────────────────────
-export function useTalleres() {
+export function useTalleres(user) {
   const [talleres, setTalleres] = useState([]);
   useEffect(() => {
+    if (!user) return;
     const unsub = onSnapshot(collection(db, 'talleres'), (snap) => {
       setTalleres(snap.docs.map(d => ({ uid: d.id, ...d.data() })));
     });
     return unsub;
-  }, []);
+  }, [user]);
   return talleres;
 }
 

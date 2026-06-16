@@ -1102,7 +1102,7 @@ import { usePedidos, useTalleres, crearPedido, cambiarEstatus, enviarEstimado, r
 export default function App() {
   const { user, perfil, cargando, error, login, logout, setError } = useAuth();
   const pedidos = usePedidos(user);
-  const talleres = useTalleres();
+  const talleres = useTalleres(user);
 
   if (cargando) {
     return (
