@@ -24,11 +24,9 @@ export function usePedidos(user) {
     if (user.role === 'admin') {
       q = query(collection(db, 'pedidos'), orderBy('fecha', 'desc'));
     } else {
-      q = query(
-        collection(db, 'pedidos'),
-        where('tallerId', '==', user.uid),
-        orderBy('fecha', 'desc')
-      );
+      // Sin orderBy para evitar requerir indice compuesto en Firestore.
+      // El orden se aplica en el cliente (ClientApp).
+      q = query(collection(db, 'pedidos'), where('tallerId', '==', user.uid));
     }
     const unsub = onSnapshot(
       q,
@@ -46,6 +44,17 @@ export function useTalleres(user) {
   const [talleres, setTalleres] = useState([]);
   useEffect(() => {
     if (!user) return;
+    if (user.role !== 'admin') {
+      // El cliente solo puede leer su propio documento de taller
+      const unsub = onSnapshot(
+        doc(db, 'talleres', user.uid),
+        (snap) => {
+          if (snap.exists()) setTalleres([{ uid: snap.id, ...snap.data() }]);
+        },
+        (err) => console.error('useTalleres error:', err.code)
+      );
+      return unsub;
+    }
     const unsub = onSnapshot(
       collection(db, 'talleres'),
       (snap) => setTalleres(snap.docs.map(d => ({ uid: d.id, ...d.data() }))),
