@@ -184,8 +184,8 @@ function OrderCard({ order, taller, showTaller, onClick }) {
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="min-w-0">
           <p className="text-[11px] text-stone-400 font-mono tracking-wider">{order.id}</p>
-          <h3 className="font-semibold text-stone-900 truncate">{order.pieza}</h3>
-          <p className="text-sm text-stone-500 truncate">{order.vehiculo}</p>
+          <h3 className="font-semibold text-stone-900 truncate">{order.referencia || order.vehiculo}</h3>
+          {order.referencia && <p className="text-sm text-stone-500 truncate">{order.vehiculo}</p>}
         </div>
         <StatusBadge estado={order.estado} />
       </div>
@@ -661,7 +661,7 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
 }
 
 function AdminNuevoPedido({ talleres, onCreate }) {
-  const [form, setForm] = useState({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', pieza: '', notas: '' });
+  const [form, setForm] = useState({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', notas: '' });
   const [refPrefijo, setRefPrefijo] = useState('PO#');
   const [refNumero, setRefNumero] = useState('');
   const [done, setDone] = useState(false);
@@ -672,7 +672,7 @@ function AdminNuevoPedido({ talleres, onCreate }) {
     e.preventDefault();
     const referencia = refNumero.trim() ? `${refPrefijo} ${refNumero.trim()}` : '';
     onCreate({ ...form, referencia });
-    setForm({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', pieza: '', notas: '' });
+    setForm({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', notas: '' });
     setRefPrefijo('PO#');
     setRefNumero('');
     setDone(true);
@@ -697,16 +697,13 @@ function AdminNuevoPedido({ talleres, onCreate }) {
         <FormField label="Vehículo">
           <input value={form.vehiculo} onChange={e => handleChange('vehiculo', e.target.value)} placeholder="ej. Toyota Corolla 2020" className={inputClass} />
         </FormField>
-        <FormField label="Pieza solicitada">
-          <input value={form.pieza} onChange={e => handleChange('pieza', e.target.value)} placeholder="ej. Fascia delantera" className={inputClass} />
-        </FormField>
-        <FormField label="Referencia (opcional)">
+        <FormField label="Referencia">
           <div className="flex gap-2">
-            <select value={refPrefijo} onChange={e => setRefPrefijo(e.target.value)} className={`${inputClass} w-28 flex-shrink-0 bg-white`}>
+            <select value={refPrefijo} onChange={e => setRefPrefijo(e.target.value)} className="px-3 py-2.5 rounded-lg border border-stone-200 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all bg-white flex-shrink-0">
               <option value="PO#">PO#</option>
               <option value="Orden">Orden</option>
             </select>
-            <input value={refNumero} onChange={e => setRefNumero(e.target.value)} placeholder="ej. 48213" className={inputClass} />
+            <input value={refNumero} onChange={e => setRefNumero(e.target.value)} placeholder="ej. 48213" className={`${inputClass} flex-1 min-w-0`} />
           </div>
         </FormField>
         <FormField label="Notas (opcional)">
@@ -750,7 +747,7 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
 
   const buildMailto = () => {
     if (!taller?.email) return '#';
-    const subject = `Estimado · PO #${order.id} · ${order.pieza}`;
+    const subject = `Estimado · ${order.referencia || order.vehiculo}`;
     const lineas = [
       `Hola ${taller.contacto || ''},`,
       '',
@@ -771,13 +768,13 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
         <div className="flex items-center gap-2 text-sm text-stone-500 mb-1">
           <Building2 className="w-4 h-4" /> {taller?.nombre}
         </div>
-        <h3 className="font-bold text-lg text-stone-900">{order.pieza}</h3>
-        <p className="text-stone-500 text-sm">{order.vehiculo}</p>
+        <h3 className="font-bold text-lg text-stone-900">{order.referencia || order.vehiculo}</h3>
+        {order.referencia && <p className="text-stone-500 text-sm">{order.vehiculo}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-3 text-sm">
         <InfoItem label="Fecha de registro" value={formatDate(order.fecha)} />
-        {order.referencia ? <InfoItem label="Referencia" value={order.referencia} /> : <InfoItem label="Folio" value={order.id.slice(0, 12)} />}
+        <InfoItem label="Folio" value={order.id.slice(0, 12)} />
         {order.fechaEntrega && <InfoItem label="Fecha de entrega est." value={formatDate(order.fechaEntrega)} />}
       </div>
 
@@ -903,7 +900,7 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
   const filteredPedidos = pedidos.filter(p => {
     if (filterTaller !== 'todos' && String(p.tallerId) !== filterTaller) return false;
     if (filterEstado !== 'todos' && p.estado !== filterEstado) return false;
-    if (search && !`${p.pieza} ${p.vehiculo} ${p.id}`.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !`${p.referencia || ''} ${p.vehiculo} ${p.id}`.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
@@ -958,8 +955,8 @@ function EstimateCard({ order }) {
     <div className="bg-white rounded-xl border border-stone-200 p-4">
       <div className="mb-2">
         <p className="text-[11px] text-stone-400 font-mono tracking-wider">{order.id}</p>
-        <h3 className="font-semibold text-stone-900 truncate">{order.pieza}</h3>
-        <p className="text-sm text-stone-500 truncate">{order.vehiculo}</p>
+        <h3 className="font-semibold text-stone-900 truncate">{order.referencia || order.vehiculo}</h3>
+        {order.referencia && <p className="text-sm text-stone-500 truncate">{order.vehiculo}</p>}
       </div>
       {estimado.notas && <p className="text-sm text-stone-600 mb-3 bg-stone-50 rounded-lg p-2">{estimado.notas}</p>}
       {estimado.archivo && (
@@ -1012,8 +1009,8 @@ function ClientEstimados({ pedidos, onRespond }) {
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="min-w-0">
                     <p className="text-[11px] text-stone-400 font-mono tracking-wider">{p.id}</p>
-                    <h3 className="font-semibold text-stone-900 truncate">{p.pieza}</h3>
-                    <p className="text-sm text-stone-500 truncate">{p.vehiculo}</p>
+                    <h3 className="font-semibold text-stone-900 truncate">{p.referencia || p.vehiculo}</h3>
+                    {p.referencia && <p className="text-sm text-stone-500 truncate">{p.vehiculo}</p>}
                   </div>
                   <StatusBadge estado={p.estado} />
                 </div>
@@ -1033,8 +1030,8 @@ function ClientEstimados({ pedidos, onRespond }) {
               <div key={p.id} className="bg-white rounded-xl border border-stone-200 p-4">
                 <div className="mb-2">
                   <p className="text-[11px] text-stone-400 font-mono tracking-wider">{p.id}</p>
-                  <h3 className="font-semibold text-stone-900 truncate">{p.pieza}</h3>
-                  <p className="text-sm text-stone-500 truncate">{p.vehiculo}</p>
+                  <h3 className="font-semibold text-stone-900 truncate">{p.referencia || p.vehiculo}</h3>
+                  {p.referencia && <p className="text-sm text-stone-500 truncate">{p.vehiculo}</p>}
                 </div>
                 {p.estimado.notas && <p className="text-sm text-stone-600 mb-3 bg-stone-50 rounded-lg p-2">{p.estimado.notas}</p>}
                 {p.estimado.archivo && (
@@ -1061,7 +1058,7 @@ function ClientEstimados({ pedidos, onRespond }) {
 }
 
 function ClientNuevaSolicitud({ onCreate }) {
-  const [form, setForm] = useState({ vehiculo: '', pieza: '', notas: '' });
+  const [form, setForm] = useState({ vehiculo: '', notas: '' });
   const [archivo, setArchivo] = useState(null);
   const [done, setDone] = useState(false);
 
@@ -1077,7 +1074,7 @@ function ClientNuevaSolicitud({ onCreate }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     onCreate({ ...form, archivo });
-    setForm({ vehiculo: '', pieza: '', notas: '' });
+    setForm({ vehiculo: '', notas: '' });
     setArchivo(null);
     setDone(true);
     setTimeout(() => setDone(false), 3000);
@@ -1095,9 +1092,6 @@ function ClientNuevaSolicitud({ onCreate }) {
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-stone-200 p-5 space-y-4">
         <FormField label="Vehículo">
           <input value={form.vehiculo} onChange={e => handleChange('vehiculo', e.target.value)} placeholder="ej. Honda Civic 2021" className={inputClass} required />
-        </FormField>
-        <FormField label="Pieza solicitada">
-          <input value={form.pieza} onChange={e => handleChange('pieza', e.target.value)} placeholder="ej. Salpicadera delantera derecha" className={inputClass} required />
         </FormField>
         <FormField label="Notas adicionales">
           <textarea value={form.notas} onChange={e => handleChange('notas', e.target.value)} rows={3} placeholder="Color, urgencia, observaciones..." className={`${inputClass} resize-none`} />
@@ -1134,8 +1128,8 @@ function ClientOrderDetail({ order, onRespond }) {
   return (
     <div className="space-y-5">
       <div>
-        <h3 className="font-bold text-lg text-stone-900">{order.pieza}</h3>
-        <p className="text-stone-500 text-sm">{order.vehiculo}</p>
+        <h3 className="font-bold text-lg text-stone-900">{order.referencia || order.vehiculo}</h3>
+        {order.referencia && <p className="text-stone-500 text-sm">{order.vehiculo}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-3 text-sm">
