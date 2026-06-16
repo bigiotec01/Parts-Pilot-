@@ -661,15 +661,20 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
 }
 
 function AdminNuevoPedido({ talleres, onCreate }) {
-  const [form, setForm] = useState({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', pieza: '', fechaEntrega: '', notas: '' });
+  const [form, setForm] = useState({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', pieza: '', notas: '' });
+  const [refPrefijo, setRefPrefijo] = useState('PO#');
+  const [refNumero, setRefNumero] = useState('');
   const [done, setDone] = useState(false);
 
   const handleChange = (field, value) => setForm(f => ({ ...f, [field]: value }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onCreate({ ...form });
-    setForm({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', pieza: '', fechaEntrega: '', notas: '' });
+    const referencia = refNumero.trim() ? `${refPrefijo} ${refNumero.trim()}` : '';
+    onCreate({ ...form, referencia });
+    setForm({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', pieza: '', notas: '' });
+    setRefPrefijo('PO#');
+    setRefNumero('');
     setDone(true);
     setTimeout(() => setDone(false), 3000);
   };
@@ -692,8 +697,17 @@ function AdminNuevoPedido({ talleres, onCreate }) {
         <FormField label="Vehículo">
           <input value={form.vehiculo} onChange={e => handleChange('vehiculo', e.target.value)} placeholder="ej. Toyota Corolla 2020" className={inputClass} />
         </FormField>
-        <FormField label="PO #">
-          <input value={form.pieza} onChange={e => handleChange('pieza', e.target.value)} placeholder="ej. PO-48213" className={inputClass} />
+        <FormField label="Pieza solicitada">
+          <input value={form.pieza} onChange={e => handleChange('pieza', e.target.value)} placeholder="ej. Fascia delantera" className={inputClass} />
+        </FormField>
+        <FormField label="Referencia (opcional)">
+          <div className="flex gap-2">
+            <select value={refPrefijo} onChange={e => setRefPrefijo(e.target.value)} className={`${inputClass} w-28 flex-shrink-0 bg-white`}>
+              <option value="PO#">PO#</option>
+              <option value="Orden">Orden</option>
+            </select>
+            <input value={refNumero} onChange={e => setRefNumero(e.target.value)} placeholder="ej. 48213" className={inputClass} />
+          </div>
         </FormField>
         <FormField label="Notas (opcional)">
           <textarea value={form.notas} onChange={e => handleChange('notas', e.target.value)} rows={3} placeholder="Detalles adicionales..." className={`${inputClass} resize-none`} />
@@ -763,7 +777,7 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
 
       <div className="grid grid-cols-2 gap-3 text-sm">
         <InfoItem label="Fecha de registro" value={formatDate(order.fecha)} />
-        <InfoItem label="PO #" value={order.id} />
+        {order.referencia ? <InfoItem label="Referencia" value={order.referencia} /> : <InfoItem label="Folio" value={order.id.slice(0, 12)} />}
         {order.fechaEntrega && <InfoItem label="Fecha de entrega est." value={formatDate(order.fechaEntrega)} />}
       </div>
 
@@ -981,14 +995,36 @@ function EstimateActions({ order, onRespond }) {
 }
 
 function ClientEstimados({ pedidos, onRespond }) {
-  const conEstimado = pedidos.filter(p => p.estimado);
-  const pendientes = conEstimado.filter(p => p.estimado.respuesta === 'pendiente');
-  const respondidos = conEstimado.filter(p => p.estimado.respuesta !== 'pendiente');
+  const sinEstimado = pedidos.filter(p => !p.estimado);
+  const pendientes = pedidos.filter(p => p.estimado?.respuesta === 'pendiente');
+  const respondidos = pedidos.filter(p => p.estimado && p.estimado.respuesta !== 'pendiente');
 
-  if (conEstimado.length === 0) return <EmptyState text="Aún no tienes estimados por revisar." />;
+  if (pedidos.length === 0) return <EmptyState text="Aún no tienes solicitudes registradas." />;
 
   return (
     <div className="space-y-6">
+      {sinEstimado.length > 0 && (
+        <div>
+          <h2 className="font-semibold text-stone-900 mb-3">Esperando estimado del proveedor</h2>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {sinEstimado.map(p => (
+              <div key={p.id} className="bg-white rounded-xl border border-stone-200 p-4">
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-stone-400 font-mono tracking-wider">{p.id}</p>
+                    <h3 className="font-semibold text-stone-900 truncate">{p.pieza}</h3>
+                    <p className="text-sm text-stone-500 truncate">{p.vehiculo}</p>
+                  </div>
+                  <StatusBadge estado={p.estado} />
+                </div>
+                <div className="text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" /> Pendiente de estimado
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {pendientes.length > 0 && (
         <div>
           <h2 className="font-semibold text-stone-900 mb-3">Pendientes de tu respuesta</h2>
@@ -1104,7 +1140,7 @@ function ClientOrderDetail({ order, onRespond }) {
 
       <div className="grid grid-cols-2 gap-3 text-sm">
         <InfoItem label="Fecha de registro" value={formatDate(order.fecha)} />
-        <InfoItem label="PO #" value={order.id} />
+        {order.referencia ? <InfoItem label="Referencia" value={order.referencia} /> : <InfoItem label="Folio" value={order.id.slice(0, 12)} />}
         {order.fechaEntrega && <InfoItem label="Fecha de entrega est." value={formatDate(order.fechaEntrega)} />}
       </div>
 
@@ -1158,7 +1194,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
 
   const misPedidos = pedidos.filter(p => p.tallerId === taller.id);
   const selectedOrder = misPedidos.find(p => p.id === selectedId);
-  const estimadosPendientes = misPedidos.filter(p => p.estimado && p.estimado.respuesta === 'pendiente').length;
+  const estimadosPendientes = misPedidos.filter(p => !p.estimado || p.estimado.respuesta === 'pendiente').length;
 
   const tabs = CLIENT_TABS.map(t => t.id === 'estimados' ? { ...t, badge: estimadosPendientes } : t);
 
