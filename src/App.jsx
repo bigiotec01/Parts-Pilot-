@@ -502,9 +502,9 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.nombre.trim()) return;
     const usuario = form.usuario.trim().toLowerCase();
-    if (!usuario || !form.password.trim() || !form.nombre.trim()) return;
-    if (talleres.some(t => t.usuario?.toLowerCase() === usuario)) {
+    if (usuario && talleres.some(t => t.usuario?.toLowerCase() === usuario)) {
       setError('Ese usuario ya existe, elige otro.');
       return;
     }
@@ -543,7 +543,7 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
 
       {done && (
         <div className="text-sm text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4" /> Taller creado. Comparte el usuario y la contraseña con ellos para que entren a Parts Pilot.
+          <CheckCircle2 className="w-4 h-4" /> Taller registrado correctamente.
         </div>
       )}
 
@@ -564,12 +564,12 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
             <input type="email" value={form.email} onChange={e => handleChange('email', e.target.value)} placeholder="ej. taller@correo.com" className={inputClass} />
           </FormField>
           <div className="grid grid-cols-2 gap-3">
-            <FormField label="Usuario">
-              <input value={form.usuario} onChange={e => handleChange('usuario', e.target.value)} placeholder="ej. martinez" className={`${inputClass} font-mono`} required />
+            <FormField label="Usuario (opcional)">
+              <input value={form.usuario} onChange={e => handleChange('usuario', e.target.value)} placeholder="ej. martinez" className={`${inputClass} font-mono`} />
             </FormField>
-            <FormField label="Contraseña">
+            <FormField label="Contraseña (opcional)">
               <div className="flex gap-2">
-                <input value={form.password} onChange={e => handleChange('password', e.target.value)} placeholder="••••••" className={`${inputClass} font-mono`} required />
+                <input value={form.password} onChange={e => handleChange('password', e.target.value)} placeholder="••••••" className={`${inputClass} font-mono`} />
                 <button type="button" onClick={generarPassword} className="px-3 rounded-lg border border-stone-200 text-stone-500 hover:bg-stone-50 text-xs font-medium whitespace-nowrap transition-colors">
                   Generar
                 </button>
@@ -672,10 +672,10 @@ function AdminNuevoPedido({ talleres, onCreate }) {
           </select>
         </FormField>
         <FormField label="Vehículo">
-          <input value={form.vehiculo} onChange={e => handleChange('vehiculo', e.target.value)} placeholder="ej. Toyota Corolla 2020" className={inputClass} required />
+          <input value={form.vehiculo} onChange={e => handleChange('vehiculo', e.target.value)} placeholder="ej. Toyota Corolla 2020" className={inputClass} />
         </FormField>
         <FormField label="PO #">
-          <input value={form.pieza} onChange={e => handleChange('pieza', e.target.value)} placeholder="ej. PO-48213" className={inputClass} required />
+          <input value={form.pieza} onChange={e => handleChange('pieza', e.target.value)} placeholder="ej. PO-48213" className={inputClass} />
         </FormField>
         <FormField label="Notas (opcional)">
           <textarea value={form.notas} onChange={e => handleChange('notas', e.target.value)} rows={3} placeholder="Detalles adicionales..." className={`${inputClass} resize-none`} />

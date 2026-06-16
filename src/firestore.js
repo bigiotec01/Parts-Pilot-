@@ -127,19 +127,28 @@ export async function eliminarTaller(uid) {
 
 // ── Crear taller (admin) ────────────────────────────────────────────
 export async function crearTaller({ nombre, contacto, telefono, email, usuario, password }) {
-  // App secundaria para no cerrar la sesión del admin al crear el usuario
-  const secondaryApp = initializeApp(firebaseConfig, `create-taller-${Date.now()}`);
-  const secondaryAuth = getAuth(secondaryApp);
-  try {
-    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
-    await setDoc(doc(db, 'talleres', cred.user.uid), {
-      nombre,
-      contacto,
-      telefono,
-      email,
-      usuario,
-    });
-  } finally {
-    await deleteApp(secondaryApp);
+  let uid;
+
+  if (email && password) {
+    // Crea usuario en Auth usando app secundaria para no cerrar sesión del admin
+    const secondaryApp = initializeApp(firebaseConfig, `create-taller-${Date.now()}`);
+    const secondaryAuth = getAuth(secondaryApp);
+    try {
+      const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+      uid = cred.user.uid;
+    } finally {
+      await deleteApp(secondaryApp);
+    }
+  } else {
+    // Sin credenciales: solo registro en Firestore (sin acceso al portal)
+    uid = `taller_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   }
+
+  await setDoc(doc(db, 'talleres', uid), {
+    nombre,
+    contacto: contacto || '',
+    telefono: telefono || '',
+    email: email || '',
+    usuario: usuario || '',
+  });
 }
