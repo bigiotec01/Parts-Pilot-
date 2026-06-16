@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Solo el propio admin puede leer su documento
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Talleres: admin lee/escribe todos; taller lee solo el suyo
+    match /talleres/{uid} {
+      allow read:  if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow write: if isAdmin();
+    }
+
+    // Contador de folios: cualquier usuario autenticado puede leer y actualizar
+    match /config/counters {
+      allow read, write: if request.auth != null;
+    }
+
+    // Pedidos: admin lee/escribe todos; taller lee/escribe solo los suyos
+    match /pedidos/{pedidoId} {
+      allow read:   if isAdmin() || (request.auth != null && resource.data.tallerId == request.auth.uid);
+      allow create: if isAdmin() || (request.auth != null && request.resource.data.tallerId == request.auth.uid);
+      allow update: if isAdmin() || (request.auth != null && resource.data.tallerId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+  }
+}

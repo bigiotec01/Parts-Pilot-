@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { db, storage } from './firebase';
 import {
   collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot,
-  query, where, orderBy, serverTimestamp, arrayUnion
+  query, where, orderBy, serverTimestamp, arrayUnion, runTransaction
 } from 'firebase/firestore';
 import {
   ref, uploadBytes, getDownloadURL
@@ -68,19 +68,31 @@ export function useTalleres(user) {
 // ── Crear pedido ────────────────────────────────────────────────────
 export async function crearPedido(data) {
   const { archivo, ...rest } = data;
-  const docRef = await addDoc(collection(db, 'pedidos'), {
-    ...rest,
-    fecha: serverTimestamp(),
-    estado: 'pendiente',
-    estimado: null,
-    mensajes: [],
-    archivo: null,
+  const countersRef = doc(db, 'config', 'counters');
+  const pedidoRef = doc(collection(db, 'pedidos'));
+
+  let folio;
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(countersRef);
+    const next = (snap.exists() ? (snap.data().pedidos || 0) : 0) + 1;
+    folio = `PP-${String(next).padStart(4, '0')}`;
+    tx.set(pedidoRef, {
+      ...rest,
+      folio,
+      fecha: serverTimestamp(),
+      estado: 'pendiente',
+      estimado: null,
+      mensajes: [],
+      archivo: null,
+    });
+    tx.set(countersRef, { pedidos: next }, { merge: true });
   });
+
   if (archivo?.file) {
-    const storageRef = ref(storage, `solicitudes/${docRef.id}/${archivo.name}`);
+    const storageRef = ref(storage, `solicitudes/${pedidoRef.id}/${archivo.name}`);
     await uploadBytes(storageRef, archivo.file);
     const url = await getDownloadURL(storageRef);
-    await updateDoc(docRef, { archivo: { name: archivo.name, url } });
+    await updateDoc(pedidoRef, { archivo: { name: archivo.name, url } });
   }
 }
 

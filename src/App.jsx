@@ -869,7 +869,7 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-stone-800 text-sm truncate">{taller?.nombre}</p>
-            <p className="text-xs text-stone-400 font-mono">{order.id.slice(0, 14)}</p>
+            <p className="text-xs text-stone-400 font-mono">{order.folio || order.id.slice(0, 8)}</p>
           </div>
         </div>
         <StatusBadge estado={order.estado} />
@@ -884,7 +884,7 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
             <InfoItem label="Fecha de registro" value={formatDate(order.fecha)} />
             {order.fechaEntrega
               ? <InfoItem label="Entrega estimada" value={formatDate(order.fechaEntrega)} />
-              : <InfoItem label="Folio" value={order.id.slice(0, 10)} />}
+              : <InfoItem label="Folio" value={order.folio || order.id.slice(0, 8)} />}
           </div>
 
           {/* Notas del taller */}
@@ -1214,7 +1214,7 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
   const filteredPedidos = solosPedidos.filter(p => {
     if (filterTaller !== 'todos' && String(p.tallerId) !== filterTaller) return false;
     if (filterEstado !== 'todos' && p.estado !== filterEstado) return false;
-    if (search && !`${p.referencia || ''} ${p.vehiculo} ${p.id}`.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !`${p.referencia || ''} ${p.vehiculo} ${p.folio || ''} ${p.id}`.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
@@ -1435,7 +1435,7 @@ function ClientOrderDetail({ order, onRespond }) {
 
       <div className="grid grid-cols-2 gap-3 text-sm">
         <InfoItem label="Fecha de registro" value={formatDate(order.fecha)} />
-        {order.referencia ? <InfoItem label="Referencia" value={order.referencia} /> : <InfoItem label="Folio" value={order.id.slice(0, 12)} />}
+        {order.referencia ? <InfoItem label="Referencia" value={order.referencia} /> : <InfoItem label="Folio" value={order.folio || order.id.slice(0, 8)} />}
         {order.fechaEntrega && <InfoItem label="Fecha de entrega est." value={formatDate(order.fechaEntrega)} />}
       </div>
 
