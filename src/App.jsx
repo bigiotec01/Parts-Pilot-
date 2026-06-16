@@ -1186,7 +1186,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
   const [activeTab, setActiveTab] = useState('pedidos');
   const [selectedId, setSelectedId] = useState(null);
 
-  const misPedidos = pedidos.filter(p => p.tallerId === taller.id);
+  const misPedidos = pedidos;
   const selectedOrder = misPedidos.find(p => p.id === selectedId);
   const estimadosPendientes = misPedidos.filter(p => !p.estimado || p.estimado.respuesta === 'pendiente').length;
 
