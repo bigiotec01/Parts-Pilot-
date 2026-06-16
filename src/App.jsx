@@ -9,13 +9,7 @@ import {
 /*  DATOS DE EJEMPLO (en una app real, esto viviría en tu base datos)  */
 /* ------------------------------------------------------------------ */
 
-const ADMIN_ACCOUNT = { usuario: 'admin', password: 'admin123', nombre: 'Depto. de Piezas · Agencia' };
-
-const TALLERES_INICIAL = [
-  { id: 1, nombre: 'Hojalatería y Pintura González', usuario: 'gonzalez', password: '1234', contacto: 'Juan González', telefono: '555-101-2233', email: 'juan@hpgonzalez.com' },
-  { id: 2, nombre: 'Taller El Rápido', usuario: 'elrapido', password: '1234', contacto: 'Pedro Martínez', telefono: '555-202-3344', email: 'pedro@elrapido.mx' },
-  { id: 3, nombre: 'Auto Pintura Express', usuario: 'express', password: '1234', contacto: 'Laura Sánchez', telefono: '555-303-4455', email: 'laura@pinturaexpress.mx' },
-];
+// Firebase maneja autenticación y datos - ver useAuth.js y firestore.js
 
 const STATUS_ORDER = ['pendiente', 'cotizando', 'pedido_fabrica', 'en_transito', 'recibido', 'entregado'];
 
@@ -358,13 +352,13 @@ const inputClass = "w-full px-3 py-2.5 rounded-lg border border-stone-200 text-s
 /* ------------------------------------------------------------------ */
 
 function LoginScreen({ onLogin, error }) {
-  const [usuario, setUsuario] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onLogin(usuario.trim(), password.trim());
+    onLogin(email.trim(), password.trim());
   };
 
   return (
@@ -379,12 +373,12 @@ function LoginScreen({ onLogin, error }) {
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 shadow-xl space-y-4">
-          <FormField label="Usuario">
-            <input value={usuario} onChange={e => setUsuario(e.target.value)} type="text" placeholder="ej. gonzalez" className={inputClass} />
+          <FormField label="Correo electrónico">
+            <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="tu@correo.com" className={inputClass} required />
           </FormField>
           <FormField label="Contraseña">
             <div className="relative">
-              <input value={password} onChange={e => setPassword(e.target.value)} type={showPassword ? 'text' : 'password'} placeholder="••••••" className={`${inputClass} pr-10`} />
+              <input value={password} onChange={e => setPassword(e.target.value)} type={showPassword ? 'text' : 'password'} placeholder="••••••" className={`${inputClass} pr-10`} required />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400">
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -401,11 +395,9 @@ function LoginScreen({ onLogin, error }) {
           </button>
         </form>
 
-        <div className="mt-5 bg-stone-800/60 rounded-xl p-4 text-xs text-stone-400 space-y-1">
-          <p className="text-stone-300 font-medium mb-1.5">Cuentas de prueba</p>
-          <p>Administrador (tú): <span className="text-stone-200 font-mono">admin / admin123</span></p>
-          <p>Taller González: <span className="text-stone-200 font-mono">gonzalez / 1234</span></p>
-          <p>Taller El Rápido: <span className="text-stone-200 font-mono">elrapido / 1234</span></p>
+        <div className="mt-5 bg-stone-800/60 rounded-xl p-4 text-xs text-stone-400">
+          <p className="text-stone-300 font-medium">Firebase Authentication</p>
+          <p className="mt-1.5">Ingresa tu correo y contraseña registrados en Parts Pilot.</p>
         </div>
       </div>
     </div>
