@@ -484,7 +484,7 @@ function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFilterTal
   );
 }
 
-function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller }) {
+function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDeleteTaller }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ nombre: '', contacto: '', telefono: '', email: '', usuario: '', password: '' });
   const [error, setError] = useState('');
@@ -600,9 +600,22 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller }) {
                   {activos} activos · {pedidosTaller.length} total
                 </span>
               </div>
-              <button onClick={() => onVerPedidos(t.id)} className="text-orange-600 font-medium text-sm hover:text-orange-700 flex items-center gap-1 flex-shrink-0">
-                Ver <ChevronRight className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button onClick={() => onVerPedidos(t.id)} className="text-orange-600 font-medium text-sm hover:text-orange-700 flex items-center gap-1">
+                  Ver <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => {
+                    if (window.confirm(`¿Eliminar el taller "${t.nombre}"? Esta acción no se puede deshacer.`)) {
+                      onDeleteTaller(t.uid);
+                    }
+                  }}
+                  className="p-1.5 rounded-lg text-stone-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                  title="Eliminar taller"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         );
@@ -803,7 +816,7 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
   );
 }
 
-function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onSendMessage, onCreateTaller }) {
+function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onSendMessage, onCreateTaller, onDeleteTaller }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
@@ -838,7 +851,7 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
           />
         )}
         {activeTab === 'talleres' && (
-          <AdminTalleres talleres={talleres} pedidos={pedidos} onCreateTaller={onCreateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); setActiveTab('pedidos'); }} />
+          <AdminTalleres talleres={talleres} pedidos={pedidos} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); setActiveTab('pedidos'); }} />
         )}
         {activeTab === 'nuevo' && (
           <AdminNuevoPedido talleres={talleres} onCreate={(data) => { onCreateOrder(data); setActiveTab('pedidos'); }} />
@@ -1097,7 +1110,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
 /* ------------------------------------------------------------------ */
 
 import { useAuth } from './useAuth';
-import { usePedidos, useTalleres, crearPedido, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller } from './firestore';
+import { usePedidos, useTalleres, crearPedido, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller } from './firestore';
 
 export default function App() {
   const { user, perfil, cargando, error, login, logout, setError } = useAuth();
@@ -1138,6 +1151,7 @@ export default function App() {
         onCreateOrder={(data) => crearPedido(data)}
         onSendMessage={(id, texto, from, attachment) => enviarMensaje(id, texto, from, attachment)}
         onCreateTaller={(data) => crearTaller(data)}
+        onDeleteTaller={(uid) => eliminarTaller(uid)}
       />
     );
   }

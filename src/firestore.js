@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db, storage } from './firebase';
 import {
-  collection, doc, addDoc, updateDoc, onSnapshot,
+  collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot,
   query, where, orderBy, serverTimestamp, arrayUnion
 } from 'firebase/firestore';
 import {
@@ -117,6 +117,11 @@ export async function enviarMensaje(pedidoId, texto, from, adjunto) {
   await updateDoc(doc(db, 'pedidos', pedidoId), {
     mensajes: arrayUnion(mensaje),
   });
+}
+
+// ── Eliminar taller (admin) ─────────────────────────────────────────
+export async function eliminarTaller(uid) {
+  await deleteDoc(doc(db, 'talleres', uid));
 }
 
 // ── Crear taller (admin) ────────────────────────────────────────────
