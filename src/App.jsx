@@ -242,20 +242,34 @@ function ChatAttachment({ attachment, isMine }) {
 
 function OrderChat({ order, role, otherPartyName, onSendMessage }) {
   const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [chatError, setChatError] = useState('');
   const mensajes = order.mensajes || [];
 
-  const handleSend = (e) => {
+  const handleSend = async (e) => {
     e.preventDefault();
-    if (!text.trim()) return;
-    onSendMessage(order.id, text.trim());
-    setText('');
+    if (!text.trim() || sending) return;
+    setSending(true);
+    setChatError('');
+    try {
+      await onSendMessage(order.id, text.trim());
+      setText('');
+    } catch (err) {
+      setChatError('No se pudo enviar: ' + (err.message || err.code));
+    } finally {
+      setSending(false);
+    }
   };
 
-  const handleFile = (e) => {
+  const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    onSendMessage(order.id, '', { name: file.name, type: file.type, url });
+    setChatError('');
+    try {
+      await onSendMessage(order.id, '', { name: file.name, type: file.type, file });
+    } catch (err) {
+      setChatError('No se pudo adjuntar: ' + (err.message || err.code));
+    }
     e.target.value = '';
   };
 
@@ -281,13 +295,18 @@ function OrderChat({ order, role, otherPartyName, onSendMessage }) {
           );
         })}
       </div>
+      {chatError && (
+        <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg mt-2">
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {chatError}
+        </div>
+      )}
       <form onSubmit={handleSend} className="flex items-center gap-2 pt-3 mt-2 border-t border-stone-100">
         <label className="bg-stone-100 hover:bg-stone-200 text-stone-500 p-2.5 rounded-lg transition-colors flex-shrink-0 cursor-pointer" title="Adjuntar foto o PDF">
           <Paperclip className="w-4 h-4" />
           <input type="file" accept="image/*,application/pdf" onChange={handleFile} className="hidden" />
         </label>
-        <input value={text} onChange={e => setText(e.target.value)} placeholder="Escribe un mensaje..." className={`${inputClass} flex-1`} />
-        <button type="submit" className="bg-orange-500 hover:bg-orange-600 text-white p-2.5 rounded-lg transition-colors flex-shrink-0">
+        <input value={text} onChange={e => setText(e.target.value)} placeholder="Escribe un mensaje..." className={`${inputClass} flex-1`} disabled={sending} />
+        <button type="submit" disabled={sending} className="bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white p-2.5 rounded-lg transition-colors flex-shrink-0">
           <Send className="w-4 h-4" />
         </button>
       </form>
