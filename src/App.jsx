@@ -97,17 +97,17 @@ function formatDate(d) {
 function AdminHeader({ tabs, activeTab, onChange, userLabel, onLogout }) {
   return (
     <header className="bg-stone-900 text-white sticky top-0 z-20 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center h-14 gap-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 flex items-center h-14 gap-2 sm:gap-6">
         {/* Logo */}
-        <div className="flex items-center gap-2.5 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
             <CarFront className="w-4 h-4 text-white" />
           </div>
-          <span className="font-bold text-base tracking-tight">Parts Pilot</span>
+          <span className="hidden sm:inline font-bold text-base tracking-tight">Parts Pilot</span>
         </div>
 
         {/* Nav links */}
-        <nav className="flex items-center gap-1 flex-1 overflow-x-auto">
+        <nav className="flex items-center flex-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -115,14 +115,12 @@ function AdminHeader({ tabs, activeTab, onChange, userLabel, onLogout }) {
               <button
                 key={tab.id}
                 onClick={() => onChange(tab.id)}
-                className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                  isActive
-                    ? 'bg-orange-500 text-white'
-                    : 'text-stone-400 hover:text-white hover:bg-stone-800'
+                className={`relative flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
+                  isActive ? 'bg-orange-500 text-white' : 'text-stone-400 hover:text-white hover:bg-stone-800'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
-                {tab.label}
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">{tab.label}</span>
                 {tab.badge > 0 && (
                   <span className="bg-white text-orange-600 text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">{tab.badge}</span>
                 )}
@@ -133,7 +131,7 @@ function AdminHeader({ tabs, activeTab, onChange, userLabel, onLogout }) {
 
         {/* Usuario + logout */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="hidden sm:inline text-sm text-stone-400">{userLabel}</span>
+          <span className="hidden md:inline text-sm text-stone-400 truncate max-w-[120px]">{userLabel}</span>
           <button onClick={onLogout} className="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 transition-colors" title="Cerrar sesión">
             <LogOut className="w-4 h-4" />
           </button>
@@ -275,15 +273,19 @@ function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0 }) {
 
 function Modal({ title, onClose, children }) {
   return (
-    <div className="fixed inset-0 bg-stone-900/50 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-3xl max-h-[95vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100 sticky top-0 bg-white">
-          <h2 className="font-mono tracking-wider text-sm text-stone-500">{title}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-stone-100">
+    <div className="fixed inset-0 bg-stone-900/60 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-3xl h-[92vh] sm:h-auto sm:max-h-[90vh] overflow-y-auto flex flex-col" onClick={e => e.stopPropagation()}>
+        {/* drag handle en móvil */}
+        <div className="flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-10 h-1 rounded-full bg-stone-200" />
+        </div>
+        <div className="flex items-center justify-between px-5 py-3 border-b border-stone-100 sticky top-0 bg-white z-10">
+          <h2 className="font-mono tracking-wider text-sm text-stone-500 truncate pr-4">{title}</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-stone-100 flex-shrink-0">
             <X className="w-5 h-5 text-stone-500" />
           </button>
         </div>
-        <div className="p-5">{children}</div>
+        <div className="p-5 flex-1">{children}</div>
       </div>
     </div>
   );
@@ -1328,7 +1330,7 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
   return (
     <div className="min-h-screen bg-stone-50">
       <AdminHeader tabs={tabsConBadge} activeTab={activeTab} onChange={(t) => { setActiveTab(t); setSelectedId(null); }} userLabel="Administrador" onLogout={onLogout} />
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-16">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-20">
         {activeTab === 'dashboard' && (
           <AdminDashboard
             pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres}
@@ -1738,7 +1740,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
     <div className="min-h-screen bg-stone-50">
       <Header title="Parts Pilot" subtitle={taller.nombre} userLabel={taller.contacto} onLogout={onLogout} maxWidth="max-w-2xl" />
       <NavTabs tabs={tabs} active={activeTab} onChange={(t) => { setActiveTab(t); setSelectedId(null); setSearch(''); }} maxWidth="max-w-2xl" />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-16">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-20">
 
         {/* Mini resumen — visible siempre */}
         <div className="grid grid-cols-3 gap-3 mb-6">
