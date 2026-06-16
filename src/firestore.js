@@ -30,9 +30,11 @@ export function usePedidos(user) {
         orderBy('fecha', 'desc')
       );
     }
-    const unsub = onSnapshot(q, (snap) => {
-      setPedidos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => setPedidos(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      (err) => console.error('usePedidos error:', err.code)
+    );
     return unsub;
   }, [user]);
 
@@ -44,9 +46,11 @@ export function useTalleres(user) {
   const [talleres, setTalleres] = useState([]);
   useEffect(() => {
     if (!user) return;
-    const unsub = onSnapshot(collection(db, 'talleres'), (snap) => {
-      setTalleres(snap.docs.map(d => ({ uid: d.id, ...d.data() })));
-    });
+    const unsub = onSnapshot(
+      collection(db, 'talleres'),
+      (snap) => setTalleres(snap.docs.map(d => ({ uid: d.id, ...d.data() }))),
+      (err) => console.error('useTalleres error:', err.code)
+    );
     return unsub;
   }, [user]);
   return talleres;
