@@ -694,7 +694,7 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
   };
 
   return (
-    <div className="space-y-4">
+    <div className="max-w-3xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-stone-900">Talleres registrados</h2>
         <button
@@ -869,7 +869,7 @@ function AdminNuevoPedido({ talleres, onCreate }) {
   };
 
   return (
-    <div className="max-w-lg">
+    <div className="max-w-lg mx-auto">
       <h2 className="font-semibold text-stone-900 mb-1 text-lg">Registrar nuevo pedido</h2>
       <p className="text-sm text-stone-500 mb-4">Crea el folio a nombre de un taller. Aparecerá de inmediato en su portal.</p>
       {done && (
