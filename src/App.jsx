@@ -468,7 +468,7 @@ function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFilterTal
         </div>
         <select value={filterTaller} onChange={e => setFilterTaller(e.target.value)} className={`${inputClass} bg-white sm:w-56`}>
           <option value="todos">Todos los talleres</option>
-          {talleres.map(t => <option key={t.id} value={String(t.id)}>{t.nombre}</option>)}
+          {talleres.map(t => <option key={t.uid} value={t.uid}>{t.nombre}</option>)}
         </select>
         <select value={filterEstado} onChange={e => setFilterEstado(e.target.value)} className={`${inputClass} bg-white sm:w-52`}>
           <option value="todos">Todos los estados</option>
@@ -589,10 +589,10 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
 
       <div className="grid sm:grid-cols-2 gap-3">
       {talleres.map(t => {
-        const pedidosTaller = pedidos.filter(p => p.tallerId === t.id);
+        const pedidosTaller = pedidos.filter(p => p.tallerId === t.uid);
         const activos = pedidosTaller.filter(p => p.estado !== 'entregado').length;
         return (
-          <div key={t.id} className="bg-white rounded-xl border border-stone-200 p-4">
+          <div key={t.uid} className="bg-white rounded-xl border border-stone-200 p-4">
             <div className="flex items-start gap-3 mb-3">
               <div className="w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center flex-shrink-0">
                 <Building2 className="w-5 h-5 text-stone-500" />
@@ -618,7 +618,7 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
                 </span>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <button onClick={() => onVerPedidos(t.id)} className="text-orange-600 font-medium text-sm hover:text-orange-700 flex items-center gap-1">
+                <button onClick={() => onVerPedidos(t.uid)} className="text-orange-600 font-medium text-sm hover:text-orange-700 flex items-center gap-1">
                   Ver <ChevronRight className="w-4 h-4" />
                 </button>
                 <button
@@ -643,15 +643,15 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
 }
 
 function AdminNuevoPedido({ talleres, onCreate }) {
-  const [form, setForm] = useState({ tallerId: talleres[0]?.id ?? '', vehiculo: '', pieza: '', fechaEntrega: '', notas: '' });
+  const [form, setForm] = useState({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', pieza: '', fechaEntrega: '', notas: '' });
   const [done, setDone] = useState(false);
 
   const handleChange = (field, value) => setForm(f => ({ ...f, [field]: value }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onCreate({ ...form, tallerId: Number(form.tallerId) });
-    setForm({ tallerId: talleres[0]?.id ?? '', vehiculo: '', pieza: '', fechaEntrega: '', notas: '' });
+    onCreate({ ...form });
+    setForm({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', pieza: '', fechaEntrega: '', notas: '' });
     setDone(true);
     setTimeout(() => setDone(false), 3000);
   };
@@ -668,7 +668,7 @@ function AdminNuevoPedido({ talleres, onCreate }) {
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-stone-200 p-5 space-y-4">
         <FormField label="Taller">
           <select value={form.tallerId} onChange={e => handleChange('tallerId', e.target.value)} className={`${inputClass} bg-white`} required>
-            {talleres.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
+            {talleres.map(t => <option key={t.uid} value={t.uid}>{t.nombre}</option>)}
           </select>
         </FormField>
         <FormField label="Vehículo">
@@ -855,7 +855,7 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
   const [filterEstado, setFilterEstado] = useState('todos');
   const [search, setSearch] = useState('');
 
-  const getTaller = (id) => talleres.find(t => t.id === id);
+  const getTaller = (id) => talleres.find(t => t.uid === id);
   const selectedOrder = pedidos.find(p => p.id === selectedId);
 
   const filteredPedidos = pedidos.filter(p => {
