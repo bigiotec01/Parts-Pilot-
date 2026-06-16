@@ -142,6 +142,11 @@ export async function enviarMensaje(pedidoId, texto, from, adjunto) {
   });
 }
 
+// ── Eliminar pedido (admin) ─────────────────────────────────────────
+export async function eliminarPedido(pedidoId) {
+  await deleteDoc(doc(db, 'pedidos', pedidoId));
+}
+
 // ── Eliminar taller (admin) ─────────────────────────────────────────
 export async function eliminarTaller(uid) {
   await deleteDoc(doc(db, 'talleres', uid));

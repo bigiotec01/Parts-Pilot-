@@ -2,7 +2,8 @@ import { useState } from 'react';
 import {
   CarFront, Package, Truck, CheckCircle2, Clock, FileText, LogOut, Plus, Search,
   Building2, Phone, X, ThumbsUp, ThumbsDown, ChevronRight, AlertCircle,
-  LayoutDashboard, ClipboardList, Users, Calendar, Send, Eye, EyeOff, MessageSquare, Paperclip, Mail
+  LayoutDashboard, ClipboardList, Users, Calendar, Send, Eye, EyeOff, MessageSquare, Paperclip, Mail,
+  Download, Trash2
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -18,8 +19,8 @@ const STATUS_CONFIG = {
   cotizando:      { label: 'Cotización enviada',   short: 'Cotizando', badge: 'bg-blue-50 text-blue-700 border-blue-200',     dot: 'bg-blue-500',   icon: FileText },
   pedido_fabrica: { label: 'Pedido a fábrica',      short: 'Pedido',    badge: 'bg-violet-50 text-violet-700 border-violet-200', dot: 'bg-violet-500', icon: Package },
   en_transito:    { label: 'En tránsito',           short: 'En camino', badge: 'bg-amber-50 text-amber-700 border-amber-200',  dot: 'bg-amber-500',  icon: Truck },
-  recibido:       { label: 'Recibido en bodega',    short: 'Recibido',  badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', icon: Package },
-  entregado:      { label: 'Entregado al taller',   short: 'Entregado', badge: 'bg-teal-50 text-teal-700 border-teal-200',     dot: 'bg-teal-600',   icon: CheckCircle2 },
+  recibido:       { label: 'Recibido en Tienda',    short: 'En Tienda', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', icon: Package },
+  entregado:      { label: 'Orden Completa',        short: 'Completa',  badge: 'bg-teal-50 text-teal-700 border-teal-200',     dot: 'bg-teal-600',   icon: CheckCircle2 },
 };
 
 const PEDIDOS_INICIAL = [
@@ -183,24 +184,30 @@ function OrderCard({ order, taller, showTaller, onClick }) {
     <button onClick={onClick} className="w-full text-left bg-white border border-stone-200 rounded-xl p-4 hover:border-orange-300 hover:shadow-md transition-all">
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="min-w-0">
-          <p className="text-[11px] text-stone-400 font-mono tracking-wider">{order.id}</p>
           <h3 className="font-semibold text-stone-900 truncate">{order.referencia || order.vehiculo}</h3>
           {order.referencia && <p className="text-sm text-stone-500 truncate">{order.vehiculo}</p>}
         </div>
         <StatusBadge estado={order.estado} />
       </div>
-      <div className="flex items-center justify-between gap-2 text-xs text-stone-500 mt-3 pt-3 border-t border-dashed border-stone-200">
-        {showTaller ? (
-          <span className="flex items-center gap-1 truncate"><Building2 className="w-3.5 h-3.5 flex-shrink-0" />{taller?.nombre}</span>
-        ) : (
-          <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5 flex-shrink-0" />{formatDate(order.fecha)}</span>
-        )}
-        <div className="flex items-center gap-3 flex-shrink-0">
-          {order.mensajes?.length > 0 && (
-            <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" />{order.mensajes.length}</span>
+      <div className="flex flex-col gap-1 text-xs text-stone-500 mt-3 pt-3 border-t border-dashed border-stone-200">
+        <div className="flex items-center justify-between gap-2">
+          {showTaller ? (
+            <span className="flex items-center gap-1 truncate"><Building2 className="w-3.5 h-3.5 flex-shrink-0" />{taller?.nombre}</span>
+          ) : (
+            <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5 flex-shrink-0" />{formatDate(order.fecha)}</span>
           )}
-          {order.estimado && <span className="flex items-center gap-1 text-orange-500"><FileText className="w-3.5 h-3.5" />Estimado</span>}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            {order.mensajes?.length > 0 && (
+              <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" />{order.mensajes.length}</span>
+            )}
+            {order.estimado && <span className="flex items-center gap-1 text-orange-500"><FileText className="w-3.5 h-3.5" />Estimado</span>}
+          </div>
         </div>
+        {order.fechaEntrega && (
+          <span className="flex items-center gap-1 text-blue-600 font-medium">
+            <Truck className="w-3.5 h-3.5 flex-shrink-0" /> Entrega est.: {formatDate(order.fechaEntrega)}
+          </span>
+        )}
       </div>
     </button>
   );
@@ -476,13 +483,13 @@ function AdminDashboard({ pedidos, talleres, getTaller, onSelect, onGoToPedidos 
   );
 }
 
-function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFilterTaller, filterEstado, setFilterEstado, search, setSearch, onSelect }) {
+function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFilterTaller, filterEstado, setFilterEstado, search, setSearch, onSelect, onExport }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por pieza, vehículo o folio..." className={`${inputClass} pl-9`} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio..." className={`${inputClass} pl-9`} />
         </div>
         <select value={filterTaller} onChange={e => setFilterTaller(e.target.value)} className={`${inputClass} bg-white sm:w-56`}>
           <option value="todos">Todos los talleres</option>
@@ -492,6 +499,9 @@ function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFilterTal
           <option value="todos">Todos los estados</option>
           {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
         </select>
+        <button onClick={onExport} className="flex items-center justify-center gap-2 bg-stone-800 hover:bg-stone-900 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex-shrink-0">
+          <Download className="w-4 h-4" /> Reporte
+        </button>
       </div>
 
       {pedidos.length === 0 ? (
@@ -717,7 +727,7 @@ function AdminNuevoPedido({ talleres, onCreate }) {
   );
 }
 
-function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
+function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDeleteOrder }) {
   const [notasEstimado, setNotasEstimado] = useState(order.estimado?.notas ?? '');
   const [archivo, setArchivo] = useState(order.estimado?.archivo ?? null);
   const [sent, setSent] = useState(false);
@@ -918,12 +928,58 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate }) {
             <p className="text-xs text-stone-400 text-center">Este taller no tiene correo registrado — agrégalo en la pestaña "Talleres".</p>
           )}
         </div>
+        <div className="mt-4 pt-4 border-t border-dashed border-stone-200">
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.')) {
+                onDeleteOrder(order.id);
+              }
+            }}
+            className="w-full flex items-center justify-center gap-2 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 py-2 rounded-lg transition-colors border border-dashed border-red-200"
+          >
+            <Trash2 className="w-4 h-4" /> Eliminar pedido
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onSendMessage, onCreateTaller, onDeleteTaller }) {
+function exportarReporte(pedidos, talleres) {
+  const getTaller = (id) => talleres.find(t => t.uid === id);
+  const toDateStr = (f) => {
+    if (!f) return '';
+    const d = f?.toDate ? f.toDate() : new Date(f + 'T00:00:00');
+    return isNaN(d) ? '' : d.toLocaleDateString('es-MX');
+  };
+  const headers = ['Folio', 'Referencia', 'Vehículo', 'Taller', 'Estado', 'Fecha Registro', 'Fecha Entrega Est.', 'Notas', 'Estimado - Notas', 'Estimado - Respuesta', 'Mensajes'];
+  const rows = pedidos.map(p => [
+    p.id,
+    p.referencia || '',
+    p.vehiculo || '',
+    getTaller(p.tallerId)?.nombre || '',
+    STATUS_CONFIG[p.estado]?.label || p.estado,
+    toDateStr(p.fecha),
+    toDateStr(p.fechaEntrega),
+    p.notas || '',
+    p.estimado?.notas || '',
+    p.estimado?.respuesta || '',
+    (p.mensajes || []).length,
+  ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+  const csv = '﻿' + [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `reporte-pedidos-${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
@@ -955,6 +1011,7 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
             filterEstado={filterEstado} setFilterEstado={setFilterEstado}
             search={search} setSearch={setSearch}
             onSelect={setSelectedId}
+            onExport={() => exportarReporte(pedidos, talleres)}
           />
         )}
         {activeTab === 'talleres' && (
@@ -969,7 +1026,7 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
           order={selectedOrder}
           title={selectedOrder.id}
           onClose={() => setSelectedId(null)}
-          detailContent={<AdminOrderDetail order={selectedOrder} taller={getTaller(selectedOrder.tallerId)} onChangeStatus={onChangeStatus} onSendEstimate={onSendEstimate} />}
+          detailContent={<AdminOrderDetail order={selectedOrder} taller={getTaller(selectedOrder.tallerId)} onChangeStatus={onChangeStatus} onSendEstimate={onSendEstimate} onDeleteOrder={async (id) => { await onDeleteOrder(id); setSelectedId(null); }} />}
           chatProps={{
             role: 'admin',
             otherPartyName: getTaller(selectedOrder.tallerId)?.nombre,
@@ -990,7 +1047,6 @@ function EstimateCard({ order }) {
   return (
     <div className="bg-white rounded-xl border border-stone-200 p-4">
       <div className="mb-2">
-        <p className="text-[11px] text-stone-400 font-mono tracking-wider">{order.id}</p>
         <h3 className="font-semibold text-stone-900 truncate">{order.referencia || order.vehiculo}</h3>
         {order.referencia && <p className="text-sm text-stone-500 truncate">{order.vehiculo}</p>}
       </div>
@@ -1044,7 +1100,6 @@ function ClientEstimados({ pedidos, onRespond }) {
               <div key={p.id} className="bg-white rounded-xl border border-stone-200 p-4">
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="min-w-0">
-                    <p className="text-[11px] text-stone-400 font-mono tracking-wider">{p.id}</p>
                     <h3 className="font-semibold text-stone-900 truncate">{p.referencia || p.vehiculo}</h3>
                     {p.referencia && <p className="text-sm text-stone-500 truncate">{p.vehiculo}</p>}
                   </div>
@@ -1065,7 +1120,6 @@ function ClientEstimados({ pedidos, onRespond }) {
             {pendientes.map(p => (
               <div key={p.id} className="bg-white rounded-xl border border-stone-200 p-4">
                 <div className="mb-2">
-                  <p className="text-[11px] text-stone-400 font-mono tracking-wider">{p.id}</p>
                   <h3 className="font-semibold text-stone-900 truncate">{p.referencia || p.vehiculo}</h3>
                   {p.referencia && <p className="text-sm text-stone-500 truncate">{p.vehiculo}</p>}
                 </div>
@@ -1269,7 +1323,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
 /* ------------------------------------------------------------------ */
 
 import { useAuth } from './useAuth';
-import { usePedidos, useTalleres, crearPedido, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller } from './firestore';
+import { usePedidos, useTalleres, crearPedido, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido } from './firestore';
 
 export default function App() {
   const { user, perfil, cargando, error, login, logout, setError } = useAuth();
@@ -1311,6 +1365,7 @@ export default function App() {
         onSendMessage={(id, texto, from, attachment) => enviarMensaje(id, texto, from, attachment)}
         onCreateTaller={(data) => crearTaller(data)}
         onDeleteTaller={(uid) => eliminarTaller(uid)}
+        onDeleteOrder={async (id) => { await eliminarPedido(id); }}
       />
     );
   }
