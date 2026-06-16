@@ -112,6 +112,7 @@ export async function enviarEstimado(pedidoId, { notas, archivo }) {
   await updateDoc(doc(db, 'pedidos', pedidoId), {
     estimado: nuevoEstimado,
     estado: 'cotizando',
+    tipo: 'pedido',
   });
 }
 
