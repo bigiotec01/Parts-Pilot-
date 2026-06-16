@@ -147,6 +147,11 @@ export async function eliminarPedido(pedidoId) {
   await deleteDoc(doc(db, 'pedidos', pedidoId));
 }
 
+// ── Actualizar taller (admin) ───────────────────────────────────────
+export async function actualizarTaller(uid, datos) {
+  await updateDoc(doc(db, 'talleres', uid), datos);
+}
+
 // ── Eliminar taller (admin) ─────────────────────────────────────────
 export async function eliminarTaller(uid) {
   await deleteDoc(doc(db, 'talleres', uid));

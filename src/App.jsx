@@ -3,7 +3,7 @@ import {
   CarFront, Package, Truck, CheckCircle2, Clock, FileText, LogOut, Plus, Search,
   Building2, Phone, X, ThumbsUp, ThumbsDown, ChevronRight, AlertCircle,
   LayoutDashboard, ClipboardList, Users, Calendar, Send, Eye, EyeOff, MessageSquare, Paperclip, Mail,
-  Download, Trash2
+  Printer, Trash2, Pencil
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -500,7 +500,7 @@ function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFilterTal
           {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
         </select>
         <button onClick={onExport} className="flex items-center justify-center gap-2 bg-stone-800 hover:bg-stone-900 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex-shrink-0">
-          <Download className="w-4 h-4" /> Reporte
+          <Printer className="w-4 h-4" /> Reporte
         </button>
       </div>
 
@@ -515,14 +515,39 @@ function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFilterTal
   );
 }
 
-function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDeleteTaller }) {
+function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDeleteTaller, onUpdateTaller }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ nombre: '', contacto: '', telefono: '', email: '', usuario: '', password: '' });
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState('');
 
   const handleChange = (field, value) => setForm(f => ({ ...f, [field]: value }));
+  const handleEditChange = (field, value) => setEditForm(f => ({ ...f, [field]: value }));
+
+  const startEdit = (t) => {
+    setEditingId(t.uid);
+    setEditForm({ nombre: t.nombre || '', contacto: t.contacto || '', telefono: t.telefono || '', email: t.email || '', usuario: t.usuario || '' });
+    setEditError('');
+  };
+
+  const handleUpdate = async () => {
+    if (!editForm.nombre.trim()) return;
+    setEditSaving(true);
+    setEditError('');
+    try {
+      await onUpdateTaller(editingId, editForm);
+      setEditingId(null);
+    } catch (err) {
+      setEditError('Error al actualizar: ' + err.message);
+    } finally {
+      setEditSaving(false);
+    }
+  };
 
   const generarPassword = () => {
     handleChange('password', Math.random().toString(36).slice(-8));
@@ -619,6 +644,50 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
       {talleres.map(t => {
         const pedidosTaller = pedidos.filter(p => p.tallerId === t.uid);
         const activos = pedidosTaller.filter(p => p.estado !== 'entregado').length;
+
+        if (editingId === t.uid) {
+          return (
+            <div key={t.uid} className="bg-white rounded-xl border border-orange-300 ring-1 ring-orange-100 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-semibold text-stone-800">Editar taller</p>
+                <button onClick={() => setEditingId(null)} className="text-stone-400 hover:text-stone-600"><X className="w-4 h-4" /></button>
+              </div>
+              <div className="space-y-3">
+                <FormField label="Nombre del taller">
+                  <input value={editForm.nombre} onChange={e => handleEditChange('nombre', e.target.value)} className={inputClass} />
+                </FormField>
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField label="Contacto">
+                    <input value={editForm.contacto} onChange={e => handleEditChange('contacto', e.target.value)} className={inputClass} />
+                  </FormField>
+                  <FormField label="Teléfono">
+                    <input value={editForm.telefono} onChange={e => handleEditChange('telefono', e.target.value)} className={inputClass} />
+                  </FormField>
+                </div>
+                <FormField label="Correo electrónico">
+                  <input type="email" value={editForm.email} onChange={e => handleEditChange('email', e.target.value)} className={inputClass} />
+                </FormField>
+                <FormField label="Usuario">
+                  <input value={editForm.usuario} onChange={e => handleEditChange('usuario', e.target.value)} className={`${inputClass} font-mono`} />
+                </FormField>
+                {editError && (
+                  <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" /> {editError}
+                  </div>
+                )}
+                <div className="flex gap-2 pt-1">
+                  <button onClick={handleUpdate} disabled={editSaving} className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white text-sm font-semibold py-2 rounded-lg transition-colors">
+                    {editSaving ? 'Guardando…' : 'Guardar cambios'}
+                  </button>
+                  <button onClick={() => setEditingId(null)} className="px-4 bg-stone-100 hover:bg-stone-200 text-stone-600 text-sm font-medium py-2 rounded-lg transition-colors">
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
         return (
           <div key={t.uid} className="bg-white rounded-xl border border-stone-200 p-4">
             <div className="flex items-start gap-3 mb-3">
@@ -645,16 +714,15 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
                   {activos} activos · {pedidosTaller.length} total
                 </span>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <button onClick={() => onVerPedidos(t.uid)} className="text-orange-600 font-medium text-sm hover:text-orange-700 flex items-center gap-1">
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button onClick={() => onVerPedidos(t.uid)} className="text-orange-600 font-medium text-sm hover:text-orange-700 flex items-center gap-1 px-2 py-1">
                   Ver <ChevronRight className="w-4 h-4" />
                 </button>
+                <button onClick={() => startEdit(t)} className="p-1.5 rounded-lg text-stone-400 hover:text-orange-500 hover:bg-orange-50 transition-colors" title="Editar taller">
+                  <Pencil className="w-4 h-4" />
+                </button>
                 <button
-                  onClick={() => {
-                    if (window.confirm(`¿Eliminar el taller "${t.nombre}"? Esta acción no se puede deshacer.`)) {
-                      onDeleteTaller(t.uid);
-                    }
-                  }}
+                  onClick={() => { if (window.confirm(`¿Eliminar el taller "${t.nombre}"? Esta acción no se puede deshacer.`)) onDeleteTaller(t.uid); }}
                   className="p-1.5 rounded-lg text-stone-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                   title="Eliminar taller"
                 >
@@ -952,45 +1020,128 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
   );
 }
 
-function exportarReporte(pedidos, talleres) {
-  const getTaller = (id) => talleres.find(t => t.uid === id);
-  const toDateStr = (f) => {
-    if (!f) return '';
-    const d = f?.toDate ? f.toDate() : new Date(f + 'T00:00:00');
-    return isNaN(d) ? '' : d.toLocaleDateString('es-MX');
+function ReporteModal({ pedidos, talleres, onClose }) {
+  const ACTIVOS = ['pendiente', 'cotizando', 'pedido_fabrica', 'en_transito', 'recibido'];
+  const activos = [...pedidos]
+    .filter(p => ACTIVOS.includes(p.estado))
+    .sort((a, b) => {
+      const t = f => f?.toDate ? f.toDate().getTime() : new Date(f + 'T00:00:00').getTime();
+      return t(a.fecha) - t(b.fecha);
+    });
+  const getTaller = id => talleres.find(t => t.uid === id);
+
+  const handlePrint = () => {
+    const toStr = f => {
+      if (!f) return '—';
+      const d = f?.toDate ? f.toDate() : new Date(f + 'T00:00:00');
+      return isNaN(d) ? '—' : d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+    };
+    const rows = activos.map((p, i) => `
+      <tr style="background:${i % 2 === 0 ? '#ffffff' : '#fafaf9'}">
+        <td>${i + 1}</td>
+        <td style="font-family:monospace;font-size:10px;color:#78716c">${p.id.slice(0, 12)}</td>
+        <td><strong>${(p.referencia || '—').replace(/</g, '&lt;')}</strong></td>
+        <td>${(getTaller(p.tallerId)?.nombre || '—').replace(/</g, '&lt;')}</td>
+        <td>${(p.vehiculo || '—').replace(/</g, '&lt;')}</td>
+        <td>${STATUS_CONFIG[p.estado]?.label || p.estado}</td>
+        <td>${toStr(p.fecha)}</td>
+        <td style="color:#1d4ed8;font-weight:600">${toStr(p.fechaEntrega)}</td>
+        <td style="color:#57534e;font-size:10px">${(p.notas || '').replace(/</g, '&lt;')}</td>
+      </tr>`).join('');
+
+    const html = `<!DOCTYPE html><html lang="es"><head>
+      <meta charset="utf-8">
+      <title>Parts Pilot — Reporte ${new Date().toLocaleDateString('es-MX')}</title>
+      <style>
+        *{box-sizing:border-box}
+        body{font-family:Arial,sans-serif;font-size:11px;margin:0;padding:24px;color:#1c1917}
+        header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid #1c1917}
+        h1{font-size:20px;font-weight:bold;margin:0}
+        .sub{color:#78716c;font-size:11px;margin-bottom:16px}
+        table{width:100%;border-collapse:collapse;font-size:10.5px}
+        thead th{background:#1c1917;color:#fff;text-align:left;padding:7px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+        td{padding:6px 10px;border-bottom:1px solid #e7e5e4;vertical-align:top}
+        tfoot td{font-weight:bold;border-top:2px solid #1c1917;padding-top:8px;background:#fafaf9}
+        @media print{@page{size:landscape;margin:1.2cm}body{padding:0}}
+      </style>
+    </head><body>
+      <header>
+        <div><h1>Parts Pilot</h1><div style="color:#78716c;font-size:11px">Reporte de Pedidos en Proceso</div></div>
+        <div style="color:#78716c;font-size:11px;text-align:right">${new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
+      </header>
+      <p class="sub">${activos.length} pedidos activos (excluye Orden Completa)</p>
+      <table>
+        <thead><tr><th>#</th><th>Folio</th><th>Referencia / Orden</th><th>Taller</th><th>Vehículo</th><th>Estado</th><th>Fecha Reg.</th><th>Entrega Est.</th><th>Notas</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr><td colspan="9">Total: ${activos.length} pedidos activos</td></tr></tfoot>
+      </table>
+    </body></html>`;
+
+    const w = window.open('', '_blank', 'width=1100,height=750');
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 500);
   };
-  const headers = ['Folio', 'Referencia', 'Vehículo', 'Taller', 'Estado', 'Fecha Registro', 'Fecha Entrega Est.', 'Notas', 'Estimado - Notas', 'Estimado - Respuesta', 'Mensajes'];
-  const rows = pedidos.map(p => [
-    p.id,
-    p.referencia || '',
-    p.vehiculo || '',
-    getTaller(p.tallerId)?.nombre || '',
-    STATUS_CONFIG[p.estado]?.label || p.estado,
-    toDateStr(p.fecha),
-    toDateStr(p.fechaEntrega),
-    p.notas || '',
-    p.estimado?.notas || '',
-    p.estimado?.respuesta || '',
-    (p.mensajes || []).length,
-  ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
-  const csv = '﻿' + [headers.join(','), ...rows].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `reporte-pedidos-${new Date().toISOString().split('T')[0]}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+
+  return (
+    <Modal title="Reporte · Pedidos en Proceso" onClose={onClose}>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-stone-500">
+            <span className="font-semibold text-stone-800">{activos.length}</span> pedidos activos — excluye Orden Completa
+          </p>
+          <button onClick={handlePrint} className="flex items-center gap-2 bg-stone-800 hover:bg-stone-900 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+            <Printer className="w-4 h-4" /> Imprimir / Guardar PDF
+          </button>
+        </div>
+
+        <div className="overflow-x-auto rounded-xl border border-stone-200">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-stone-800 text-white text-[10px] uppercase tracking-wider">
+                <th className="text-left px-3 py-2.5 font-medium">#</th>
+                <th className="text-left px-3 py-2.5 font-medium">Referencia</th>
+                <th className="text-left px-3 py-2.5 font-medium">Taller</th>
+                <th className="text-left px-3 py-2.5 font-medium">Vehículo</th>
+                <th className="text-left px-3 py-2.5 font-medium">Estado</th>
+                <th className="text-left px-3 py-2.5 font-medium whitespace-nowrap">Fecha Reg.</th>
+                <th className="text-left px-3 py-2.5 font-medium whitespace-nowrap">Entrega Est.</th>
+                <th className="text-left px-3 py-2.5 font-medium">Notas</th>
+              </tr>
+            </thead>
+            <tbody>
+              {activos.map((p, i) => (
+                <tr key={p.id} className={`border-b border-stone-100 ${i % 2 === 0 ? 'bg-white' : 'bg-stone-50'}`}>
+                  <td className="px-3 py-2 text-stone-400">{i + 1}</td>
+                  <td className="px-3 py-2 font-semibold text-stone-800">{p.referencia || <span className="text-stone-300 font-normal">—</span>}</td>
+                  <td className="px-3 py-2 text-stone-600">{getTaller(p.tallerId)?.nombre || '—'}</td>
+                  <td className="px-3 py-2 text-stone-600">{p.vehiculo || '—'}</td>
+                  <td className="px-3 py-2"><StatusBadge estado={p.estado} /></td>
+                  <td className="px-3 py-2 text-stone-500 whitespace-nowrap">{formatDate(p.fecha)}</td>
+                  <td className="px-3 py-2 font-semibold whitespace-nowrap">
+                    {p.fechaEntrega ? <span className="text-blue-600">{formatDate(p.fechaEntrega)}</span> : <span className="text-stone-300">—</span>}
+                  </td>
+                  <td className="px-3 py-2 text-stone-500 max-w-[140px] truncate">{p.notas || ''}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {activos.length === 0 && <div className="py-10 text-center text-stone-400 text-sm">No hay pedidos activos en este momento.</div>}
+        </div>
+      </div>
+    </Modal>
+  );
 }
 
-function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder }) {
+function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
   const [filterEstado, setFilterEstado] = useState('todos');
   const [search, setSearch] = useState('');
+  const [showReporte, setShowReporte] = useState(false);
 
   const getTaller = (id) => talleres.find(t => t.uid === id);
   const selectedOrder = pedidos.find(p => p.id === selectedId);
@@ -1017,11 +1168,11 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
             filterEstado={filterEstado} setFilterEstado={setFilterEstado}
             search={search} setSearch={setSearch}
             onSelect={setSelectedId}
-            onExport={() => exportarReporte(pedidos, talleres)}
+            onExport={() => setShowReporte(true)}
           />
         )}
         {activeTab === 'talleres' && (
-          <AdminTalleres talleres={talleres} pedidos={pedidos} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); setActiveTab('pedidos'); }} />
+          <AdminTalleres talleres={talleres} pedidos={pedidos} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); setActiveTab('pedidos'); }} />
         )}
         {activeTab === 'nuevo' && (
           <AdminNuevoPedido talleres={talleres} onCreate={(data) => { onCreateOrder(data); setActiveTab('pedidos'); }} />
@@ -1040,6 +1191,7 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
           }}
         />
       )}
+      {showReporte && <ReporteModal pedidos={pedidos} talleres={talleres} onClose={() => setShowReporte(false)} />}
     </div>
   );
 }
@@ -1329,7 +1481,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
 /* ------------------------------------------------------------------ */
 
 import { useAuth } from './useAuth';
-import { usePedidos, useTalleres, crearPedido, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido } from './firestore';
+import { usePedidos, useTalleres, crearPedido, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller } from './firestore';
 
 export default function App() {
   const { user, perfil, cargando, error, login, logout, setError } = useAuth();
@@ -1372,6 +1524,7 @@ export default function App() {
         onCreateTaller={(data) => crearTaller(data)}
         onDeleteTaller={(uid) => eliminarTaller(uid)}
         onDeleteOrder={async (id) => { await eliminarPedido(id); }}
+        onUpdateTaller={(uid, data) => actualizarTaller(uid, data)}
       />
     );
   }
