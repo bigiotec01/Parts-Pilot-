@@ -1084,7 +1084,7 @@ function AdminNuevaCotizacion({ talleres, onCreate }) {
   );
 }
 
-function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDeleteOrder, onUpdateNotes }) {
+function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDeleteOrder, onUpdateNotes, onUpdateReferencias }) {
   const [notasEstimado, setNotasEstimado] = useState(order.estimado?.notas ?? '');
   const [archivo, setArchivo] = useState(order.estimado?.archivo ?? null);
   const [sent, setSent] = useState(false);
@@ -1095,6 +1095,10 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
   const [notasInt, setNotasInt] = useState(order.notasInternas ?? '');
   const [savingNotes, setSavingNotes] = useState(false);
   const [savedNotes, setSavedNotes] = useState(false);
+  const [numeroPO, setNumeroPO] = useState(order.numeroPO ?? '');
+  const [numeroOrden, setNumeroOrden] = useState(order.numeroOrden ?? '');
+  const [savingRefs, setSavingRefs] = useState(false);
+  const [savedRefs, setSavedRefs] = useState(false);
 
   const handleSaveNotes = async () => {
     setSavingNotes(true);
@@ -1103,6 +1107,15 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
       setSavedNotes(true);
       setTimeout(() => setSavedNotes(false), 2000);
     } finally { setSavingNotes(false); }
+  };
+
+  const handleSaveRefs = async () => {
+    setSavingRefs(true);
+    try {
+      await onUpdateReferencias(order.id, { numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim() });
+      setSavedRefs(true);
+      setTimeout(() => setSavedRefs(false), 2000);
+    } finally { setSavingRefs(false); }
   };
 
   const handleSendEstimate = async () => {
@@ -1170,6 +1183,39 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
             {order.fechaEntrega
               ? <InfoItem label="Entrega estimada" value={formatDate(order.fechaEntrega)} />
               : <InfoItem label="Folio" value={order.folio || order.id.slice(0, 8)} />}
+          </div>
+
+          {/* No. PO / No. Orden */}
+          <div className="bg-stone-50 rounded-xl p-3 space-y-2">
+            <p className="text-[10px] font-semibold text-stone-500 uppercase tracking-wider">Referencia de orden</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] text-stone-400 font-medium block mb-1">No. PO</label>
+                <input
+                  value={numeroPO}
+                  onChange={e => setNumeroPO(e.target.value)}
+                  placeholder="ej. 48213"
+                  className={`${inputClass} bg-white text-sm`}
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-stone-400 font-medium block mb-1">No. Orden</label>
+                <input
+                  value={numeroOrden}
+                  onChange={e => setNumeroOrden(e.target.value)}
+                  placeholder="ej. T-7890"
+                  className={`${inputClass} bg-white text-sm`}
+                />
+              </div>
+            </div>
+            <button
+              onClick={handleSaveRefs}
+              disabled={savingRefs}
+              className="w-full bg-stone-700 hover:bg-stone-800 disabled:opacity-60 text-white text-sm font-semibold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              {savedRefs ? '¡Guardado!' : savingRefs ? 'Guardando…' : 'Guardar referencias'}
+            </button>
           </div>
 
           {/* Notas del taller */}
@@ -1504,7 +1550,7 @@ function AdminEstimados({ solicitudes, getTaller, onSelect }) {
   );
 }
 
-function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes }) {
+function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
@@ -1569,7 +1615,7 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
           order={selectedOrder}
           title={selectedOrder.referencia || selectedOrder.vehiculo}
           onClose={() => setSelectedId(null)}
-          detailContent={<AdminOrderDetail order={selectedOrder} taller={getTaller(selectedOrder.tallerId)} onChangeStatus={onChangeStatus} onSendEstimate={onSendEstimate} onDeleteOrder={async (id) => { await onDeleteOrder(id); setSelectedId(null); }} onUpdateNotes={onUpdateNotes} />}
+          detailContent={<AdminOrderDetail order={selectedOrder} taller={getTaller(selectedOrder.tallerId)} onChangeStatus={onChangeStatus} onSendEstimate={onSendEstimate} onDeleteOrder={async (id) => { await onDeleteOrder(id); setSelectedId(null); }} onUpdateNotes={onUpdateNotes} onUpdateReferencias={onUpdateReferencias} />}
           chatProps={{
             role: 'admin',
             otherPartyName: getTaller(selectedOrder.tallerId)?.nombre,
@@ -2053,7 +2099,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
 /* ------------------------------------------------------------------ */
 
 import { useAuth } from './useAuth';
-import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas } from './firestore';
+import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias } from './firestore';
 
 export default function App() {
   const { user, perfil, cargando, error, login, logout, setError } = useAuth();
@@ -2099,6 +2145,7 @@ export default function App() {
         onDeleteOrder={async (id) => { await eliminarPedido(id); }}
         onUpdateTaller={(uid, data) => actualizarTaller(uid, data)}
         onUpdateNotes={(id, notas) => actualizarNotasInternas(id, notas)}
+        onUpdateReferencias={(id, refs) => actualizarReferencias(id, refs)}
       />
     );
   }

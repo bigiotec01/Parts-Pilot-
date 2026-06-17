@@ -205,6 +205,11 @@ export async function actualizarNotasInternas(pedidoId, notas) {
   await updateDoc(doc(db, 'pedidos', pedidoId), { notasInternas: notas });
 }
 
+// ── Referencias PO / Orden (admin) ────────────────────────────────
+export async function actualizarReferencias(pedidoId, { numeroPO, numeroOrden }) {
+  await updateDoc(doc(db, 'pedidos', pedidoId), { numeroPO, numeroOrden });
+}
+
 // ── Eliminar pedido (admin) ─────────────────────────────────────────
 export async function eliminarPedido(pedidoId) {
   await deleteDoc(doc(db, 'pedidos', pedidoId));
