@@ -485,10 +485,10 @@ function LoginScreen({ onLogin, error }) {
           </button>
         </form>
 
-        <div className="mt-5 bg-stone-800/60 rounded-xl p-4 text-xs text-stone-400">
-          <p className="text-stone-300 font-medium">Firebase Authentication</p>
-          <p className="mt-1.5">Ingresa tu correo y contraseña registrados en Parts Pilot.</p>
-        </div>
+        <p className="mt-6 text-center text-xs text-stone-500">
+          © 2026 Parts Pilot · Todos los derechos reservados.<br />
+          Soporte: <a href="mailto:Bigio_tec@me.com" className="text-stone-400 hover:text-orange-400 transition-colors">Bigio_tec@me.com</a>
+        </p>
       </div>
     </div>
   );
