@@ -96,7 +96,7 @@ function formatDate(d) {
 
 function AdminHeader({ tabs, activeTab, onChange, userLabel, onLogout }) {
   return (
-    <header className="bg-stone-900 text-white sticky top-0 z-20 shadow-lg">
+    <header className="bg-stone-900 text-white sticky top-0 z-20 shadow-lg safe-top">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 flex items-center h-14 gap-2 sm:gap-6">
         {/* Logo */}
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -143,7 +143,7 @@ function AdminHeader({ tabs, activeTab, onChange, userLabel, onLogout }) {
 
 function Header({ title, subtitle, userLabel, onLogout, maxWidth = 'max-w-6xl' }) {
   return (
-    <header className="bg-stone-900 text-white">
+    <header className="bg-stone-900 text-white safe-top">
       <div className={`${maxWidth} mx-auto px-4 sm:px-6 py-4 flex items-center justify-between`}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0">
@@ -1402,7 +1402,7 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
   return (
     <div className="min-h-screen bg-stone-50">
       <AdminHeader tabs={tabsConBadge} activeTab={activeTab} onChange={(t) => { setActiveTab(t); setSelectedId(null); }} userLabel="Administrador" onLogout={onLogout} />
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-20">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-20 safe-bottom">
         {activeTab === 'dashboard' && (
           <AdminDashboard
             pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres}
@@ -1812,7 +1812,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
     <div className="min-h-screen bg-stone-50">
       <Header title="Parts Pilot" subtitle={taller.nombre} userLabel={taller.contacto} onLogout={onLogout} maxWidth="max-w-2xl" />
       <NavTabs tabs={tabs} active={activeTab} onChange={(t) => { setActiveTab(t); setSelectedId(null); setSearch(''); }} maxWidth="max-w-2xl" />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-20">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-20 safe-bottom">
 
         {/* Mini resumen — visible siempre */}
         <div className="grid grid-cols-3 gap-3 mb-6">
