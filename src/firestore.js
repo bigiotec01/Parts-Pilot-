@@ -155,6 +155,11 @@ export async function enviarMensaje(pedidoId, texto, from, adjunto) {
   });
 }
 
+// ── Notas internas (admin) ─────────────────────────────────────────
+export async function actualizarNotasInternas(pedidoId, notas) {
+  await updateDoc(doc(db, 'pedidos', pedidoId), { notasInternas: notas });
+}
+
 // ── Eliminar pedido (admin) ─────────────────────────────────────────
 export async function eliminarPedido(pedidoId) {
   await deleteDoc(doc(db, 'pedidos', pedidoId));

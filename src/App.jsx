@@ -3,7 +3,7 @@ import {
   CarFront, Package, Truck, CheckCircle2, Clock, FileText, LogOut, Plus, Search,
   Building2, Phone, X, ThumbsUp, ThumbsDown, ChevronRight, AlertCircle,
   LayoutDashboard, ClipboardList, Users, Calendar, Send, Eye, EyeOff, MessageSquare, Paperclip, Mail,
-  Printer, Trash2, Pencil, History, UserCircle, CheckCheck
+  Printer, Trash2, Pencil, History, UserCircle, CheckCheck, StickyNote, NotebookPen
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -259,6 +259,7 @@ function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0 }) {
               <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" />{order.mensajes.length}</span>
             )}
             {order.estimado && <span className="flex items-center gap-1 text-orange-500"><FileText className="w-3.5 h-3.5" />Estimado</span>}
+            {showTaller && order.notasInternas && <span className="flex items-center gap-1 text-amber-500"><StickyNote className="w-3.5 h-3.5" /></span>}
           </div>
         </div>
         {order.fechaEntrega && (
@@ -509,6 +510,42 @@ function StatCard({ label, value, icon: Icon, color, highlight }) {
   );
 }
 
+function DashboardChart({ pedidos }) {
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+    return { label: d.toLocaleDateString('es-MX', { month: 'short' }), year: d.getFullYear(), month: d.getMonth(), total: 0, entregados: 0 };
+  });
+  pedidos.forEach(p => {
+    const d = p.fecha?.toDate ? p.fecha.toDate() : new Date(p.fecha);
+    const m = months.find(m => m.year === d.getFullYear() && m.month === d.getMonth());
+    if (m) { m.total++; if (p.estado === 'entregado') m.entregados++; }
+  });
+  const max = Math.max(...months.map(m => m.total), 1);
+  return (
+    <div className="mt-6">
+      <div className="flex items-end gap-2 h-20">
+        {months.map((m, i) => (
+          <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+            {m.total > 0 && <span className="text-[10px] text-stone-400 leading-none">{m.total}</span>}
+            <div className="w-full flex flex-col gap-0.5 justify-end" style={{ height: `${(m.total / max) * 100}%` }}>
+              <div className="w-full rounded-t-md bg-orange-400" style={{ height: m.total > 0 ? `${100 - (m.entregados / m.total) * 100}%` : '0%', minHeight: m.total > m.entregados ? 4 : 0 }} />
+              {m.entregados > 0 && <div className="w-full bg-teal-400 rounded-b-md" style={{ height: `${(m.entregados / m.total) * 100}%` }} />}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2 mt-2">
+        {months.map((m, i) => <div key={i} className="flex-1 text-center text-[10px] text-stone-400 capitalize">{m.label}</div>)}
+      </div>
+      <div className="flex items-center gap-4 mt-3">
+        <span className="flex items-center gap-1.5 text-[11px] text-stone-500"><span className="w-2.5 h-2.5 rounded-sm bg-orange-400 inline-block" />En proceso</span>
+        <span className="flex items-center gap-1.5 text-[11px] text-stone-500"><span className="w-2.5 h-2.5 rounded-sm bg-teal-400 inline-block" />Completados</span>
+      </div>
+    </div>
+  );
+}
+
 function AdminDashboard({ pedidos, solicitudes, talleres, getTaller, onSelect, onGoToPedidos, onGoToEstimados, onGoToNuevo, onShowReporte }) {
   const total = pedidos.length;
   const enProceso = pedidos.filter(p => ['cotizando', 'pedido_fabrica', 'en_transito', 'recibido'].includes(p.estado)).length;
@@ -542,6 +579,7 @@ function AdminDashboard({ pedidos, solicitudes, talleres, getTaller, onSelect, o
               <p className="text-xs text-stone-500 mt-1">Talleres activos</p>
             </div>
           </div>
+          <DashboardChart pedidos={[...pedidos, ...solicitudes]} />
         </div>
 
         {/* Acciones rápidas */}
@@ -918,7 +956,7 @@ function AdminNuevoPedido({ talleres, onCreate }) {
   );
 }
 
-function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDeleteOrder }) {
+function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDeleteOrder, onUpdateNotes }) {
   const [notasEstimado, setNotasEstimado] = useState(order.estimado?.notas ?? '');
   const [archivo, setArchivo] = useState(order.estimado?.archivo ?? null);
   const [sent, setSent] = useState(false);
@@ -926,6 +964,18 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
   const [sendError, setSendError] = useState('');
   const [showEmail, setShowEmail] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [notasInt, setNotasInt] = useState(order.notasInternas ?? '');
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [savedNotes, setSavedNotes] = useState(false);
+
+  const handleSaveNotes = async () => {
+    setSavingNotes(true);
+    try {
+      await onUpdateNotes(order.id, notasInt);
+      setSavedNotes(true);
+      setTimeout(() => setSavedNotes(false), 2000);
+    } finally { setSavingNotes(false); }
+  };
 
   const handleSendEstimate = async () => {
     setSending(true);
@@ -1129,6 +1179,28 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
             <p className="text-xs text-stone-400 text-center py-1">Este taller no tiene correo registrado.</p>
           )}
 
+          {/* Notas internas */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
+            <p className="text-[11px] font-semibold text-amber-700 uppercase tracking-wider flex items-center gap-1.5">
+              <StickyNote className="w-3.5 h-3.5" /> Notas internas
+            </p>
+            <textarea
+              value={notasInt}
+              onChange={e => setNotasInt(e.target.value)}
+              placeholder="Solo visibles para el admin…"
+              rows={3}
+              className="w-full text-sm text-amber-900 bg-white border border-amber-200 rounded-lg p-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-amber-300 placeholder-amber-300"
+            />
+            <button
+              onClick={handleSaveNotes}
+              disabled={savingNotes}
+              className="w-full bg-amber-400 hover:bg-amber-500 disabled:opacity-60 text-white text-sm font-semibold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+            >
+              <NotebookPen className="w-3.5 h-3.5" />
+              {savedNotes ? '¡Guardado!' : savingNotes ? 'Guardando…' : 'Guardar nota'}
+            </button>
+          </div>
+
           {/* Eliminar */}
           <button
             type="button"
@@ -1304,7 +1376,7 @@ function AdminEstimados({ solicitudes, getTaller, onSelect }) {
   );
 }
 
-function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller }) {
+function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
@@ -1366,7 +1438,7 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
           order={selectedOrder}
           title={selectedOrder.referencia || selectedOrder.vehiculo}
           onClose={() => setSelectedId(null)}
-          detailContent={<AdminOrderDetail order={selectedOrder} taller={getTaller(selectedOrder.tallerId)} onChangeStatus={onChangeStatus} onSendEstimate={onSendEstimate} onDeleteOrder={async (id) => { await onDeleteOrder(id); setSelectedId(null); }} />}
+          detailContent={<AdminOrderDetail order={selectedOrder} taller={getTaller(selectedOrder.tallerId)} onChangeStatus={onChangeStatus} onSendEstimate={onSendEstimate} onDeleteOrder={async (id) => { await onDeleteOrder(id); setSelectedId(null); }} onUpdateNotes={onUpdateNotes} />}
           chatProps={{
             role: 'admin',
             otherPartyName: getTaller(selectedOrder.tallerId)?.nombre,
@@ -1799,7 +1871,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
 /* ------------------------------------------------------------------ */
 
 import { useAuth } from './useAuth';
-import { usePedidos, useTalleres, crearPedido, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller } from './firestore';
+import { usePedidos, useTalleres, crearPedido, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas } from './firestore';
 
 export default function App() {
   const { user, perfil, cargando, error, login, logout, setError } = useAuth();
@@ -1843,6 +1915,7 @@ export default function App() {
         onDeleteTaller={(uid) => eliminarTaller(uid)}
         onDeleteOrder={async (id) => { await eliminarPedido(id); }}
         onUpdateTaller={(uid, data) => actualizarTaller(uid, data)}
+        onUpdateNotes={(id, notas) => actualizarNotasInternas(id, notas)}
       />
     );
   }
