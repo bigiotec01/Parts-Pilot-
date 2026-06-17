@@ -3,7 +3,8 @@ import {
   CarFront, Package, Truck, CheckCircle2, Clock, FileText, LogOut, Plus, Search,
   Building2, Phone, X, ThumbsUp, ThumbsDown, ChevronRight, AlertCircle,
   LayoutDashboard, ClipboardList, Users, Calendar, Send, Eye, EyeOff, MessageSquare, Paperclip, Mail,
-  Printer, Trash2, Pencil, History, UserCircle, CheckCheck, StickyNote, NotebookPen
+  Printer, Trash2, Pencil, History, UserCircle, CheckCheck, StickyNote, NotebookPen,
+  PackageCheck, Hourglass, ClipboardCheck
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -12,15 +13,17 @@ import {
 
 // Firebase maneja autenticación y datos - ver useAuth.js y firestore.js
 
-const STATUS_ORDER = ['pendiente', 'cotizando', 'pedido_fabrica', 'en_transito', 'recibido', 'entregado'];
+const STATUS_ORDER = ['pendiente', 'cotizando', 'pedido_fabrica', 'ordenadas', 'esperando_piezas', 'en_transito', 'recibido', 'entregado'];
 
 const STATUS_CONFIG = {
-  pendiente:      { label: 'Pendiente de cotizar', short: 'Pendiente', badge: 'bg-stone-100 text-stone-600 border-stone-200', dot: 'bg-stone-400', icon: Clock },
-  cotizando:      { label: 'Cotización enviada',   short: 'Cotizando', badge: 'bg-blue-50 text-blue-700 border-blue-200',     dot: 'bg-blue-500',   icon: FileText },
-  pedido_fabrica: { label: 'Pedido a fábrica',      short: 'Pedido',    badge: 'bg-violet-50 text-violet-700 border-violet-200', dot: 'bg-violet-500', icon: Package },
-  en_transito:    { label: 'En tránsito',           short: 'En camino', badge: 'bg-amber-50 text-amber-700 border-amber-200',  dot: 'bg-amber-500',  icon: Truck },
-  recibido:       { label: 'Recibido en Tienda',    short: 'En Tienda', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', icon: Package },
-  entregado:      { label: 'Orden Completa',        short: 'Completa',  badge: 'bg-teal-50 text-teal-700 border-teal-200',     dot: 'bg-teal-600',   icon: CheckCircle2 },
+  pendiente:        { label: 'Pendiente de cotizar', short: 'Pendiente',  badge: 'bg-stone-100 text-stone-600 border-stone-200',    dot: 'bg-stone-400',   icon: Clock },
+  cotizando:        { label: 'Cotización enviada',   short: 'Cotizando',  badge: 'bg-blue-50 text-blue-700 border-blue-200',        dot: 'bg-blue-500',    icon: FileText },
+  pedido_fabrica:   { label: 'Pedido a fábrica',     short: 'Fábrica',    badge: 'bg-violet-50 text-violet-700 border-violet-200',  dot: 'bg-violet-500',  icon: Package },
+  ordenadas:        { label: 'Piezas ordenadas',     short: 'Ordenadas',  badge: 'bg-indigo-50 text-indigo-700 border-indigo-200',  dot: 'bg-indigo-500',  icon: PackageCheck },
+  esperando_piezas: { label: 'Esperando piezas',     short: 'Esperando',  badge: 'bg-orange-50 text-orange-700 border-orange-200',  dot: 'bg-orange-400',  icon: Hourglass },
+  en_transito:      { label: 'En tránsito',          short: 'En camino',  badge: 'bg-amber-50 text-amber-700 border-amber-200',     dot: 'bg-amber-500',   icon: Truck },
+  recibido:         { label: 'Recibido en Tienda',   short: 'En Tienda',  badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', icon: Package },
+  entregado:        { label: 'Orden Completa',       short: 'Completa',   badge: 'bg-teal-50 text-teal-700 border-teal-200',        dot: 'bg-teal-600',    icon: CheckCircle2 },
 };
 
 const PEDIDOS_INICIAL = [
@@ -61,11 +64,12 @@ const PEDIDOS_INICIAL = [
 ];
 
 const ADMIN_TABS = [
-  { id: 'dashboard', label: 'Resumen', icon: LayoutDashboard },
-  { id: 'pedidos', label: 'Pedidos', icon: ClipboardList },
-  { id: 'estimados', label: 'Estimados', icon: FileText },
-  { id: 'talleres', label: 'Talleres', icon: Users },
-  { id: 'nuevo', label: 'Nuevo pedido', icon: Plus },
+  { id: 'dashboard',   label: 'Resumen',           icon: LayoutDashboard },
+  { id: 'pedidos',     label: 'Pedidos',            icon: ClipboardList },
+  { id: 'estimados',   label: 'Estimados',          icon: FileText },
+  { id: 'talleres',    label: 'Talleres',           icon: Users },
+  { id: 'nuevo',       label: 'Nuevo pedido',       icon: Plus },
+  { id: 'cotizacion',  label: 'Nueva cotización',   icon: ClipboardCheck },
 ];
 
 const CLIENT_TABS = [
@@ -230,12 +234,16 @@ function StatusStepper({ estado }) {
 }
 
 function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0 }) {
+  const hasNewIds = order.numeroPO || order.numeroOrden;
+  const cardTitle = !hasNewIds ? (order.referencia || order.vehiculo) : order.vehiculo;
+  const cardSub = !hasNewIds && order.referencia ? order.vehiculo : null;
+
   return (
     <button onClick={onClick} className="w-full text-left bg-white border border-stone-200 rounded-xl p-4 hover:border-orange-300 hover:shadow-md transition-all">
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-stone-900 truncate">{order.referencia || order.vehiculo}</h3>
+            <h3 className="font-semibold text-stone-900 truncate">{cardTitle}</h3>
             {unreadCount > 0 && (
               <span className="flex items-center gap-1 text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse inline-block" />
@@ -243,23 +251,34 @@ function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0 }) {
               </span>
             )}
           </div>
-          {order.referencia && <p className="text-sm text-stone-500 truncate">{order.vehiculo}</p>}
+          {cardSub && <p className="text-sm text-stone-500 truncate">{cardSub}</p>}
+          {hasNewIds && (
+            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+              {order.numeroPO && (
+                <span className="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md font-medium">PO# {order.numeroPO}</span>
+              )}
+              {order.numeroOrden && (
+                <span className="text-[11px] bg-violet-50 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-md font-medium">Orden {order.numeroOrden}</span>
+              )}
+            </div>
+          )}
         </div>
         <StatusBadge estado={order.estado} />
       </div>
       <div className="flex flex-col gap-1 text-xs text-stone-500 mt-3 pt-3 border-t border-dashed border-stone-200">
         <div className="flex items-center justify-between gap-2">
-          {showTaller ? (
-            <span className="flex items-center gap-1 truncate"><Building2 className="w-3.5 h-3.5 flex-shrink-0" />{taller?.nombre}</span>
-          ) : (
-            <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5 flex-shrink-0" />{formatDate(order.fecha)}</span>
-          )}
+          <div className="flex items-center gap-2 min-w-0">
+            {showTaller && (
+              <span className="flex items-center gap-1 truncate"><Building2 className="w-3.5 h-3.5 flex-shrink-0" />{taller?.nombre}</span>
+            )}
+            <span className="flex items-center gap-1 flex-shrink-0"><Calendar className="w-3.5 h-3.5 flex-shrink-0" />{formatDate(order.fecha)}</span>
+          </div>
           <div className="flex items-center gap-3 flex-shrink-0">
             {order.mensajes?.length > 0 && (
               <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" />{order.mensajes.length}</span>
             )}
             {order.estimado && <span className="flex items-center gap-1 text-orange-500"><FileText className="w-3.5 h-3.5" />Estimado</span>}
-            {showTaller && order.notasInternas && <span className="flex items-center gap-1 text-amber-500"><StickyNote className="w-3.5 h-3.5" /></span>}
+            {showTaller && order.notasInternas && <span className="flex items-center gap-1 text-slate-400"><StickyNote className="w-3.5 h-3.5" /></span>}
           </div>
         </div>
         {order.fechaEntrega && (
@@ -901,19 +920,20 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
 
 function AdminNuevoPedido({ talleres, onCreate }) {
   const [form, setForm] = useState({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', notas: '' });
-  const [refPrefijo, setRefPrefijo] = useState('PO#');
-  const [refNumero, setRefNumero] = useState('');
+  const [numeroPO, setNumeroPO] = useState('');
+  const [numeroOrden, setNumeroOrden] = useState('');
+  const [fechaPersonalizada, setFechaPersonalizada] = useState('');
   const [done, setDone] = useState(false);
 
   const handleChange = (field, value) => setForm(f => ({ ...f, [field]: value }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const referencia = refNumero.trim() ? `${refPrefijo} ${refNumero.trim()}` : '';
-    onCreate({ ...form, referencia });
+    onCreate({ ...form, numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim(), fechaPersonalizada });
     setForm({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', notas: '' });
-    setRefPrefijo('PO#');
-    setRefNumero('');
+    setNumeroPO('');
+    setNumeroOrden('');
+    setFechaPersonalizada('');
     setDone(true);
     setTimeout(() => setDone(false), 3000);
   };
@@ -936,20 +956,128 @@ function AdminNuevoPedido({ talleres, onCreate }) {
         <FormField label="Vehículo">
           <input value={form.vehiculo} onChange={e => handleChange('vehiculo', e.target.value)} placeholder="ej. Toyota Corolla 2020" className={inputClass} />
         </FormField>
-        <FormField label="Referencia">
-          <div className="flex gap-2">
-            <select value={refPrefijo} onChange={e => setRefPrefijo(e.target.value)} className="px-3 py-2.5 rounded-lg border border-stone-200 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all bg-white flex-shrink-0">
-              <option value="PO#">PO#</option>
-              <option value="Orden">Orden</option>
-            </select>
-            <input value={refNumero} onChange={e => setRefNumero(e.target.value)} placeholder="ej. 48213" className={`${inputClass} flex-1 min-w-0`} />
-          </div>
-        </FormField>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="No. PO (opcional)">
+            <input value={numeroPO} onChange={e => setNumeroPO(e.target.value)} placeholder="ej. 48213" className={inputClass} />
+          </FormField>
+          <FormField label="No. Orden (opcional)">
+            <input value={numeroOrden} onChange={e => setNumeroOrden(e.target.value)} placeholder="ej. T-7890" className={inputClass} />
+          </FormField>
+        </div>
         <FormField label="Notas (opcional)">
           <textarea value={form.notas} onChange={e => handleChange('notas', e.target.value)} rows={3} placeholder="Detalles adicionales..." className={`${inputClass} resize-none`} />
         </FormField>
+        <FormField label="Fecha del pedido (opcional)">
+          <input type="date" value={fechaPersonalizada} onChange={e => setFechaPersonalizada(e.target.value)} className={inputClass} />
+          <p className="text-xs text-stone-400 mt-1">Vacío = fecha de hoy. Útil para importar órdenes antiguas.</p>
+        </FormField>
         <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 rounded-lg transition-colors">
           Registrar pedido
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function AdminNuevaCotizacion({ talleres, onCreate }) {
+  const [form, setForm] = useState({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', notas: '' });
+  const [numeroPO, setNumeroPO] = useState('');
+  const [numeroOrden, setNumeroOrden] = useState('');
+  const [fechaPersonalizada, setFechaPersonalizada] = useState('');
+  const [notasEstimado, setNotasEstimado] = useState('');
+  const [archivoEstimado, setArchivoEstimado] = useState(null);
+  const [done, setDone] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleChange = (field, value) => setForm(f => ({ ...f, [field]: value }));
+
+  const handleFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setArchivoEstimado({ name: file.name, type: file.type, url: URL.createObjectURL(file), file });
+    e.target.value = '';
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSending(true);
+    setError('');
+    try {
+      await onCreate({ ...form, numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim(), fechaPersonalizada, notasEstimado, archivoEstimado });
+      setForm({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', notas: '' });
+      setNumeroPO('');
+      setNumeroOrden('');
+      setFechaPersonalizada('');
+      setNotasEstimado('');
+      setArchivoEstimado(null);
+      setDone(true);
+      setTimeout(() => setDone(false), 3000);
+    } catch (err) {
+      setError('Error al crear: ' + (err.message || err.code));
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="max-w-lg mx-auto">
+      <h2 className="font-semibold text-stone-900 mb-1 text-lg">Nueva cotización</h2>
+      <p className="text-sm text-stone-500 mb-4">Crea una cotización con estimado incluido. Aparecerá en el portal del taller para que la acepte o rechace.</p>
+      {done && (
+        <div className="mb-4 text-sm text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4" /> Cotización creada y enviada al taller.
+        </div>
+      )}
+      {error && (
+        <div className="mb-4 text-sm text-red-700 bg-red-50 px-3 py-2 rounded-lg flex items-center gap-2">
+          <AlertCircle className="w-4 h-4" /> {error}
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-stone-200 p-5 space-y-4">
+        <FormField label="Taller">
+          <select value={form.tallerId} onChange={e => handleChange('tallerId', e.target.value)} className={`${inputClass} bg-white`} required>
+            {talleres.map(t => <option key={t.uid} value={t.uid}>{t.nombre}</option>)}
+          </select>
+        </FormField>
+        <FormField label="Vehículo">
+          <input value={form.vehiculo} onChange={e => handleChange('vehiculo', e.target.value)} placeholder="ej. Toyota Corolla 2020" className={inputClass} required />
+        </FormField>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="No. PO (opcional)">
+            <input value={numeroPO} onChange={e => setNumeroPO(e.target.value)} placeholder="ej. 48213" className={inputClass} />
+          </FormField>
+          <FormField label="No. Orden (opcional)">
+            <input value={numeroOrden} onChange={e => setNumeroOrden(e.target.value)} placeholder="ej. T-7890" className={inputClass} />
+          </FormField>
+        </div>
+        <FormField label="Notas de la cotización">
+          <textarea value={notasEstimado} onChange={e => setNotasEstimado(e.target.value)} rows={3} placeholder="Precio, tiempo de entrega, condiciones..." className={`${inputClass} resize-none`} />
+        </FormField>
+        <FormField label="PDF del estimado (opcional)">
+          {archivoEstimado ? (
+            <div className="flex items-center justify-between gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2">
+              <a href={archivoEstimado.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-stone-700 truncate hover:underline">
+                <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{archivoEstimado.name}</span>
+              </a>
+              <button type="button" onClick={() => setArchivoEstimado(null)} className="text-stone-400 hover:text-red-500 flex-shrink-0"><X className="w-4 h-4" /></button>
+            </div>
+          ) : (
+            <label className="flex items-center justify-center gap-2 border border-dashed border-stone-300 rounded-lg px-3 py-2.5 text-sm text-stone-500 hover:border-orange-300 hover:text-orange-600 cursor-pointer transition-colors bg-white">
+              <Paperclip className="w-4 h-4" /> Adjuntar PDF
+              <input type="file" accept="application/pdf" onChange={handleFile} className="hidden" />
+            </label>
+          )}
+        </FormField>
+        <FormField label="Notas internas (opcional)">
+          <textarea value={form.notas} onChange={e => handleChange('notas', e.target.value)} rows={2} placeholder="Observaciones adicionales..." className={`${inputClass} resize-none`} />
+        </FormField>
+        <FormField label="Fecha del pedido (opcional)">
+          <input type="date" value={fechaPersonalizada} onChange={e => setFechaPersonalizada(e.target.value)} className={inputClass} />
+          <p className="text-xs text-stone-400 mt-1">Vacío = fecha de hoy. Útil para importar órdenes antiguas.</p>
+        </FormField>
+        <button type="submit" disabled={sending} className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+          <Send className="w-4 h-4" /> {sending ? 'Creando…' : 'Crear y enviar cotización'}
         </button>
       </form>
     </div>
@@ -1078,7 +1206,7 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
           </div>
 
           {/* Fecha de entrega */}
-          {['pedido_fabrica', 'en_transito', 'recibido', 'entregado'].includes(order.estado) && (
+          {['pedido_fabrica', 'ordenadas', 'esperando_piezas', 'en_transito', 'recibido', 'entregado'].includes(order.estado) && (
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
               <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5" /> Fecha estimada de entrega
@@ -1180,8 +1308,8 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
           )}
 
           {/* Notas internas */}
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
-            <p className="text-[11px] font-semibold text-amber-700 uppercase tracking-wider flex items-center gap-1.5">
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+            <p className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
               <StickyNote className="w-3.5 h-3.5" /> Notas internas
             </p>
             <textarea
@@ -1189,12 +1317,12 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
               onChange={e => setNotasInt(e.target.value)}
               placeholder="Solo visibles para el admin…"
               rows={3}
-              className="w-full text-sm text-amber-900 bg-white border border-amber-200 rounded-lg p-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-amber-300 placeholder-amber-300"
+              className="w-full text-sm text-slate-800 bg-white border border-slate-200 rounded-lg p-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-slate-300 placeholder-slate-300"
             />
             <button
               onClick={handleSaveNotes}
               disabled={savingNotes}
-              className="w-full bg-amber-400 hover:bg-amber-500 disabled:opacity-60 text-white text-sm font-semibold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+              className="w-full bg-slate-600 hover:bg-slate-700 disabled:opacity-60 text-white text-sm font-semibold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1.5"
             >
               <NotebookPen className="w-3.5 h-3.5" />
               {savedNotes ? '¡Guardado!' : savingNotes ? 'Guardando…' : 'Guardar nota'}
@@ -1376,7 +1504,7 @@ function AdminEstimados({ solicitudes, getTaller, onSelect }) {
   );
 }
 
-function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes }) {
+function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
@@ -1431,6 +1559,9 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
         )}
         {activeTab === 'nuevo' && (
           <AdminNuevoPedido talleres={talleres} onCreate={(data) => { onCreateOrder(data); setActiveTab('pedidos'); }} />
+        )}
+        {activeTab === 'cotizacion' && (
+          <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); setActiveTab('pedidos'); }} />
         )}
       </main>
       {selectedOrder && (
@@ -1496,44 +1627,93 @@ function EstimateActions({ order, onRespond }) {
   );
 }
 
-function ClientEstimados({ solicitudes }) {
-  if (solicitudes.length === 0) return (
+function ClientEstimados({ solicitudes, cotizaciones = [], onRespond }) {
+  const total = solicitudes.length + cotizaciones.length;
+  if (total === 0) return (
     <div className="text-center py-14 text-stone-400">
       <FileText className="w-10 h-10 mx-auto mb-2 opacity-40" />
-      <p className="text-sm font-medium text-stone-500">No tienes solicitudes pendientes.</p>
+      <p className="text-sm font-medium text-stone-500">No tienes solicitudes ni cotizaciones pendientes.</p>
       <p className="text-xs mt-1">Usa "Solicitar Estimado" para enviar una nueva solicitud al depto. de piezas.</p>
     </div>
   );
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-stone-500">
-        <span className="font-semibold text-stone-800">{solicitudes.length}</span> solicitud{solicitudes.length !== 1 ? 'es' : ''} esperando estimado del proveedor.
-      </p>
-      <div className="grid sm:grid-cols-2 gap-3">
-        {[...solicitudes].sort((a, b) => {
-          const t = f => f?.toDate ? f.toDate().getTime() : new Date(f + 'T00:00:00').getTime();
-          return t(b.fecha) - t(a.fecha);
-        }).map(p => (
-          <div key={p.id} className="bg-white rounded-xl border border-stone-200 p-4">
-            <div className="flex items-start justify-between gap-2 mb-3">
-              <div className="min-w-0">
-                <h3 className="font-semibold text-stone-900 truncate">{p.vehiculo}</h3>
+    <div className="space-y-5">
+      {/* Cotizaciones recibidas del admin — por responder */}
+      {cotizaciones.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+            Cotizaciones por responder · {cotizaciones.length}
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {cotizaciones.map(p => (
+              <div key={p.id} className="bg-white border border-orange-200 ring-1 ring-orange-50 rounded-xl p-4 space-y-3">
+                <div>
+                  <h3 className="font-semibold text-stone-900 truncate">{p.vehiculo}</h3>
+                  {(p.numeroPO || p.numeroOrden) && (
+                    <div className="flex gap-1.5 mt-1 flex-wrap">
+                      {p.numeroPO && <span className="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md font-medium">PO# {p.numeroPO}</span>}
+                      {p.numeroOrden && <span className="text-[11px] bg-violet-50 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-md font-medium">Orden {p.numeroOrden}</span>}
+                    </div>
+                  )}
+                  {p.referencia && !p.numeroPO && !p.numeroOrden && (
+                    <p className="text-xs text-stone-400 mt-0.5">{p.referencia}</p>
+                  )}
+                </div>
+                {p.estimado?.notas && (
+                  <p className="text-sm text-stone-600 bg-stone-50 rounded-lg p-2.5">{p.estimado.notas}</p>
+                )}
+                {p.estimado?.archivo && (
+                  <a href={p.estimado.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 hover:border-orange-300 hover:text-orange-600 transition-colors">
+                    <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{p.estimado.archivo.name}</span>
+                  </a>
+                )}
+                <div className="flex gap-2">
+                  <button onClick={() => onRespond(p.id, 'aceptado')} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium py-2 rounded-lg flex items-center justify-center gap-1.5 transition-colors">
+                    <ThumbsUp className="w-4 h-4" /> Aceptar
+                  </button>
+                  <button onClick={() => onRespond(p.id, 'rechazado')} className="flex-1 bg-white border border-stone-200 hover:bg-stone-50 text-stone-600 text-sm font-medium py-2 rounded-lg flex items-center justify-center gap-1.5 transition-colors">
+                    <ThumbsDown className="w-4 h-4" /> Rechazar
+                  </button>
+                </div>
               </div>
-              <StatusBadge estado={p.estado} />
-            </div>
-            {p.notas && <p className="text-sm text-stone-600 bg-stone-50 rounded-lg p-2.5 mb-2.5">{p.notas}</p>}
-            {p.archivo && (
-              <a href={p.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 hover:border-orange-300 hover:text-orange-600 transition-colors mb-2.5">
-                <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{p.archivo.name}</span>
-              </a>
-            )}
-            <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-lg">
-              <Clock className="w-3.5 h-3.5" /> Esperando estimado · {formatDate(p.fecha)}
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
+
+      {/* Solicitudes enviadas — esperando respuesta del proveedor */}
+      {solicitudes.length > 0 && (
+        <div className="space-y-3">
+          {cotizaciones.length > 0 && (
+            <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Solicitudes enviadas · {solicitudes.length}</p>
+          )}
+          <div className="grid sm:grid-cols-2 gap-3">
+            {[...solicitudes].sort((a, b) => {
+              const t = f => f?.toDate ? f.toDate().getTime() : new Date(f + 'T00:00:00').getTime();
+              return t(b.fecha) - t(a.fecha);
+            }).map(p => (
+              <div key={p.id} className="bg-white rounded-xl border border-stone-200 p-4">
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-stone-900 truncate">{p.vehiculo}</h3>
+                  </div>
+                  <StatusBadge estado={p.estado} />
+                </div>
+                {p.notas && <p className="text-sm text-stone-600 bg-stone-50 rounded-lg p-2.5 mb-2.5">{p.notas}</p>}
+                {p.archivo && (
+                  <a href={p.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 hover:border-orange-300 hover:text-orange-600 transition-colors mb-2.5">
+                    <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{p.archivo.name}</span>
+                  </a>
+                )}
+                <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-lg">
+                  <Clock className="w-3.5 h-3.5" /> Esperando estimado · {formatDate(p.fecha)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1779,10 +1959,11 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
   const misPedidos = pedidos.filter(p => p.tipo === 'pedido' || !p.tipo);
   const pedidosActivos = misPedidos.filter(p => p.estado !== 'entregado');
   const pedidosHistorial = misPedidos.filter(p => p.estado === 'entregado');
+  const cotizacionesPendientes = misPedidos.filter(p => p.estado === 'cotizando' && p.estimado?.respuesta === 'pendiente');
   const toMs = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime();
   const pedidosOrdenados = [...pedidosActivos].sort((a, b) => toMs(b.fecha) - toMs(a.fecha));
   const pedidosFiltrados = search
-    ? pedidosOrdenados.filter(p => `${p.referencia || ''} ${p.vehiculo} ${p.folio || ''}`.toLowerCase().includes(search.toLowerCase()))
+    ? pedidosOrdenados.filter(p => `${p.referencia || ''} ${p.vehiculo} ${p.folio || ''} ${p.numeroPO || ''} ${p.numeroOrden || ''}`.toLowerCase().includes(search.toLowerCase()))
     : pedidosOrdenados;
 
   const selectedOrder = pedidos.find(p => p.id === selectedId);
@@ -1802,9 +1983,10 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
     setSelectedId(id);
   };
 
+  const totalEstimados = solicitudes.length + cotizacionesPendientes.length;
   const tabs = CLIENT_TABS.map(t => {
     if (t.id === 'pedidos') return { ...t, badge: estimadosPorResponder + totalUnread };
-    if (t.id === 'estimados') return { ...t, badge: solicitudes.length };
+    if (t.id === 'estimados') return { ...t, badge: totalEstimados };
     return t;
   });
 
@@ -1821,7 +2003,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
             <p className="text-[11px] text-stone-400 mt-0.5">Activos</p>
           </div>
           <div className="bg-white rounded-xl border border-stone-200 px-3 py-3 text-center">
-            <p className={`text-2xl font-bold ${solicitudes.length > 0 ? 'text-amber-500' : 'text-stone-300'}`}>{solicitudes.length}</p>
+            <p className={`text-2xl font-bold ${totalEstimados > 0 ? 'text-amber-500' : 'text-stone-300'}`}>{totalEstimados}</p>
             <p className="text-[11px] text-stone-400 mt-0.5">Estimados</p>
           </div>
           <div className="bg-white rounded-xl border border-stone-200 px-3 py-3 text-center">
@@ -1843,7 +2025,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
           </div>
         )}
         {activeTab === 'historial' && <ClientHistorial pedidos={pedidosHistorial} onSelect={handleSelect} />}
-        {activeTab === 'estimados' && <ClientEstimados solicitudes={solicitudes} />}
+        {activeTab === 'estimados' && <ClientEstimados solicitudes={solicitudes} cotizaciones={cotizacionesPendientes} onRespond={onRespondEstimate} />}
         {activeTab === 'nueva' && (
           <ClientNuevaSolicitud onCreate={(data) => { onCreateOrder({ ...data, tallerId: taller.id }); setActiveTab('estimados'); }} />
         )}
@@ -1871,7 +2053,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
 /* ------------------------------------------------------------------ */
 
 import { useAuth } from './useAuth';
-import { usePedidos, useTalleres, crearPedido, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas } from './firestore';
+import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas } from './firestore';
 
 export default function App() {
   const { user, perfil, cargando, error, login, logout, setError } = useAuth();
@@ -1910,6 +2092,7 @@ export default function App() {
         onChangeStatus={(id, estado, fechaEntrega) => cambiarEstatus(id, estado, fechaEntrega)}
         onSendEstimate={(id, data) => enviarEstimado(id, data)}
         onCreateOrder={(data) => crearPedido({ ...data, tipo: 'pedido' })}
+        onCreateCotizacion={(data) => crearCotizacion(data)}
         onSendMessage={(id, texto, from, attachment) => enviarMensaje(id, texto, from, attachment)}
         onCreateTaller={(data) => crearTaller(data)}
         onDeleteTaller={(uid) => eliminarTaller(uid)}

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { db, storage } from './firebase';
 import {
   collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot,
-  query, where, orderBy, serverTimestamp, arrayUnion, runTransaction
+  query, where, orderBy, serverTimestamp, arrayUnion, runTransaction, Timestamp
 } from 'firebase/firestore';
 import {
   ref, uploadBytes, getDownloadURL
@@ -67,9 +67,13 @@ export function useTalleres(user) {
 
 // ── Crear pedido ────────────────────────────────────────────────────
 export async function crearPedido(data) {
-  const { archivo, ...rest } = data;
+  const { archivo, fechaPersonalizada, ...rest } = data;
   const countersRef = doc(db, 'config', 'counters');
   const pedidoRef = doc(collection(db, 'pedidos'));
+
+  const fechaValue = fechaPersonalizada
+    ? Timestamp.fromDate(new Date(fechaPersonalizada + 'T12:00:00'))
+    : serverTimestamp();
 
   let folio;
   await runTransaction(db, async (tx) => {
@@ -79,7 +83,7 @@ export async function crearPedido(data) {
     tx.set(pedidoRef, {
       ...rest,
       folio,
-      fecha: serverTimestamp(),
+      fecha: fechaValue,
       estado: 'pendiente',
       estimado: null,
       mensajes: [],
@@ -93,6 +97,47 @@ export async function crearPedido(data) {
     await uploadBytes(storageRef, archivo.file);
     const url = await getDownloadURL(storageRef);
     await updateDoc(pedidoRef, { archivo: { name: archivo.name, url } });
+  }
+}
+
+// ── Crear cotización (admin) ─────────────────────────────────────────
+export async function crearCotizacion(data) {
+  const { archivoEstimado, notasEstimado, fechaPersonalizada, ...rest } = data;
+  const countersRef = doc(db, 'config', 'counters');
+  const pedidoRef = doc(collection(db, 'pedidos'));
+
+  const fechaValue = fechaPersonalizada
+    ? Timestamp.fromDate(new Date(fechaPersonalizada + 'T12:00:00'))
+    : serverTimestamp();
+
+  let folio;
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(countersRef);
+    const next = (snap.exists() ? (snap.data().pedidos || 0) : 0) + 1;
+    folio = `PP-${String(next).padStart(4, '0')}`;
+    tx.set(pedidoRef, {
+      ...rest,
+      folio,
+      fecha: fechaValue,
+      estado: 'cotizando',
+      tipo: 'pedido',
+      estimado: {
+        notas: notasEstimado || '',
+        archivo: null,
+        fecha: new Date().toISOString().split('T')[0],
+        respuesta: 'pendiente',
+      },
+      mensajes: [],
+      archivo: null,
+    });
+    tx.set(countersRef, { pedidos: next }, { merge: true });
+  });
+
+  if (archivoEstimado?.file) {
+    const storageRef = ref(storage, `estimados/${pedidoRef.id}/${archivoEstimado.name}`);
+    await uploadBytes(storageRef, archivoEstimado.file);
+    const url = await getDownloadURL(storageRef);
+    await updateDoc(pedidoRef, { 'estimado.archivo': { name: archivoEstimado.name, url } });
   }
 }
 
