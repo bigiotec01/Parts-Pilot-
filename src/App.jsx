@@ -2475,15 +2475,25 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
     } finally { setSaving(false); }
   };
 
+  const [editNombreAdmin, setEditNombreAdmin] = useState('');
+  const [editEmailAdmin, setEditEmailAdmin] = useState('');
+
   const startEdit = (u) => {
     setEditId(u.uid);
     setEditPermisos({ ...DEFAULT_P, ...u.permisos });
+    setEditNombreAdmin(u.nombre || '');
+    setEditEmailAdmin(u.email || '');
   };
 
   const saveEdit = async () => {
     setSaving(true);
+    const isSup = !equipo.find(u => u.uid === editId)?.permisos;
     try {
-      await onActualizar(editId, { permisos: editPermisos });
+      if (isSup) {
+        await onActualizar(editId, { nombre: editNombreAdmin.trim(), email: editEmailAdmin.trim() });
+      } else {
+        await onActualizar(editId, { permisos: editPermisos });
+      }
       setEditId(null);
     } finally { setSaving(false); }
   };
@@ -2571,35 +2581,67 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
             <div className="flex items-start justify-between gap-3 mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-[10px] flex items-center justify-center text-[14px] font-extrabold flex-shrink-0"
-                  style={{ background: isSuperadmin(u) ? 'linear-gradient(150deg, #3a3f49, #272b32)' : 'linear-gradient(150deg, #f3f4f6, #e8eaed)', color: isSuperadmin(u) ? '#d6dae0' : '#4a505c' }}>
-                  {(u.nombre || u.email || '?')[0].toUpperCase()}
+                  style={{ background: isSuperadmin(u) ? 'linear-gradient(160deg, #e8632f, #c9491c)' : 'linear-gradient(150deg, #f3f4f6, #e8eaed)', color: '#fff', ...(isSuperadmin(u) ? {} : { color: '#4a505c' }) }}>
+                  {(u.nombre || u.email || 'A')[0].toUpperCase()}
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[14px] font-bold truncate" style={{ color: '#181b21' }}>{u.nombre || '—'}</div>
-                  <div className="text-[12px] truncate" style={{ color: '#8a909c' }}>{u.email || '—'}</div>
+                  <div className="text-[14px] font-bold truncate" style={{ color: '#181b21' }}>{u.nombre || (isSuperadmin(u) ? 'Administrador' : '—')}</div>
+                  <div className="text-[12px] truncate" style={{ color: '#8a909c' }}>{u.email || (isSuperadmin(u) ? 'Cuenta principal' : '—')}</div>
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
-                {isSuperadmin(u)
-                  ? <span className="text-[11px] font-bold px-2.5 py-1 rounded-[8px]" style={{ background: '#141619', color: '#e8632f' }}>Superadmin</span>
-                  : u.uid !== currentUid && (
-                    <>
-                      <button onClick={() => editId === u.uid ? setEditId(null) : startEdit(u)}
-                        className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-[#fdeee7] transition-colors" style={{ color: '#aab0b9' }}>
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={() => { if (window.confirm(`¿Eliminar a ${u.nombre || u.email}?`)) onEliminar(u.uid); }}
-                        className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors" style={{ color: '#aab0b9' }}>
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </>
-                  )
-                }
+                {isSuperadmin(u) ? (
+                  <>
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-[8px]" style={{ background: '#141619', color: '#e8632f' }}>Superadmin</span>
+                    <button onClick={() => editId === u.uid ? setEditId(null) : startEdit(u)}
+                      className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-[#fdeee7] transition-colors" style={{ color: '#aab0b9' }}>
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                ) : u.uid !== currentUid && (
+                  <>
+                    <button onClick={() => editId === u.uid ? setEditId(null) : startEdit(u)}
+                      className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-[#fdeee7] transition-colors" style={{ color: '#aab0b9' }}>
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => { if (window.confirm(`¿Eliminar a ${u.nombre || u.email}?`)) onEliminar(u.uid); }}
+                      className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors" style={{ color: '#aab0b9' }}>
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
-            {isSuperadmin(u) ? (
-              <p className="text-[12.5px]" style={{ color: '#9aa1ad' }}>Acceso completo a todos los módulos.</p>
+            {isSuperadmin(u) && editId !== u.uid ? (
+              <div className="grid grid-cols-2 gap-2">
+                {MODULOS_PERM.map(({ id, label }) => (
+                  <div key={id} className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#f8f9fa' }}>
+                    <span className="text-[12px]" style={{ color: '#767d8a' }}>{label}</span>
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: '#eafaf2', color: '#059669' }}>Editar</span>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#f8f9fa' }}>
+                  <span className="text-[12px]" style={{ color: '#767d8a' }}>Crear pedidos</span>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: '#eafaf2', color: '#059669' }}>Sí</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#f8f9fa' }}>
+                  <span className="text-[12px]" style={{ color: '#767d8a' }}>Equipo</span>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: '#eafaf2', color: '#059669' }}>Sí</span>
+                </div>
+              </div>
+            ) : editId === u.uid && isSuperadmin(u) ? (
+              /* Editar nombre/email del superadmin */
+              <div className="space-y-3">
+                <FormField label="Nombre"><input value={editNombreAdmin} onChange={e => setEditNombreAdmin(e.target.value)} className={inputClass} placeholder="Tu nombre" /></FormField>
+                <FormField label="Correo (referencia)"><input value={editEmailAdmin} onChange={e => setEditEmailAdmin(e.target.value)} className={inputClass} placeholder="tu@correo.com" /></FormField>
+                <div className="flex gap-2 pt-1">
+                  <button onClick={saveEdit} disabled={saving} className="flex-1 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+                    {saving ? 'Guardando…' : 'Guardar'}
+                  </button>
+                  <button onClick={() => setEditId(null)} className="px-4 py-[9px] rounded-[10px] border text-[13px] font-semibold hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>Cancelar</button>
+                </div>
+              </div>
             ) : editId === u.uid ? (
               /* Edit permisos inline */
               <div className="space-y-3">
