@@ -1771,18 +1771,31 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
   const [importRows, setImportRows] = useState(null);
   const [importing, setImporting] = useState(false);
   const fileRef = useRef();
+  const [showArchived, setShowArchived] = useState(false);
 
   const tallerActual = talleres.find(t => t.uid === tallerSel);
   const numeroCuenta = tallerActual?.numeroCuentas?.[marca] || '';
 
   const facturasFiltradas = [...facturas]
-    .filter(f => f.tallerId === tallerSel && f.marca === marca)
+    .filter(f => f.tallerId === tallerSel && f.marca === marca && !f.archivada)
+    .sort((a, b) => (a.fechaFactura || '').localeCompare(b.fechaFactura || ''));
+
+  const facturasArchivadas = [...facturas]
+    .filter(f => f.tallerId === tallerSel && f.marca === marca && f.archivada)
     .sort((a, b) => (a.fechaFactura || '').localeCompare(b.fechaFactura || ''));
 
   const totals = facturasFiltradas.reduce(
     (acc, f) => ({ valor: acc.valor + Number(f.valor || 0), pagado: acc.pagado + Number(f.pagado || 0), pendiente: acc.pendiente + Number(f.pendiente || 0) }),
     { valor: 0, pagado: 0, pendiente: 0 }
   );
+
+  const pagadasSinArch = facturasFiltradas.filter(f => Number(f.pendiente || 0) <= 0);
+
+  const handleArchivarPagadas = async () => {
+    if (!pagadasSinArch.length) return;
+    if (!window.confirm(`¿Archivar ${pagadasSinArch.length} factura(s) totalmente pagada(s)? Se moverán al historial.`)) return;
+    for (const f of pagadasSinArch) await onActualizar(f.id, { archivada: true });
+  };
 
   const startEdit = (f) => { setEditId(f.id); setEditForm({ ...f }); setAddingRow(false); };
   const cancelEdit = () => setEditId(null);
@@ -1956,18 +1969,25 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
             ))}
           </div>
         </div>
-        {!readOnly && (
-          <div className="flex items-center gap-2">
-            <label className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border cursor-pointer hover:bg-stone-50 transition-colors" style={{ borderColor: '#e3e5ea', color: '#4a505c' }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              Importar CSV / Excel
-              <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleXlsx} className="hidden" />
-            </label>
-            <button onClick={startAdd} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:brightness-105" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
-              <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva factura
+        <div className="flex items-center gap-2 flex-wrap">
+          {pagadasSinArch.length > 0 && !readOnly && (
+            <button onClick={handleArchivarPagadas} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border hover:bg-emerald-50 transition-colors" style={{ borderColor: '#059669', color: '#059669' }}>
+              <CheckCircle2 className="w-4 h-4" /> Archivar pagadas ({pagadasSinArch.length})
             </button>
-          </div>
-        )}
+          )}
+          {!readOnly && (
+            <>
+              <label className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border cursor-pointer hover:bg-stone-50 transition-colors" style={{ borderColor: '#e3e5ea', color: '#4a505c' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Importar CSV / Excel
+                <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleXlsx} className="hidden" />
+              </label>
+              <button onClick={startAdd} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:brightness-105" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+                <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva factura
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Modal previsualización import */}
@@ -2071,7 +2091,7 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
             )}
             {addingRow && <InlineRow form={newForm} setForm={setNewForm} onSave={saveNew} onCancel={() => setAddingRow(false)} />}
             {/* Fila de acción rápida al fondo */}
-            {!addingRow && (
+            {!addingRow && !readOnly && (
               <tr style={{ borderTop: '1px solid #f1f2f4' }}>
                 <td colSpan={9} className="py-2 pl-5">
                   <button onClick={startAdd} className="flex items-center gap-1.5 text-[12.5px] font-semibold transition-colors hover:text-[#e8632f]" style={{ color: '#aab0b9' }}>
@@ -2094,6 +2114,52 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
           )}
         </table>
       </div>
+
+      {/* Historial de archivadas */}
+      {facturasArchivadas.length > 0 && (
+        <div className="mt-2">
+          <button
+            onClick={() => setShowArchived(v => !v)}
+            className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#e8632f]"
+            style={{ color: '#9aa1ad' }}
+          >
+            <ChevronRight className={`w-4 h-4 transition-transform ${showArchived ? 'rotate-90' : ''}`} />
+            Historial de pagadas archivadas ({facturasArchivadas.length})
+          </button>
+          {showArchived && (
+            <div className="mt-3 rounded-[16px] border overflow-x-auto" style={{ background: '#fff', borderColor: '#e7e9ed', opacity: 0.85 }}>
+              <table className="w-full" style={{ minWidth: 800 }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #eef0f2' }}>
+                    {['Fecha','# Factura','PO Tag','Valor','Pagado','Pendiente','# Check','F. Pago',''].map((h,i) => (
+                      <th key={i} className={`text-left py-2.5 text-[10.5px] font-bold uppercase ${i===0?'pl-5 pr-2':'px-2'}`} style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {facturasArchivadas.map(f => (
+                    <tr key={f.id} style={{ borderTop: '1px solid #f1f2f4' }}>
+                      <td className="py-3 pl-5 pr-2 text-[12px] whitespace-nowrap" style={{ color: '#aab0b9' }}>{fmtDateDisp(f.fechaFactura)}</td>
+                      <td className="py-3 px-2 font-mono text-[12px]" style={{ color: '#aab0b9' }}>{f.numeroFactura}</td>
+                      <td className="py-3 px-2 font-mono text-[12px]" style={{ color: '#aab0b9' }}>{f.poTag||'—'}</td>
+                      <td className="py-3 px-2 text-[12px]" style={{ color: '#aab0b9' }}>{fmtCur(f.valor)}</td>
+                      <td className="py-3 px-2 text-[12px] font-semibold" style={{ color: '#059669' }}>{fmtCur(f.pagado)}</td>
+                      <td className="py-3 px-2 text-[12px] font-semibold" style={{ color: '#059669' }}>{fmtCur(f.pendiente)}</td>
+                      <td className="py-3 px-2 font-mono text-[12px]" style={{ color: '#aab0b9' }}>{f.numeroCheck||'—'}</td>
+                      <td className="py-3 px-2 text-[12px] whitespace-nowrap" style={{ color: '#aab0b9' }}>{fmtDateDisp(f.fechaPago)}</td>
+                      <td className="py-3 pr-4">
+                        <button onClick={() => onActualizar(f.id, { archivada: false })} className="text-[11px] font-semibold hover:underline" style={{ color: '#e8632f' }}>
+                          Restaurar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -2102,7 +2168,7 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
 /*  CLIENT FACTURAS                                                     */
 /* ------------------------------------------------------------------ */
 
-function ClientFacturas({ facturas, taller, onArchivar }) {
+function ClientFacturas({ facturas, taller }) {
   const marcasDisponibles = [...new Set(facturas.map(f => f.marca))].sort();
   const [marca, setMarca] = useState(marcasDisponibles[0] || 'KIA');
   const [verHistorial, setVerHistorial] = useState(false);
@@ -2111,9 +2177,8 @@ function ClientFacturas({ facturas, taller, onArchivar }) {
     .filter(f => f.marca === marca)
     .sort((a, b) => (a.fechaFactura || '').localeCompare(b.fechaFactura || ''));
 
-  const facturasMarca  = todasMarca.filter(f => !f.archivada);
-  const facturasArch   = todasMarca.filter(f => f.archivada);
-  const pagadasSinArch = facturasMarca.filter(f => Number(f.pendiente || 0) <= 0);
+  const facturasMarca = todasMarca.filter(f => !f.archivada);
+  const facturasArch  = todasMarca.filter(f => f.archivada);
 
   const numeroCuenta = taller?.numeroCuentas?.[marca] || '';
 
@@ -2121,12 +2186,6 @@ function ClientFacturas({ facturas, taller, onArchivar }) {
     (acc, f) => ({ valor: acc.valor + Number(f.valor || 0), pagado: acc.pagado + Number(f.pagado || 0), pendiente: acc.pendiente + Number(f.pendiente || 0) }),
     { valor: 0, pagado: 0, pendiente: 0 }
   );
-
-  const handleArchivarPagadas = async () => {
-    if (!pagadasSinArch.length) return;
-    if (!window.confirm(`¿Archivar ${pagadasSinArch.length} factura(s) pagada(s)? Se moverán al historial.`)) return;
-    for (const f of pagadasSinArch) await onArchivar(f.id, true);
-  };
 
   const handlePrint = () => {
     const rows = facturasMarca.map(f => `
@@ -2206,16 +2265,9 @@ function ClientFacturas({ facturas, taller, onArchivar }) {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2">
-          {pagadasSinArch.length > 0 && (
-            <button onClick={handleArchivarPagadas} className="flex items-center gap-2 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border hover:bg-stone-50 transition-colors" style={{ borderColor: '#059669', color: '#059669' }}>
-              <CheckCircle2 className="w-4 h-4" /> Archivar pagadas ({pagadasSinArch.length})
-            </button>
-          )}
-          <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border hover:bg-stone-50 transition-colors" style={{ borderColor: '#e3e5ea', color: '#4a505c' }}>
-            <Printer className="w-4 h-4" /> Imprimir / PDF
-          </button>
-        </div>
+        <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border hover:bg-stone-50 transition-colors" style={{ borderColor: '#e3e5ea', color: '#4a505c' }}>
+          <Printer className="w-4 h-4" /> Imprimir / PDF
+        </button>
       </div>
 
       {numeroCuenta && (
@@ -2292,9 +2344,7 @@ function ClientFacturas({ facturas, taller, onArchivar }) {
                       <td className="py-3 px-3 text-[12px] font-semibold" style={{ color: '#059669' }}>{fmtCur(f.pagado)}</td>
                       <td className="py-3 px-3 font-mono text-[12px]" style={{ color: '#aab0b9' }}>{f.numeroCheck||'—'}</td>
                       <td className="py-3 px-3 text-[12px] whitespace-nowrap" style={{ color: '#aab0b9' }}>{fmtDateDisp(f.fechaPago)}</td>
-                      <td className="py-3 pr-4">
-                        <button onClick={() => onArchivar(f.id, false)} className="text-[11px] font-semibold hover:underline" style={{ color: '#e8632f' }}>Restaurar</button>
-                      </td>
+                      <td className="py-3 pr-4" />
                     </tr>
                   ))}
                 </tbody>
@@ -3192,7 +3242,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
       {activeTab === 'nueva' && (
         <ClientNuevaSolicitud onCreate={(data) => { onCreateOrder({ ...data, tallerId: taller.id }); goTab('estimados'); }} />
       )}
-      {activeTab === 'facturas' && <ClientFacturas facturas={facturas} taller={taller} onArchivar={(id, v) => archivarFactura(id, v)} />}
+      {activeTab === 'facturas' && <ClientFacturas facturas={facturas} taller={taller} />}
       {activeTab === 'perfil' && <ClientPerfil taller={taller} onUpdate={(data) => onUpdateTaller(taller.id, data)} />}
     </>
   );

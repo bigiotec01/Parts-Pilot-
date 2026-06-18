@@ -58,13 +58,11 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Facturas: admin full; taller puede solo actualizar campo 'archivada'
+    // Facturas: solo admin escribe; taller solo lee las suyas
     match /facturas/{facturaId} {
       allow read:   if isAdmin() || isTallerMember(resource.data.tallerId);
       allow create: if isAdmin();
-      allow update: if isAdmin() ||
-        (isTallerMember(resource.data.tallerId) &&
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['archivada']));
+      allow update: if isAdmin();
       allow delete: if isAdmin();
     }
   }
