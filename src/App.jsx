@@ -367,32 +367,75 @@ function Modal({ title, onClose, children }) {
 }
 
 function OrderDrawer({ order, title, onClose, detailContent, chatProps }) {
-  const [tab, setTab] = useState('detalle');
   const messageCount = (order.mensajes || []).length;
+
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
-      <div className="absolute inset-0" style={{ background: 'rgba(20,22,26,.42)', animation: 'ppFade .2s ease both' }} onClick={onClose} />
-      <div className="relative w-[480px] max-w-[92vw] h-full flex flex-col" style={{ background: '#fff', boxShadow: '-20px 0 50px -20px rgba(0,0,0,.3)', animation: 'ppSlide .28s cubic-bezier(.2,.8,.2,1) both' }}>
-        <div className="px-6 py-5 border-b flex items-start justify-between gap-3 flex-shrink-0" style={{ borderColor: '#eef0f2' }}>
-          <div className="min-w-0">
-            <div className="font-mono text-[12px] font-semibold mb-1" style={{ color: '#9aa1ad' }}>{order.folio || order.id?.slice(0,8)}</div>
-            <h2 className="text-[18px] font-bold leading-tight" style={{ color: '#181b21', letterSpacing: '-.01em' }}>{title}</h2>
-            {order.pieza && <p className="text-[13px] mt-0.5" style={{ color: '#767d8a' }}>{order.pieza}</p>}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+      <div
+        className="absolute inset-0"
+        style={{ background: 'rgba(20,22,26,.5)', animation: 'ppFade .2s ease both' }}
+        onClick={onClose}
+      />
+      <div
+        className="relative w-full flex flex-col"
+        style={{
+          maxWidth: 980,
+          maxHeight: '90vh',
+          background: '#fff',
+          borderRadius: 20,
+          boxShadow: '0 40px 80px -20px rgba(0,0,0,.35)',
+          animation: 'ppRise .28s cubic-bezier(.2,.8,.2,1) both',
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4 px-7 py-5 flex-shrink-0" style={{ borderBottom: '1px solid #eef0f2' }}>
+          <div className="flex items-center gap-4 min-w-0">
+            <div>
+              <div className="font-mono text-[12px] font-semibold mb-0.5" style={{ color: '#9aa1ad' }}>
+                {order.folio || order.id?.slice(0, 8)}
+              </div>
+              <h2 className="text-[20px] font-bold leading-tight" style={{ color: '#181b21', letterSpacing: '-.02em' }}>
+                {title}
+              </h2>
+              {order.pieza && (
+                <p className="text-[13px] mt-0.5" style={{ color: '#767d8a' }}>{order.pieza}</p>
+              )}
+            </div>
+            <StatusBadge estado={order.estado} />
           </div>
-          <button onClick={onClose} className="w-[34px] h-[34px] rounded-[9px] border flex items-center justify-center flex-shrink-0 hover:bg-stone-50 transition-colors" style={{ borderColor: '#e7e9ed', color: '#767d8a' }}>
-            <X className="w-[17px] h-[17px]" />
+          <button
+            onClick={onClose}
+            className="w-9 h-9 rounded-[10px] border flex items-center justify-center flex-shrink-0 hover:bg-stone-50 transition-colors"
+            style={{ borderColor: '#e7e9ed', color: '#767d8a' }}
+          >
+            <X className="w-[18px] h-[18px]" />
           </button>
         </div>
-        <div className="flex px-6 border-b flex-shrink-0" style={{ borderColor: '#eef0f2' }}>
-          {[['detalle','Detalle'], ['chat','Mensajes']].map(([id, lbl]) => (
-            <button key={id} onClick={() => setTab(id)} className={`px-1 py-3 text-sm font-semibold border-b-2 mr-5 transition-colors flex items-center gap-1.5 ${tab === id ? 'border-[#e8632f] text-[#181b21]' : 'border-transparent text-[#9aa1ad] hover:text-[#5b626e]'}`}>
-              {id === 'chat' && <MessageSquare className="w-4 h-4" />}{lbl}
-              {id === 'chat' && messageCount > 0 && <span className="text-[10px] font-bold rounded-full px-1.5 py-0.5" style={{ background: '#f1f3f5', color: '#5b626e' }}>{messageCount}</span>}
-            </button>
-          ))}
-        </div>
-        <div className="flex-1 overflow-y-auto p-6">
-          {tab === 'detalle' ? detailContent : <OrderChat order={order} {...chatProps} />}
+
+        {/* Body: 2 columnas */}
+        <div className="flex-1 overflow-hidden flex min-h-0">
+          {/* Columna izquierda — detalle */}
+          <div className="flex-1 overflow-y-auto p-7" style={{ borderRight: '1px solid #eef0f2' }}>
+            {detailContent}
+          </div>
+
+          {/* Columna derecha — mensajes */}
+          <div className="flex flex-col" style={{ width: 360, flexShrink: 0 }}>
+            <div className="px-6 py-4 flex-shrink-0" style={{ borderBottom: '1px solid #eef0f2' }}>
+              <p className="text-[13px] font-bold flex items-center gap-2" style={{ color: '#181b21' }}>
+                <MessageSquare className="w-4 h-4" strokeWidth={1.8} />
+                Mensajes
+                {messageCount > 0 && (
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#f1f3f5', color: '#5b626e' }}>
+                    {messageCount}
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <OrderChat order={order} {...chatProps} />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -483,7 +526,7 @@ function OrderChat({ order, role, otherPartyName, onSendMessage }) {
   };
 
   return (
-    <div className="flex flex-col h-[55vh] sm:h-[420px]">
+    <div className="flex flex-col h-full min-h-[320px]">
       <div className="flex-1 overflow-y-auto pr-1 space-y-3">
         {mensajes.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center text-stone-400 text-sm px-6">
