@@ -4,7 +4,7 @@ import {
   Building2, Phone, X, ThumbsUp, ThumbsDown, ChevronRight, AlertCircle,
   LayoutDashboard, ClipboardList, Users, Calendar, Send, Eye, EyeOff, MessageSquare, Paperclip, Mail,
   Printer, Trash2, Pencil, History, UserCircle, CheckCheck, StickyNote, NotebookPen,
-  PackageCheck, Hourglass, ClipboardCheck, Bell
+  PackageCheck, Hourglass, ClipboardCheck, Bell, Receipt
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -108,6 +108,7 @@ function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onL
   const secondaryItems = [
     { id: 'nuevo',      label: 'Nuevo pedido',     icon: Plus },
     { id: 'cotizacion', label: 'Nueva cotización',  icon: ClipboardCheck },
+    { id: 'facturas',   label: 'Facturas',          icon: Receipt },
   ];
 
   const NavBtn = ({ id, label, icon: Icon, badge, accent }) => {
@@ -1729,7 +1730,338 @@ function AdminEstimados({ solicitudes, getTaller, onSelect }) {
   );
 }
 
-function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias }) {
+/* ------------------------------------------------------------------ */
+/*  FACTURAS — helpers                                                  */
+/* ------------------------------------------------------------------ */
+
+const MARCAS_FACTURA = ['KIA', 'NISSAN'];
+
+function fmtCur(n) {
+  return '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtDateDisp(d) {
+  if (!d) return '—';
+  const [y, m, day] = d.split('-');
+  return `${m}/${day}/${y}`;
+}
+
+/* ------------------------------------------------------------------ */
+/*  ADMIN FACTURAS                                                      */
+/* ------------------------------------------------------------------ */
+
+function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar, onUpdateTaller }) {
+  const [tallerSel, setTallerSel] = useState(talleres[0]?.uid || '');
+  const [marca, setMarca] = useState('KIA');
+  const [editId, setEditId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [addingRow, setAddingRow] = useState(false);
+  const [newForm, setNewForm] = useState({});
+  const [saving, setSaving] = useState(false);
+
+  const tallerActual = talleres.find(t => t.uid === tallerSel);
+  const numeroCuenta = tallerActual?.numeroCuentas?.[marca] || '';
+
+  const facturasFiltradas = [...facturas]
+    .filter(f => f.tallerId === tallerSel && f.marca === marca)
+    .sort((a, b) => (a.fechaFactura || '').localeCompare(b.fechaFactura || ''));
+
+  const totals = facturasFiltradas.reduce(
+    (acc, f) => ({ valor: acc.valor + Number(f.valor || 0), pagado: acc.pagado + Number(f.pagado || 0), pendiente: acc.pendiente + Number(f.pendiente || 0) }),
+    { valor: 0, pagado: 0, pendiente: 0 }
+  );
+
+  const startEdit = (f) => { setEditId(f.id); setEditForm({ ...f }); setAddingRow(false); };
+  const cancelEdit = () => setEditId(null);
+
+  const saveEdit = async () => {
+    setSaving(true);
+    try {
+      const pendiente = Number(editForm.valor || 0) - Number(editForm.pagado || 0);
+      await onActualizar(editId, { ...editForm, pendiente });
+      setEditId(null);
+    } finally { setSaving(false); }
+  };
+
+  const startAdd = () => {
+    setAddingRow(true); setEditId(null);
+    setNewForm({ fechaFactura: '', numeroFactura: '', poTag: '', valor: '', pagado: '', numeroCheck: '', fechaPago: '' });
+  };
+
+  const saveNew = async () => {
+    if (!newForm.numeroFactura) return;
+    setSaving(true);
+    try {
+      const valor = Number(newForm.valor || 0);
+      const pagado = Number(newForm.pagado || 0);
+      await onAgregar({ tallerId: tallerSel, marca, ...newForm, valor, pagado, pendiente: valor - pagado });
+      setAddingRow(false);
+    } finally { setSaving(false); }
+  };
+
+  const saveCuenta = async (num) => {
+    if (!tallerSel) return;
+    await onUpdateTaller(tallerSel, { [`numeroCuentas.${marca}`]: num });
+  };
+
+  const InlineRow = ({ form, setForm, onSave, onCancel }) => (
+    <tr style={{ background: '#fffbf5', borderTop: '1px solid #eef0f2' }}>
+      <td className="py-2 pl-5 pr-1"><input type="date" value={form.fechaFactura || ''} onChange={e => setForm(f => ({ ...f, fechaFactura: e.target.value }))} className="w-[130px] px-2 py-1 rounded-[8px] border text-[12px] outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
+      <td className="py-2 px-1"><input value={form.numeroFactura || ''} onChange={e => setForm(f => ({ ...f, numeroFactura: e.target.value }))} placeholder="# Factura" className="w-[88px] px-2 py-1 rounded-[8px] border text-[12px] font-mono outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
+      <td className="py-2 px-1"><input value={form.poTag || ''} onChange={e => setForm(f => ({ ...f, poTag: e.target.value }))} placeholder="PO Tag" className="w-[88px] px-2 py-1 rounded-[8px] border text-[12px] font-mono outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
+      <td className="py-2 px-1"><input type="number" step="0.01" value={form.valor || ''} onChange={e => setForm(f => ({ ...f, valor: e.target.value }))} placeholder="0.00" className="w-[90px] px-2 py-1 rounded-[8px] border text-[12px] outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
+      <td className="py-2 px-1"><input type="number" step="0.01" value={form.pagado || ''} onChange={e => setForm(f => ({ ...f, pagado: e.target.value }))} placeholder="0.00" className="w-[90px] px-2 py-1 rounded-[8px] border text-[12px] outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
+      <td className="py-2 px-2 text-[12.5px] font-semibold" style={{ color: '#b7791f' }}>{fmtCur(Number(form.valor || 0) - Number(form.pagado || 0))}</td>
+      <td className="py-2 px-1"><input value={form.numeroCheck || ''} onChange={e => setForm(f => ({ ...f, numeroCheck: e.target.value }))} placeholder="Check" className="w-[80px] px-2 py-1 rounded-[8px] border text-[12px] font-mono outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
+      <td className="py-2 px-1"><input type="date" value={form.fechaPago || ''} onChange={e => setForm(f => ({ ...f, fechaPago: e.target.value }))} className="w-[130px] px-2 py-1 rounded-[8px] border text-[12px] outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
+      <td className="py-2 pl-1 pr-4">
+        <div className="flex gap-1">
+          <button onClick={onSave} disabled={saving} className="w-7 h-7 rounded-[8px] flex items-center justify-center text-white text-[13px] font-bold" style={{ background: '#10b981' }}>✓</button>
+          <button onClick={onCancel} className="w-7 h-7 rounded-[8px] flex items-center justify-center border text-[13px]" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>✕</button>
+        </div>
+      </td>
+    </tr>
+  );
+
+  const thCls = "text-left py-3 text-[10.5px] font-bold uppercase";
+  const thSt = { color: '#9aa1ad', letterSpacing: '.06em' };
+  const tdCls = "py-3 text-[12.5px]";
+
+  return (
+    <div className="space-y-5">
+      {/* Taller + marca */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <select value={tallerSel} onChange={e => setTallerSel(e.target.value)} className={`${inputClass} w-auto`}>
+            {talleres.map(t => <option key={t.uid} value={t.uid}>{t.nombre}</option>)}
+          </select>
+          <div className="flex gap-1 p-1 rounded-[10px]" style={{ background: '#f1f3f5' }}>
+            {MARCAS_FACTURA.map(m => (
+              <button key={m} onClick={() => setMarca(m)} className="px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all"
+                style={{ background: marca === m ? '#fff' : 'transparent', color: marca === m ? '#181b21' : '#9aa1ad', boxShadow: marca === m ? '0 1px 4px rgba(0,0,0,.08)' : 'none' }}>
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+        <button onClick={startAdd} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:brightness-105" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+          <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva factura
+        </button>
+      </div>
+
+      {/* # de cuenta */}
+      <div className="flex items-center gap-3">
+        <span className="text-[12.5px] font-semibold" style={{ color: '#767d8a' }}># de cuenta:</span>
+        <input
+          key={`${tallerSel}_${marca}`}
+          defaultValue={numeroCuenta}
+          onBlur={e => saveCuenta(e.target.value)}
+          placeholder="ej. 517831"
+          className="px-3 py-1.5 rounded-[9px] border text-[13px] font-mono w-36 outline-none focus:border-[#e8632f]"
+          style={{ borderColor: '#e3e5ea' }}
+        />
+        <span className="text-[11.5px]" style={{ color: '#aab0b9' }}>Se guarda al salir del campo</span>
+      </div>
+
+      {/* Tabla */}
+      <div className="rounded-[16px] border overflow-x-auto" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+        <table className="w-full" style={{ minWidth: 920 }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid #eef0f2' }}>
+              {['Fecha factura', '# Factura', 'PO Tag', 'Valor', 'Pagado', 'Pendiente', '# Check', 'F. Pago', ''].map((h, i) => (
+                <th key={i} className={`${thCls} ${i === 0 ? 'pl-5 pr-2' : 'px-2'} ${i === 8 ? 'pr-4' : ''}`} style={thSt}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {facturasFiltradas.length === 0 && !addingRow && (
+              <tr><td colSpan={9} className="py-12 text-center text-[13px]" style={{ color: '#9aa1ad' }}>Sin facturas. Usa "+ Nueva factura" para agregar.</td></tr>
+            )}
+            {facturasFiltradas.map(f => editId === f.id
+              ? <InlineRow key={f.id} form={editForm} setForm={setEditForm} onSave={saveEdit} onCancel={cancelEdit} />
+              : (
+                <tr key={f.id} onClick={() => startEdit(f)} className="cursor-pointer hover:bg-[#fafbfc] transition-colors" style={{ borderTop: '1px solid #f1f2f4' }}>
+                  <td className={`${tdCls} pl-5 pr-2 whitespace-nowrap`} style={{ color: '#4a505c' }}>{fmtDateDisp(f.fechaFactura)}</td>
+                  <td className={`${tdCls} px-2 font-mono font-semibold`} style={{ color: '#181b21' }}>{f.numeroFactura}</td>
+                  <td className={`${tdCls} px-2 font-mono`} style={{ color: '#5b626e' }}>{f.poTag || '—'}</td>
+                  <td className={`${tdCls} px-2 font-semibold`} style={{ color: '#181b21' }}>{fmtCur(f.valor)}</td>
+                  <td className={`${tdCls} px-2 font-semibold`} style={{ color: Number(f.pagado) > 0 ? '#059669' : '#aab0b9' }}>{Number(f.pagado) > 0 ? fmtCur(f.pagado) : '—'}</td>
+                  <td className={`${tdCls} px-2 font-semibold`} style={{ color: Number(f.pendiente) > 0 ? '#b7791f' : '#059669' }}>{fmtCur(f.pendiente)}</td>
+                  <td className={`${tdCls} px-2 font-mono`} style={{ color: '#5b626e' }}>{f.numeroCheck || '—'}</td>
+                  <td className={`${tdCls} px-2 whitespace-nowrap`} style={{ color: '#767d8a' }}>{fmtDateDisp(f.fechaPago)}</td>
+                  <td className="py-2 pl-1 pr-4">
+                    <button onClick={e => { e.stopPropagation(); if (window.confirm('¿Eliminar esta factura?')) onEliminar(f.id); }} className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors" style={{ color: '#aab0b9' }}>
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
+                </tr>
+              )
+            )}
+            {addingRow && <InlineRow form={newForm} setForm={setNewForm} onSave={saveNew} onCancel={() => setAddingRow(false)} />}
+          </tbody>
+          {facturasFiltradas.length > 0 && (
+            <tfoot>
+              <tr style={{ borderTop: '2px solid #eef0f2', background: '#f8f9fa' }}>
+                <td colSpan={3} className="py-3 pl-5 text-[12.5px] font-bold" style={{ color: '#181b21' }}>TOTAL</td>
+                <td className="py-3 px-2 text-[12.5px] font-bold" style={{ color: '#181b21' }}>{fmtCur(totals.valor)}</td>
+                <td className="py-3 px-2 text-[12.5px] font-bold" style={{ color: '#059669' }}>{fmtCur(totals.pagado)}</td>
+                <td className="py-3 px-2 text-[12.5px] font-bold" style={{ color: totals.pendiente > 0 ? '#b7791f' : '#059669' }}>{fmtCur(totals.pendiente)}</td>
+                <td colSpan={3} />
+              </tr>
+            </tfoot>
+          )}
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  CLIENT FACTURAS                                                     */
+/* ------------------------------------------------------------------ */
+
+function ClientFacturas({ facturas, taller }) {
+  const marcasDisponibles = [...new Set(facturas.map(f => f.marca))].sort();
+  const [marca, setMarca] = useState(marcasDisponibles[0] || 'KIA');
+
+  const facturasMarca = [...facturas]
+    .filter(f => f.marca === marca)
+    .sort((a, b) => (a.fechaFactura || '').localeCompare(b.fechaFactura || ''));
+
+  const numeroCuenta = taller?.numeroCuentas?.[marca] || '';
+
+  const totals = facturasMarca.reduce(
+    (acc, f) => ({ valor: acc.valor + Number(f.valor || 0), pagado: acc.pagado + Number(f.pagado || 0), pendiente: acc.pendiente + Number(f.pendiente || 0) }),
+    { valor: 0, pagado: 0, pendiente: 0 }
+  );
+
+  const handlePrint = () => {
+    const rows = facturasMarca.map(f => `
+      <tr style="background:${Number(f.pendiente) > 0 ? '#fffbf5' : '#fff'}">
+        <td>${fmtDateDisp(f.fechaFactura)}</td>
+        <td>${f.numeroFactura}</td>
+        <td>${f.poTag || ''}</td>
+        <td style="text-align:right">$${Number(f.valor || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+        <td style="text-align:right;color:${Number(f.pagado) > 0 ? '#059669' : '#aab0b9'};font-weight:600">${Number(f.pagado) > 0 ? '$' + Number(f.pagado).toLocaleString('en-US', { minimumFractionDigits: 2 }) : ''}</td>
+        <td style="text-align:right;color:${Number(f.pendiente) > 0 ? '#b7791f' : '#059669'};font-weight:600">$${Number(f.pendiente || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+        <td>${f.numeroCheck || ''}</td>
+        <td>${fmtDateDisp(f.fechaPago)}</td>
+      </tr>`).join('');
+
+    const html = `<!DOCTYPE html><html lang="es"><head>
+      <meta charset="utf-8">
+      <title>Lista de Facturas ${marca} · ${taller.nombre || ''}</title>
+      <style>
+        *{box-sizing:border-box} body{font-family:Arial,sans-serif;font-size:11px;margin:0;padding:28px;color:#1c1917}
+        h1{font-size:22px;font-weight:bold;text-align:center;margin:0 0 4px;text-transform:uppercase;letter-spacing:.04em}
+        .sub{text-align:center;font-size:12px;color:#57534e;margin-bottom:22px}
+        table{width:100%;border-collapse:collapse;font-size:10.5px}
+        thead th{background:#1c1917;color:#fff;text-align:left;padding:7px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+        thead th:nth-child(n+4):nth-child(-n+6){text-align:right}
+        td{padding:6px 10px;border-bottom:1px solid #e7e5e4;vertical-align:top}
+        td:nth-child(n+4):nth-child(-n+6){text-align:right}
+        tfoot td{font-weight:bold;border-top:2px solid #1c1917;padding-top:8px;background:#fafaf9}
+        @media print{@page{size:landscape;margin:1.2cm}body{padding:0}}
+      </style>
+    </head><body>
+      <h1>Lista de Facturas ${marca}</h1>
+      <div class="sub">${taller.nombre || ''}&nbsp;&nbsp;|&nbsp;&nbsp;# de Cuenta: ${numeroCuenta}</div>
+      <table>
+        <thead><tr>
+          <th>Fecha Factura</th><th># Factura</th><th>PO Tag</th>
+          <th>Valor Factura</th><th>Pagado</th><th>Pendiente de Pago</th>
+          <th># Check</th><th>Fecha de Pago</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr>
+          <td colspan="3">TOTAL</td>
+          <td style="text-align:right">$${totals.valor.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          <td style="text-align:right;color:#059669">$${totals.pagado.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          <td style="text-align:right;color:${totals.pendiente > 0 ? '#b7791f' : '#059669'}">$${totals.pendiente.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          <td colspan="2"></td>
+        </tr></tfoot>
+      </table>
+    </body></html>`;
+
+    const w = window.open('', '_blank', 'width=1100,height=750');
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 500);
+  };
+
+  if (facturas.length === 0) return <EmptyState text="No tienes facturas asignadas aún." />;
+
+  const thSt = { color: '#9aa1ad', letterSpacing: '.06em' };
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex gap-1 p-1 rounded-[10px]" style={{ background: '#f1f3f5' }}>
+          {marcasDisponibles.map(m => (
+            <button key={m} onClick={() => setMarca(m)} className="px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all"
+              style={{ background: marca === m ? '#fff' : 'transparent', color: marca === m ? '#181b21' : '#9aa1ad', boxShadow: marca === m ? '0 1px 4px rgba(0,0,0,.08)' : 'none' }}>
+              {m}
+            </button>
+          ))}
+        </div>
+        <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border hover:bg-stone-50 transition-colors" style={{ borderColor: '#e3e5ea', color: '#4a505c' }}>
+          <Printer className="w-4 h-4" /> Imprimir / PDF
+        </button>
+      </div>
+
+      {numeroCuenta && (
+        <p className="text-[12.5px]" style={{ color: '#767d8a' }}>
+          # de cuenta: <span className="font-mono font-semibold" style={{ color: '#181b21' }}>{numeroCuenta}</span>
+        </p>
+      )}
+
+      <div className="rounded-[16px] border overflow-x-auto" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+        <table className="w-full" style={{ minWidth: 800 }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid #eef0f2' }}>
+              {['Fecha', '# Factura', 'PO Tag', 'Valor', 'Pagado', 'Pendiente', '# Check', 'F. Pago'].map((h, i) => (
+                <th key={i} className={`text-left py-3 text-[10.5px] font-bold uppercase ${i === 0 ? 'pl-5 pr-3' : 'px-3'} ${i === 7 ? 'pr-5' : ''}`} style={thSt}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {facturasMarca.length === 0 && <tr><td colSpan={8} className="py-10 text-center text-[13px]" style={{ color: '#9aa1ad' }}>Sin facturas para {marca}.</td></tr>}
+            {facturasMarca.map(f => {
+              const isPending = Number(f.pendiente) > 0;
+              return (
+                <tr key={f.id} style={{ borderTop: '1px solid #f1f2f4', background: isPending ? '#fffdf8' : '#fff' }}>
+                  <td className="py-3.5 pl-5 pr-3 text-[12.5px] whitespace-nowrap" style={{ color: '#4a505c' }}>{fmtDateDisp(f.fechaFactura)}</td>
+                  <td className="py-3.5 px-3 font-mono text-[12.5px] font-semibold" style={{ color: '#181b21' }}>{f.numeroFactura}</td>
+                  <td className="py-3.5 px-3 font-mono text-[12.5px]" style={{ color: '#5b626e' }}>{f.poTag || '—'}</td>
+                  <td className="py-3.5 px-3 text-[12.5px] font-semibold" style={{ color: '#181b21' }}>{fmtCur(f.valor)}</td>
+                  <td className="py-3.5 px-3 text-[12.5px] font-semibold" style={{ color: Number(f.pagado) > 0 ? '#059669' : '#aab0b9' }}>{Number(f.pagado) > 0 ? fmtCur(f.pagado) : '—'}</td>
+                  <td className="py-3.5 px-3 text-[12.5px] font-semibold" style={{ color: isPending ? '#b7791f' : '#059669' }}>{fmtCur(f.pendiente)}</td>
+                  <td className="py-3.5 px-3 font-mono text-[12.5px]" style={{ color: '#5b626e' }}>{f.numeroCheck || '—'}</td>
+                  <td className="py-3.5 pl-3 pr-5 text-[12.5px] whitespace-nowrap" style={{ color: '#767d8a' }}>{fmtDateDisp(f.fechaPago)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+          {facturasMarca.length > 0 && (
+            <tfoot>
+              <tr style={{ borderTop: '2px solid #eef0f2', background: '#f8f9fa' }}>
+                <td colSpan={3} className="py-3.5 pl-5 text-[12.5px] font-bold" style={{ color: '#181b21' }}>TOTAL</td>
+                <td className="py-3.5 px-3 text-[12.5px] font-bold" style={{ color: '#181b21' }}>{fmtCur(totals.valor)}</td>
+                <td className="py-3.5 px-3 text-[12.5px] font-bold" style={{ color: '#059669' }}>{fmtCur(totals.pagado)}</td>
+                <td className="py-3.5 px-3 text-[12.5px] font-bold" style={{ color: totals.pendiente > 0 ? '#b7791f' : '#059669' }}>{fmtCur(totals.pendiente)}</td>
+                <td colSpan={2} className="pr-5" />
+              </tr>
+            </tfoot>
+          )}
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function AdminApp({ pedidos, talleres, facturas, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onAgregarFactura, onActualizarFactura, onEliminarFactura }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
@@ -1757,6 +2089,7 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
     talleres:   { title: 'Talleres',           sub: `${talleres.length} talleres registrados` },
     nuevo:      { title: 'Nuevo pedido',       sub: 'Registra un folio a nombre de un taller' },
     cotizacion: { title: 'Nueva cotización',   sub: 'Crea una cotización con estimado incluido' },
+    facturas:   { title: 'Facturas',           sub: 'Cuentas corrientes por taller y marca' },
   };
   const meta = PAGE_META[activeTab] || PAGE_META.dashboard;
 
@@ -1811,6 +2144,9 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
             )}
             {activeTab === 'cotizacion' && (
               <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />
+            )}
+            {activeTab === 'facturas' && (
+              <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} />
             )}
           </div>
         </main>
@@ -2225,7 +2561,7 @@ function ClientOrderDetail({ order, onRespond }) {
   );
 }
 
-function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate, onSendMessage, onUpdateTaller }) {
+function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespondEstimate, onSendMessage, onUpdateTaller }) {
   const [activeTab, setActiveTab] = useState('pedidos');
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState('');
@@ -2265,7 +2601,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
     { id: 'pedidos',   label: 'Pedidos',   icon: ClipboardList },
     { id: 'estimados', label: 'Estimados', icon: FileText, badge: totalEstimados },
     { id: 'nueva',     label: 'Solicitar', icon: Plus, center: true },
-    { id: 'historial', label: 'Historial', icon: History },
+    { id: 'facturas',  label: 'Facturas',  icon: Receipt },
     { id: 'perfil',    label: 'Perfil',    icon: UserCircle },
   ];
 
@@ -2274,6 +2610,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
   const sideNavItems = [
     { id: 'pedidos',   label: 'Mis pedidos', icon: ClipboardList, badge: 0 },
     { id: 'estimados', label: 'Estimados',   icon: FileText,      badge: totalEstimados, accent: true },
+    { id: 'facturas',  label: 'Facturas',    icon: Receipt },
     { id: 'historial', label: 'Historial',   icon: History },
     { id: 'perfil',    label: 'Mi Perfil',   icon: UserCircle },
   ];
@@ -2313,6 +2650,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
       {activeTab === 'nueva' && (
         <ClientNuevaSolicitud onCreate={(data) => { onCreateOrder({ ...data, tallerId: taller.id }); goTab('estimados'); }} />
       )}
+      {activeTab === 'facturas' && <ClientFacturas facturas={facturas} taller={taller} />}
       {activeTab === 'perfil' && <ClientPerfil taller={taller} onUpdate={(data) => onUpdateTaller(taller.id, data)} />}
     </>
   );
@@ -2467,12 +2805,13 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
 /* ------------------------------------------------------------------ */
 
 import { useAuth } from './useAuth';
-import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias } from './firestore';
+import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura, actualizarFactura, eliminarFactura } from './firestore';
 
 export default function App() {
   const { user, perfil, cargando, error, login, logout, setError } = useAuth();
   const pedidos = usePedidos(user);
   const talleres = useTalleres(user);
+  const facturas = useFacturas(user);
 
   if (cargando) {
     return (
@@ -2501,6 +2840,7 @@ export default function App() {
       <AdminApp
         pedidos={pedidos}
         talleres={talleres}
+        facturas={facturas}
         perfil={perfil}
         onLogout={logout}
         onChangeStatus={(id, estado, fechaEntrega) => cambiarEstatus(id, estado, fechaEntrega)}
@@ -2514,6 +2854,9 @@ export default function App() {
         onUpdateTaller={(uid, data) => actualizarTaller(uid, data)}
         onUpdateNotes={(id, notas) => actualizarNotasInternas(id, notas)}
         onUpdateReferencias={(id, refs) => actualizarReferencias(id, refs)}
+        onAgregarFactura={(data) => agregarFactura(data)}
+        onActualizarFactura={(id, data) => actualizarFactura(id, data)}
+        onEliminarFactura={(id) => eliminarFactura(id)}
       />
     );
   }
@@ -2523,6 +2866,7 @@ export default function App() {
     <ClientApp
       taller={{ ...taller, id: user.uid }}
       pedidos={pedidos}
+      facturas={facturas}
       onLogout={logout}
       onCreateOrder={(data) => crearPedido({ ...data, tallerId: user.uid, tipo: 'solicitud' })}
       onRespondEstimate={(id, respuesta) => responderEstimado(id, respuesta)}

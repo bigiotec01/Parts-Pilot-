@@ -225,6 +225,38 @@ export async function eliminarTaller(uid) {
   await deleteDoc(doc(db, 'talleres', uid));
 }
 
+// ── Facturas en tiempo real ─────────────────────────────────────────
+export function useFacturas(user) {
+  const [facturas, setFacturas] = useState([]);
+  useEffect(() => {
+    if (!user) return;
+    let q;
+    if (user.role === 'admin') {
+      q = query(collection(db, 'facturas'), orderBy('createdAt', 'asc'));
+    } else {
+      q = query(collection(db, 'facturas'), where('tallerId', '==', user.uid));
+    }
+    const unsub = onSnapshot(q,
+      snap => setFacturas(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      err => console.error('useFacturas:', err.code)
+    );
+    return unsub;
+  }, [user]);
+  return facturas;
+}
+
+export async function agregarFactura(data) {
+  await addDoc(collection(db, 'facturas'), { ...data, createdAt: serverTimestamp() });
+}
+
+export async function actualizarFactura(id, data) {
+  await updateDoc(doc(db, 'facturas', id), data);
+}
+
+export async function eliminarFactura(id) {
+  await deleteDoc(doc(db, 'facturas', id));
+}
+
 // ── Crear taller (admin) ────────────────────────────────────────────
 export async function crearTaller({ nombre, contacto, telefono, email, usuario, password }) {
   let uid;
