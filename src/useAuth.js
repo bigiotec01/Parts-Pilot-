@@ -40,10 +40,13 @@ export function useAuth() {
           if (subUserDoc.exists()) {
             const subData = subUserDoc.data();
             const tallerId = subData.tallerId;
-            // Carga el perfil del taller principal
+            // Carga el perfil del taller principal pero usa el nombre del sub-usuario como contacto
             const mainTallerDoc = await getDoc(doc(db, 'talleres', tallerId));
             setUser({ role: 'taller', uid: firebaseUser.uid, tallerId });
-            setPerfil(mainTallerDoc.exists() ? mainTallerDoc.data() : subData);
+            setPerfil(mainTallerDoc.exists()
+              ? { ...mainTallerDoc.data(), contacto: subData.nombre }
+              : subData
+            );
             setCargando(false);
             return;
           }
