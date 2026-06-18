@@ -2233,69 +2233,174 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
     { id: 'perfil',    label: 'Perfil',    icon: UserCircle },
   ];
 
-  return (
-    <div className="min-h-screen" style={{ background: '#f4f5f7' }}>
-      {/* Header ink */}
-      <div className="safe-top" style={{ background: '#141619' }}>
-        <div className="px-5 py-[18px] pb-4 flex items-center gap-2.5">
-          <div className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #e8632f, #c9491c)', boxShadow: '0 6px 16px -6px rgba(201,73,28,.6)' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
+  const initials = (n) => (n || '').split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'T';
+
+  const sideNavItems = [
+    { id: 'pedidos',   label: 'Mis pedidos', icon: ClipboardList, badge: 0 },
+    { id: 'estimados', label: 'Estimados',   icon: FileText,      badge: totalEstimados, accent: true },
+    { id: 'historial', label: 'Historial',   icon: History },
+    { id: 'perfil',    label: 'Mi Perfil',   icon: UserCircle },
+  ];
+
+  const contentView = (
+    <>
+      {/* Mini stats */}
+      <div className="grid grid-cols-3 gap-3 mb-5">
+        {[
+          { val: pedidosActivos.length,  label: 'Activos',     color: '#e8632f' },
+          { val: totalEstimados,         label: 'Estimados',   color: totalEstimados > 0 ? '#b7791f' : '#d1d5db' },
+          { val: pedidosHistorial.length,label: 'Completados', color: '#0d9488' },
+        ].map(({ val, label, color }) => (
+          <div key={label} className="rounded-[14px] px-3 py-3 text-center border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+            <p className="text-[24px] font-extrabold leading-none" style={{ color }}>{val}</p>
+            <p className="text-[11px] mt-1 font-medium" style={{ color: '#8a909c' }}>{label}</p>
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[15px] font-extrabold truncate" style={{ color: '#fff', letterSpacing: '-.01em' }}>{taller.nombre || 'Parts Pilot'}</div>
-            <div className="text-[11.5px]" style={{ color: '#8a909c' }}>{taller.contacto || ''}</div>
-          </div>
-          <button onClick={onLogout} className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: '#262a31', color: '#9aa1ad' }}>
-            <LogOut className="w-4 h-4" strokeWidth={1.9} />
-          </button>
-        </div>
+        ))}
       </div>
 
-      {/* Content */}
-      <main className="max-w-2xl mx-auto px-4 py-5 pb-32">
-        {/* Mini stats */}
-        <div className="grid grid-cols-3 gap-3 mb-5">
-          <div className="rounded-[14px] px-3 py-3 text-center border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
-            <p className="text-[24px] font-extrabold leading-none" style={{ color: '#e8632f' }}>{pedidosActivos.length}</p>
-            <p className="text-[11px] mt-1 font-medium" style={{ color: '#8a909c' }}>Activos</p>
+      {activeTab === 'pedidos' && (
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#9aa1ad' }} />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio…" className="w-full pl-10 pr-4 py-[11px] rounded-[12px] border text-[13.5px] outline-none focus:border-[#e8632f] focus:ring-2 focus:ring-[#e8632f]/10" style={{ background: '#fff', borderColor: '#e3e5ea' }} />
           </div>
-          <div className="rounded-[14px] px-3 py-3 text-center border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
-            <p className="text-[24px] font-extrabold leading-none" style={{ color: totalEstimados > 0 ? '#b7791f' : '#d1d5db' }}>{totalEstimados}</p>
-            <p className="text-[11px] mt-1 font-medium" style={{ color: '#8a909c' }}>Estimados</p>
-          </div>
-          <div className="rounded-[14px] px-3 py-3 text-center border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
-            <p className="text-[24px] font-extrabold leading-none" style={{ color: '#0d9488' }}>{pedidosHistorial.length}</p>
-            <p className="text-[11px] mt-1 font-medium" style={{ color: '#8a909c' }}>Completados</p>
-          </div>
-        </div>
-
-        {activeTab === 'pedidos' && (
-          <div className="space-y-3">
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#9aa1ad' }} />
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio…" className="w-full pl-10 pr-4 py-[11px] rounded-[12px] border text-[13.5px] outline-none focus:border-[#e8632f] focus:ring-2 focus:ring-[#e8632f]/10" style={{ background: '#fff', borderColor: '#e3e5ea' }} />
-            </div>
+          <div className="grid sm:grid-cols-2 gap-3">
             {pedidosFiltrados.length === 0
-              ? <EmptyState text={search ? 'Sin resultados para esa búsqueda.' : 'Aún no tienes pedidos activos.'} />
+              ? <div className="col-span-2"><EmptyState text={search ? 'Sin resultados.' : 'Aún no tienes pedidos activos.'} /></div>
               : pedidosFiltrados.map(p => <OrderCard key={p.id} order={p} onClick={() => handleSelect(p.id)} unreadCount={getUnread(p)} />)
             }
           </div>
-        )}
-        {activeTab === 'historial' && <ClientHistorial pedidos={pedidosHistorial} onSelect={handleSelect} />}
-        {activeTab === 'estimados' && <ClientEstimados solicitudes={solicitudes} cotizaciones={cotizacionesPendientes} onRespond={onRespondEstimate} />}
-        {activeTab === 'nueva' && (
-          <ClientNuevaSolicitud onCreate={(data) => { onCreateOrder({ ...data, tallerId: taller.id }); setActiveTab('estimados'); }} />
-        )}
-        {activeTab === 'perfil' && <ClientPerfil taller={taller} onUpdate={(data) => onUpdateTaller(taller.id, data)} />}
-      </main>
+        </div>
+      )}
+      {activeTab === 'historial' && <ClientHistorial pedidos={pedidosHistorial} onSelect={handleSelect} />}
+      {activeTab === 'estimados' && <ClientEstimados solicitudes={solicitudes} cotizaciones={cotizacionesPendientes} onRespond={onRespondEstimate} />}
+      {activeTab === 'nueva' && (
+        <ClientNuevaSolicitud onCreate={(data) => { onCreateOrder({ ...data, tallerId: taller.id }); goTab('estimados'); }} />
+      )}
+      {activeTab === 'perfil' && <ClientPerfil taller={taller} onUpdate={(data) => onUpdateTaller(taller.id, data)} />}
+    </>
+  );
 
-      {/* Bottom nav */}
-      <div className="fixed bottom-0 left-0 right-0 z-10 safe-bottom" style={{ background: 'rgba(255,255,255,.95)', backdropFilter: 'blur(12px)', borderTop: '1px solid #e7e9ed' }}>
-        <div className="flex items-end justify-between px-2 pt-2 pb-2 max-w-2xl mx-auto">
-          {bottomNav.map(({ id, label, icon: Icon, badge, center }) => {
-            const active = activeTab === id;
-            if (center) {
+  const orderModal = selectedOrder && (
+    <OrderSheet
+      order={selectedOrder}
+      title={selectedOrder.referencia || selectedOrder.vehiculo}
+      onClose={() => setSelectedId(null)}
+      detailContent={<ClientOrderDetail order={selectedOrder} onRespond={onRespondEstimate} />}
+      chatProps={{
+        role: 'taller',
+        otherPartyName: 'Depto. de Piezas',
+        onSendMessage: (orderId, texto, attachment) => onSendMessage(orderId, texto, 'taller', attachment),
+      }}
+    />
+  );
+
+  /* ── DESKTOP (lg+): sidebar layout ── */
+  return (
+    <>
+      {/* ── DESKTOP ── */}
+      <div className="hidden lg:flex min-h-screen" style={{ background: '#f4f5f7' }}>
+        {/* Sidebar */}
+        <aside className="w-[230px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: '#141619' }}>
+          <div className="px-5 py-[22px] flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #e8632f, #c9491c)', boxShadow: '0 6px 16px -6px rgba(201,73,28,.6)' }}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
+            </div>
+            <div className="min-w-0">
+              <div className="font-extrabold text-[14px] leading-tight truncate" style={{ color: '#fff' }}>{taller.nombre || 'Parts Pilot'}</div>
+              <div className="text-[10.5px] font-bold uppercase mt-0.5" style={{ color: '#6a7180', letterSpacing: '.04em' }}>Taller</div>
+            </div>
+          </div>
+
+          <div className="px-3 flex-1">
+            <div className="text-[10.5px] font-bold uppercase px-2.5 py-2 mb-1" style={{ color: '#565d6b', letterSpacing: '.08em' }}>Menú</div>
+            {sideNavItems.map(({ id, label, icon: Icon, badge, accent }) => {
+              const active = activeTab === id;
               return (
+                <button key={id} onClick={() => goTab(id)}
+                  className={`w-full flex items-center gap-2.5 px-2.5 py-[9px] rounded-[10px] text-[13px] font-semibold mb-0.5 transition-colors ${!active ? 'hover:bg-[#1f2228]' : ''}`}
+                  style={{ background: active ? '#e8632f' : 'transparent', color: active ? '#fff' : '#9aa1ad' }}
+                >
+                  <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.8} />
+                  {label}
+                  {badge > 0 && (
+                    <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-[7px]"
+                      style={{ background: active ? 'rgba(255,255,255,.2)' : (accent ? '#e8632f' : '#2a2e36'), color: active ? '#fff' : (accent ? '#fff' : '#9aa1ad') }}>
+                      {badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+            <div className="my-3" style={{ borderTop: '1px solid #1e2127' }} />
+            <button onClick={() => goTab('nueva')}
+              className={`w-full flex items-center gap-2.5 px-2.5 py-[9px] rounded-[10px] text-[13px] font-semibold mb-0.5 transition-colors ${activeTab === 'nueva' ? '' : 'hover:bg-[#1f2228]'}`}
+              style={{ background: activeTab === 'nueva' ? '#e8632f' : 'transparent', color: activeTab === 'nueva' ? '#fff' : '#9aa1ad' }}
+            >
+              <Plus className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.8} />
+              Solicitar estimado
+            </button>
+          </div>
+
+          <div className="p-3.5">
+            <div className="rounded-[13px] p-3 flex items-center gap-2.5" style={{ background: '#1c1f25' }}>
+              <div className="w-9 h-9 rounded-[9px] flex items-center justify-center text-[12px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #3a3f49, #272b32)', color: '#d6dae0' }}>
+                {initials(taller.nombre)}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[12px] font-bold truncate" style={{ color: '#e8eaee' }}>{taller.contacto || taller.nombre}</div>
+                <div className="text-[10.5px] truncate" style={{ color: '#6a7180' }}>{taller.usuario || 'taller'}</div>
+              </div>
+              <button onClick={onLogout} className="w-[28px] h-[28px] rounded-[7px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: '#262a31', color: '#8a909c' }} title="Salir">
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          <header className="h-[70px] flex-shrink-0 flex items-center px-8 border-b sticky top-0 z-20" style={{ background: 'rgba(244,245,247,.88)', backdropFilter: 'blur(8px)', borderColor: '#e7e9ed' }}>
+            <div>
+              <h1 className="text-[18px] font-bold" style={{ color: '#181b21', letterSpacing: '-.02em' }}>
+                {{ pedidos: 'Mis pedidos', estimados: 'Estimados', historial: 'Historial', nueva: 'Solicitar estimado', perfil: 'Mi Perfil' }[activeTab]}
+              </h1>
+            </div>
+          </header>
+          <main className="flex-1 overflow-y-auto px-8 py-7 pb-14">
+            <div className="max-w-[900px]">
+              {contentView}
+            </div>
+          </main>
+        </div>
+        {orderModal}
+      </div>
+
+      {/* ── MÓVIL ── */}
+      <div className="lg:hidden min-h-screen" style={{ background: '#f4f5f7' }}>
+        <div className="safe-top" style={{ background: '#141619' }}>
+          <div className="px-5 py-[18px] pb-4 flex items-center gap-2.5">
+            <div className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #e8632f, #c9491c)', boxShadow: '0 6px 16px -6px rgba(201,73,28,.6)' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[15px] font-extrabold truncate" style={{ color: '#fff', letterSpacing: '-.01em' }}>{taller.nombre || 'Parts Pilot'}</div>
+              <div className="text-[11.5px]" style={{ color: '#8a909c' }}>{taller.contacto || ''}</div>
+            </div>
+            <button onClick={onLogout} className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: '#262a31', color: '#9aa1ad' }}>
+              <LogOut className="w-4 h-4" strokeWidth={1.9} />
+            </button>
+          </div>
+        </div>
+
+        <main className="max-w-2xl mx-auto px-4 py-5 pb-32">{contentView}</main>
+
+        {/* Bottom nav móvil */}
+        <div className="fixed bottom-0 left-0 right-0 z-10 safe-bottom" style={{ background: 'rgba(255,255,255,.95)', backdropFilter: 'blur(12px)', borderTop: '1px solid #e7e9ed' }}>
+          <div className="flex items-end justify-between px-2 pt-2 pb-2 max-w-2xl mx-auto">
+            {bottomNav.map(({ id, label, icon: Icon, badge, center }) => {
+              const active = activeTab === id;
+              if (center) return (
                 <button key={id} onClick={() => goTab(id)} className="flex flex-col items-center gap-1 flex-1">
                   <div className="w-[46px] h-[46px] -mt-4 rounded-[15px] flex items-center justify-center" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)', boxShadow: '0 10px 20px -8px rgba(201,73,28,.6)' }}>
                     <Plus className="w-6 h-6 text-white" strokeWidth={2.4} />
@@ -2303,36 +2408,21 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
                   <span className="text-[10px] font-semibold" style={{ color: active ? '#e8632f' : '#9aa1ad' }}>{label}</span>
                 </button>
               );
-            }
-            return (
-              <button key={id} onClick={() => goTab(id)} className="flex flex-col items-center gap-1 flex-1 relative pt-1">
-                <div className="relative">
-                  <Icon className="w-[22px] h-[22px]" strokeWidth={1.9} style={{ color: active ? '#e8632f' : '#9aa1ad' }} />
-                  {badge > 0 && (
-                    <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: '#e8632f' }}>{badge}</span>
-                  )}
-                </div>
-                <span className="text-[10px] font-semibold" style={{ color: active ? '#e8632f' : '#9aa1ad' }}>{label}</span>
-              </button>
-            );
-          })}
+              return (
+                <button key={id} onClick={() => goTab(id)} className="flex flex-col items-center gap-1 flex-1 relative pt-1">
+                  <div className="relative">
+                    <Icon className="w-[22px] h-[22px]" strokeWidth={1.9} style={{ color: active ? '#e8632f' : '#9aa1ad' }} />
+                    {badge > 0 && <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: '#e8632f' }}>{badge}</span>}
+                  </div>
+                  <span className="text-[10px] font-semibold" style={{ color: active ? '#e8632f' : '#9aa1ad' }}>{label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
+        {orderModal}
       </div>
-
-      {selectedOrder && (
-        <OrderSheet
-          order={selectedOrder}
-          title={selectedOrder.referencia || selectedOrder.vehiculo}
-          onClose={() => setSelectedId(null)}
-          detailContent={<ClientOrderDetail order={selectedOrder} onRespond={onRespondEstimate} />}
-          chatProps={{
-            role: 'taller',
-            otherPartyName: 'Depto. de Piezas',
-            onSendMessage: (orderId, texto, attachment) => onSendMessage(orderId, texto, 'taller', attachment),
-          }}
-        />
-      )}
-    </div>
+    </>
   );
 }
 
