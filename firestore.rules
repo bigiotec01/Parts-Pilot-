@@ -31,5 +31,13 @@ service cloud.firestore {
       allow update: if isAdmin() || (request.auth != null && resource.data.tallerId == request.auth.uid);
       allow delete: if isAdmin();
     }
+
+    // Facturas: admin lee/escribe todas; taller solo lee las suyas
+    match /facturas/{facturaId} {
+      allow read:   if isAdmin() || (request.auth != null && resource.data.tallerId == request.auth.uid);
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
   }
 }
