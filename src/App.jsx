@@ -1846,22 +1846,32 @@ function EstimateCard({ order }) {
 
 function EstimateActions({ order, onRespond }) {
   const { estimado } = order;
-  if (estimado.respuesta === 'pendiente') {
+  const canRespond = estimado.respuesta === 'pendiente' && order.estado === 'cotizando';
+
+  if (canRespond) {
     return (
       <div className="flex gap-2">
-        <button onClick={() => onRespond(order.id, 'aceptado')} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium py-2 rounded-lg flex items-center justify-center gap-1.5 transition-colors">
+        <button onClick={() => onRespond(order.id, 'aceptado')} className="flex-1 py-[11px] rounded-[11px] text-white text-[13px] font-bold flex items-center justify-center gap-1.5 transition-colors" style={{ background: '#10b981' }}>
           <ThumbsUp className="w-4 h-4" /> Aceptar
         </button>
-        <button onClick={() => onRespond(order.id, 'rechazado')} className="flex-1 bg-white border border-stone-200 hover:bg-stone-50 text-stone-600 text-sm font-medium py-2 rounded-lg flex items-center justify-center gap-1.5 transition-colors">
+        <button onClick={() => onRespond(order.id, 'rechazado')} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold flex items-center justify-center gap-1.5 border transition-colors hover:bg-stone-50" style={{ background: '#fff', borderColor: '#e3e5ea', color: '#5b626e' }}>
           <ThumbsDown className="w-4 h-4" /> Rechazar
         </button>
       </div>
     );
   }
+
+  if (estimado.respuesta === 'rechazado') {
+    return (
+      <div className="flex items-center gap-2 px-3 py-2.5 rounded-[10px] text-[13px] font-semibold" style={{ background: '#fdecec', color: '#dc2626' }}>
+        <ThumbsDown className="w-4 h-4 flex-shrink-0" /> Rechazaste este estimado
+      </div>
+    );
+  }
+
   return (
-    <div className={`text-sm px-3 py-2 rounded-lg flex items-center gap-2 ${estimado.respuesta === 'aceptado' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
-      {estimado.respuesta === 'aceptado' ? <ThumbsUp className="w-4 h-4" /> : <ThumbsDown className="w-4 h-4" />}
-      {estimado.respuesta === 'aceptado' ? 'Aceptaste este estimado' : 'Rechazaste este estimado'}
+    <div className="flex items-center gap-2 px-3 py-2.5 rounded-[10px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}>
+      <ThumbsUp className="w-4 h-4 flex-shrink-0" /> Estimado aceptado
     </div>
   );
 }
@@ -1908,10 +1918,10 @@ function ClientEstimados({ solicitudes, cotizaciones = [], onRespond }) {
                   </a>
                 )}
                 <div className="flex gap-2">
-                  <button onClick={() => onRespond(p.id, 'aceptado')} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium py-2 rounded-lg flex items-center justify-center gap-1.5 transition-colors">
+                  <button onClick={() => onRespond(p.id, 'aceptado')} className="flex-1 py-[11px] rounded-[11px] text-white text-[13px] font-bold flex items-center justify-center gap-1.5 transition-colors hover:brightness-105" style={{ background: '#10b981' }}>
                     <ThumbsUp className="w-4 h-4" /> Aceptar
                   </button>
-                  <button onClick={() => onRespond(p.id, 'rechazado')} className="flex-1 bg-white border border-stone-200 hover:bg-stone-50 text-stone-600 text-sm font-medium py-2 rounded-lg flex items-center justify-center gap-1.5 transition-colors">
+                  <button onClick={() => onRespond(p.id, 'rechazado')} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold border flex items-center justify-center gap-1.5 transition-colors hover:bg-stone-50" style={{ background: '#fff', borderColor: '#e3e5ea', color: '#5b626e' }}>
                     <ThumbsDown className="w-4 h-4" /> Rechazar
                   </button>
                 </div>
@@ -2282,7 +2292,7 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
   );
 
   const orderModal = selectedOrder && (
-    <OrderSheet
+    <OrderDrawer
       order={selectedOrder}
       title={selectedOrder.referencia || selectedOrder.vehiculo}
       onClose={() => setSelectedId(null)}
