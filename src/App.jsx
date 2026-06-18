@@ -99,18 +99,19 @@ function formatDate(d) {
 /*  COMPONENTES COMPARTIDOS                                            */
 /* ------------------------------------------------------------------ */
 
-function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onLogout }) {
+function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onLogout, canView, canEdit, canManageEquipo }) {
   const primaryItems = [
-    { id: 'dashboard',  label: 'Resumen',    icon: LayoutDashboard },
-    { id: 'pedidos',    label: 'Pedidos',    icon: ClipboardList, badge: pedidosCount },
-    { id: 'estimados',  label: 'Estimados',  icon: FileText, badge: solicitudesCount, accent: true },
-    { id: 'talleres',   label: 'Talleres',   icon: Users },
-  ];
+    { id: 'dashboard',                     label: 'Resumen',    icon: LayoutDashboard },
+    canView('pedidos')   && { id: 'pedidos',    label: 'Pedidos',    icon: ClipboardList, badge: pedidosCount },
+    canView('estimados') && { id: 'estimados',  label: 'Estimados',  icon: FileText, badge: solicitudesCount, accent: true },
+    canView('talleres')  && { id: 'talleres',   label: 'Talleres',   icon: Users },
+  ].filter(Boolean);
   const secondaryItems = [
-    { id: 'nuevo',      label: 'Nuevo pedido',     icon: Plus },
-    { id: 'cotizacion', label: 'Nueva cotización',  icon: ClipboardCheck },
-    { id: 'facturas',   label: 'Facturas',          icon: Receipt },
-  ];
+    canEdit('pedidos')   && { id: 'nuevo',      label: 'Nuevo pedido',    icon: Plus },
+    canEdit('estimados') && { id: 'cotizacion', label: 'Nueva cotización', icon: ClipboardCheck },
+    canView('facturas')  && { id: 'facturas',   label: 'Facturas',         icon: Receipt },
+    canManageEquipo      && { id: 'equipo',     label: 'Equipo',           icon: Users },
+  ].filter(Boolean);
 
   const NavBtn = ({ id, label, icon: Icon, badge, accent }) => {
     const active = activeTab === id;
@@ -1751,7 +1752,7 @@ function fmtDateDisp(d) {
 /*  ADMIN FACTURAS                                                      */
 /* ------------------------------------------------------------------ */
 
-function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar, onUpdateTaller }) {
+function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar, onUpdateTaller, readOnly = false }) {
   const [tallerSel, setTallerSel] = useState(talleres[0]?.uid || '');
   const [marca, setMarca] = useState('KIA');
   const [editId, setEditId] = useState(null);
@@ -1947,16 +1948,18 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border cursor-pointer hover:bg-stone-50 transition-colors" style={{ borderColor: '#e3e5ea', color: '#4a505c' }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Importar CSV / Excel
-            <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleXlsx} className="hidden" />
-          </label>
-          <button onClick={startAdd} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:brightness-105" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
-            <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva factura
-          </button>
-        </div>
+        {!readOnly && (
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border cursor-pointer hover:bg-stone-50 transition-colors" style={{ borderColor: '#e3e5ea', color: '#4a505c' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Importar CSV / Excel
+              <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleXlsx} className="hidden" />
+            </label>
+            <button onClick={startAdd} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:brightness-105" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+              <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva factura
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Modal previsualización import */}
@@ -2232,13 +2235,281 @@ function ClientFacturas({ facturas, taller }) {
   );
 }
 
-function AdminApp({ pedidos, talleres, facturas, perfil, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onAgregarFactura, onActualizarFactura, onEliminarFactura }) {
+/* ------------------------------------------------------------------ */
+/*  ADMIN EQUIPO                                                        */
+/* ------------------------------------------------------------------ */
+
+const MODULOS_PERM = [
+  { id: 'pedidos',   label: 'Pedidos' },
+  { id: 'estimados', label: 'Estimados' },
+  { id: 'talleres',  label: 'Talleres' },
+  { id: 'facturas',  label: 'Facturas' },
+];
+
+const PERM_OPTS = [
+  { val: 'none', label: 'Sin acceso', bg: '#f1f3f5', color: '#9aa1ad' },
+  { val: 'view', label: 'Solo ver',   bg: '#eef4ff', color: '#2563eb' },
+  { val: 'edit', label: 'Editar',     bg: '#eafaf2', color: '#059669' },
+];
+
+function PermBadge({ val }) {
+  const opt = PERM_OPTS.find(o => o.val === val) || PERM_OPTS[0];
+  return (
+    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: opt.bg, color: opt.color }}>
+      {opt.label}
+    </span>
+  );
+}
+
+function PermSelector({ value, onChange }) {
+  return (
+    <div className="flex gap-1">
+      {PERM_OPTS.map(opt => (
+        <button key={opt.val} onClick={() => onChange(opt.val)}
+          className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold transition-all border"
+          style={{
+            background: value === opt.val ? opt.bg : '#fff',
+            color: value === opt.val ? opt.color : '#9aa1ad',
+            borderColor: value === opt.val ? opt.color + '40' : '#e3e5ea',
+          }}>
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onEliminar }) {
+  const DEFAULT_P = { pedidos: 'edit', estimados: 'edit', talleres: 'view', facturas: 'view', equipo: false, crearPedidos: true };
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ nombre: '', email: '', password: '', permisos: { ...DEFAULT_P } });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [done, setDone] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [editPermisos, setEditPermisos] = useState({});
+
+  const isSuperadmin = (u) => !u.permisos;
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (!form.nombre || !form.email || !form.password) return;
+    setSaving(true); setError('');
+    try {
+      await onCrear({ nombre: form.nombre.trim(), email: form.email.trim(), password: form.password, permisos: form.permisos });
+      setForm({ nombre: '', email: '', password: '', permisos: { ...DEFAULT_P } });
+      setShowForm(false);
+      setDone(true);
+      setTimeout(() => setDone(false), 3000);
+    } catch (err) {
+      setError(err.code === 'auth/email-already-in-use' ? 'Ese correo ya está registrado.' : 'Error: ' + err.message);
+    } finally { setSaving(false); }
+  };
+
+  const startEdit = (u) => {
+    setEditId(u.uid);
+    setEditPermisos({ ...DEFAULT_P, ...u.permisos });
+  };
+
+  const saveEdit = async () => {
+    setSaving(true);
+    try {
+      await onActualizar(editId, { permisos: editPermisos });
+      setEditId(null);
+    } finally { setSaving(false); }
+  };
+
+  const setP = (mod, val) => setForm(f => ({ ...f, permisos: { ...f.permisos, [mod]: val } }));
+  const setEP = (mod, val) => setEditPermisos(p => ({ ...p, [mod]: val }));
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-[15px] font-bold" style={{ color: '#181b21' }}>Equipo</h2>
+          <p className="text-[12.5px]" style={{ color: '#767d8a' }}>Usuarios con acceso al panel de administración</p>
+        </div>
+        <button onClick={() => { setShowForm(s => !s); setError(''); }}
+          className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:brightness-105"
+          style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+          <Plus className="w-4 h-4" strokeWidth={2.2} /> Agregar usuario
+        </button>
+      </div>
+
+      {done && <div className="flex items-center gap-2 px-4 py-3 rounded-[11px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}><CheckCircle2 className="w-4 h-4" /> Usuario creado correctamente.</div>}
+
+      {/* Formulario nuevo usuario */}
+      {showForm && (
+        <form onSubmit={handleCreate} className="rounded-[16px] p-6 border space-y-5" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+          <p className="text-[14px] font-bold" style={{ color: '#181b21' }}>Nuevo usuario admin</p>
+          <div className="grid grid-cols-3 gap-3">
+            <FormField label="Nombre"><input value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} placeholder="ej. Carlos López" className={inputClass} required /></FormField>
+            <FormField label="Correo electrónico"><input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="carlos@correo.com" className={inputClass} required /></FormField>
+            <FormField label="Contraseña"><input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="mínimo 6 caracteres" className={inputClass} required minLength={6} /></FormField>
+          </div>
+
+          {/* Permisos por módulo */}
+          <div>
+            <p className="text-[12.5px] font-semibold mb-3" style={{ color: '#4a505c' }}>Permisos por módulo</p>
+            <div className="space-y-3">
+              {MODULOS_PERM.map(({ id, label }) => (
+                <div key={id} className="flex items-center justify-between gap-4">
+                  <span className="text-[13px] font-medium w-28" style={{ color: '#181b21' }}>{label}</span>
+                  <PermSelector value={form.permisos[id] || 'none'} onChange={val => setP(id, val)} />
+                </div>
+              ))}
+              <div className="flex items-center justify-between gap-4 pt-2" style={{ borderTop: '1px dashed #e7e9ed' }}>
+                <span className="text-[13px] font-medium w-28" style={{ color: '#181b21' }}>Crear pedidos</span>
+                <div className="flex gap-1">
+                  {[{ val: true, label: 'Sí' }, { val: false, label: 'No' }].map(opt => (
+                    <button key={String(opt.val)} type="button" onClick={() => setP('crearPedidos', opt.val)}
+                      className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-all"
+                      style={{ background: form.permisos.crearPedidos === opt.val ? '#eafaf2' : '#fff', color: form.permisos.crearPedidos === opt.val ? '#059669' : '#9aa1ad', borderColor: form.permisos.crearPedidos === opt.val ? '#059669' + '40' : '#e3e5ea' }}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-[13px] font-medium w-28" style={{ color: '#181b21' }}>Gestionar equipo</span>
+                <div className="flex gap-1">
+                  {[{ val: true, label: 'Sí' }, { val: false, label: 'No' }].map(opt => (
+                    <button key={String(opt.val)} type="button" onClick={() => setP('equipo', opt.val)}
+                      className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-all"
+                      style={{ background: form.permisos.equipo === opt.val ? '#eafaf2' : '#fff', color: form.permisos.equipo === opt.val ? '#059669' : '#9aa1ad', borderColor: form.permisos.equipo === opt.val ? '#059669' + '40' : '#e3e5ea' }}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {error && <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[11px]" style={{ background: '#fdecec', color: '#dc2626' }}><AlertCircle className="w-4 h-4 flex-shrink-0" />{error}</div>}
+          <div className="flex gap-3 pt-1">
+            <button type="submit" disabled={saving} className="flex-1 py-[11px] rounded-[11px] text-white font-bold text-[13.5px] hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+              {saving ? 'Creando…' : 'Crear usuario'}
+            </button>
+            <button type="button" onClick={() => { setShowForm(false); setError(''); }} className="px-5 py-[11px] rounded-[11px] border text-[13.5px] font-semibold hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>Cancelar</button>
+          </div>
+        </form>
+      )}
+
+      {/* Lista de usuarios */}
+      <div className="grid md:grid-cols-2 gap-4">
+        {equipo.map(u => (
+          <div key={u.uid} className="rounded-[15px] border p-5" style={{ background: '#fff', borderColor: editId === u.uid ? '#e8632f' : '#e7e9ed', boxShadow: editId === u.uid ? '0 0 0 3px rgba(232,99,47,.08)' : 'none' }}>
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-[10px] flex items-center justify-center text-[14px] font-extrabold flex-shrink-0"
+                  style={{ background: isSuperadmin(u) ? 'linear-gradient(150deg, #3a3f49, #272b32)' : 'linear-gradient(150deg, #f3f4f6, #e8eaed)', color: isSuperadmin(u) ? '#d6dae0' : '#4a505c' }}>
+                  {(u.nombre || u.email || '?')[0].toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[14px] font-bold truncate" style={{ color: '#181b21' }}>{u.nombre || '—'}</div>
+                  <div className="text-[12px] truncate" style={{ color: '#8a909c' }}>{u.email || '—'}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {isSuperadmin(u)
+                  ? <span className="text-[11px] font-bold px-2.5 py-1 rounded-[8px]" style={{ background: '#141619', color: '#e8632f' }}>Superadmin</span>
+                  : u.uid !== currentUid && (
+                    <>
+                      <button onClick={() => editId === u.uid ? setEditId(null) : startEdit(u)}
+                        className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-[#fdeee7] transition-colors" style={{ color: '#aab0b9' }}>
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => { if (window.confirm(`¿Eliminar a ${u.nombre || u.email}?`)) onEliminar(u.uid); }}
+                        className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors" style={{ color: '#aab0b9' }}>
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  )
+                }
+              </div>
+            </div>
+
+            {isSuperadmin(u) ? (
+              <p className="text-[12.5px]" style={{ color: '#9aa1ad' }}>Acceso completo a todos los módulos.</p>
+            ) : editId === u.uid ? (
+              /* Edit permisos inline */
+              <div className="space-y-3">
+                {MODULOS_PERM.map(({ id, label }) => (
+                  <div key={id} className="flex items-center justify-between gap-3">
+                    <span className="text-[12.5px] font-medium w-24" style={{ color: '#181b21' }}>{label}</span>
+                    <PermSelector value={editPermisos[id] || 'none'} onChange={val => setEP(id, val)} />
+                  </div>
+                ))}
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[12.5px] font-medium w-24" style={{ color: '#181b21' }}>Crear pedidos</span>
+                  <div className="flex gap-1">
+                    {[{ val: true, label: 'Sí' }, { val: false, label: 'No' }].map(opt => (
+                      <button key={String(opt.val)} onClick={() => setEP('crearPedidos', opt.val)}
+                        className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-all"
+                        style={{ background: editPermisos.crearPedidos === opt.val ? '#eafaf2' : '#fff', color: editPermisos.crearPedidos === opt.val ? '#059669' : '#9aa1ad', borderColor: editPermisos.crearPedidos === opt.val ? '#059669' + '40' : '#e3e5ea' }}>
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[12.5px] font-medium w-24" style={{ color: '#181b21' }}>Gestionar equipo</span>
+                  <div className="flex gap-1">
+                    {[{ val: true, label: 'Sí' }, { val: false, label: 'No' }].map(opt => (
+                      <button key={String(opt.val)} onClick={() => setEP('equipo', opt.val)}
+                        className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-all"
+                        style={{ background: editPermisos.equipo === opt.val ? '#eafaf2' : '#fff', color: editPermisos.equipo === opt.val ? '#059669' : '#9aa1ad', borderColor: editPermisos.equipo === opt.val ? '#059669' + '40' : '#e3e5ea' }}>
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button onClick={saveEdit} disabled={saving} className="flex-1 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+                    {saving ? 'Guardando…' : 'Guardar permisos'}
+                  </button>
+                  <button onClick={() => setEditId(null)} className="px-4 py-[9px] rounded-[10px] border text-[13px] font-semibold hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>Cancelar</button>
+                </div>
+              </div>
+            ) : (
+              /* Permisos en modo lectura */
+              <div className="grid grid-cols-2 gap-2">
+                {MODULOS_PERM.map(({ id, label }) => (
+                  <div key={id} className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#f8f9fa' }}>
+                    <span className="text-[12px]" style={{ color: '#767d8a' }}>{label}</span>
+                    <PermBadge val={u.permisos?.[id] || 'none'} />
+                  </div>
+                ))}
+                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#f8f9fa' }}>
+                  <span className="text-[12px]" style={{ color: '#767d8a' }}>Crear pedidos</span>
+                  <PermBadge val={u.permisos?.crearPedidos !== false ? 'edit' : 'none'} />
+                </div>
+                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#f8f9fa' }}>
+                  <span className="text-[12px]" style={{ color: '#767d8a' }}>Equipo</span>
+                  <PermBadge val={u.permisos?.equipo ? 'edit' : 'none'} />
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminApp({ pedidos, talleres, facturas, equipo, perfil, currentUid, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onAgregarFactura, onActualizarFactura, onEliminarFactura, onCrearAdmin, onActualizarAdmin, onEliminarAdmin }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
   const [filterEstado, setFilterEstado] = useState('todos');
   const [search, setSearch] = useState('');
   const [showReporte, setShowReporte] = useState(false);
+
+  // Permisos: si perfil no tiene 'permisos' = superadmin con acceso total
+  const isSuperadmin = !perfil?.permisos;
+  const canView = (mod) => isSuperadmin || ['view', 'edit'].includes(perfil?.permisos?.[mod] ?? 'none');
+  const canEdit = (mod) => isSuperadmin || perfil?.permisos?.[mod] === 'edit';
+  const canManageEquipo = isSuperadmin || perfil?.permisos?.equipo === true;
 
   const getTaller = (id) => talleres.find(t => t.uid === id);
   const selectedOrder = pedidos.find(p => p.id === selectedId);
@@ -2261,6 +2532,7 @@ function AdminApp({ pedidos, talleres, facturas, perfil, onLogout, onChangeStatu
     nuevo:      { title: 'Nuevo pedido',       sub: 'Registra un folio a nombre de un taller' },
     cotizacion: { title: 'Nueva cotización',   sub: 'Crea una cotización con estimado incluido' },
     facturas:   { title: 'Facturas',           sub: 'Cuentas corrientes por taller y marca' },
+    equipo:     { title: 'Equipo',             sub: 'Usuarios y permisos de acceso' },
   };
   const meta = PAGE_META[activeTab] || PAGE_META.dashboard;
 
@@ -2274,6 +2546,9 @@ function AdminApp({ pedidos, talleres, facturas, perfil, onLogout, onChangeStatu
         solicitudesCount={solicitudes.length}
         pedidosCount={solosPedidos.length}
         onLogout={onLogout}
+        canView={canView}
+        canEdit={canEdit}
+        canManageEquipo={canManageEquipo}
       />
       <div className="flex-1 min-w-0 flex flex-col">
         <AdminTopbar
@@ -2317,7 +2592,10 @@ function AdminApp({ pedidos, talleres, facturas, perfil, onLogout, onChangeStatu
               <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />
             )}
             {activeTab === 'facturas' && (
-              <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} />
+              <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} />
+            )}
+            {activeTab === 'equipo' && canManageEquipo && (
+              <AdminEquipo equipo={equipo} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />
             )}
           </div>
         </main>
@@ -2976,13 +3254,14 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
 /* ------------------------------------------------------------------ */
 
 import { useAuth } from './useAuth';
-import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura, actualizarFactura, eliminarFactura } from './firestore';
+import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura, actualizarFactura, eliminarFactura, useAdminEquipo, crearAdminUsuario, actualizarPermisosAdmin, eliminarAdminUsuario } from './firestore';
 
 export default function App() {
   const { user, perfil, cargando, error, login, logout, setError } = useAuth();
   const pedidos = usePedidos(user);
   const talleres = useTalleres(user);
   const facturas = useFacturas(user);
+  const equipo   = useAdminEquipo(user);
 
   if (cargando) {
     return (
@@ -3012,7 +3291,9 @@ export default function App() {
         pedidos={pedidos}
         talleres={talleres}
         facturas={facturas}
+        equipo={equipo}
         perfil={perfil}
+        currentUid={user.uid}
         onLogout={logout}
         onChangeStatus={(id, estado, fechaEntrega) => cambiarEstatus(id, estado, fechaEntrega)}
         onSendEstimate={(id, data) => enviarEstimado(id, data)}
@@ -3028,6 +3309,9 @@ export default function App() {
         onAgregarFactura={(data) => agregarFactura(data)}
         onActualizarFactura={(id, data) => actualizarFactura(id, data)}
         onEliminarFactura={(id) => eliminarFactura(id)}
+        onCrearAdmin={(data) => crearAdminUsuario(data)}
+        onActualizarAdmin={(uid, data) => actualizarPermisosAdmin(uid, data)}
+        onEliminarAdmin={(uid) => eliminarAdminUsuario(uid)}
       />
     );
   }

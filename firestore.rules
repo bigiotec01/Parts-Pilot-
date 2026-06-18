@@ -7,10 +7,18 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
-    // Solo el propio admin puede leer su documento
+    function isSuperAdmin() {
+      let d = get(/databases/$(database)/documents/admins/$(request.auth.uid)).data;
+      return !('permisos' in d);
+    }
+
+    // Admins: cualquier admin puede leer (para listar equipo);
+    // solo superadmin puede crear/eliminar; admin puede actualizarse a sí mismo
     match /admins/{uid} {
-      allow read: if request.auth != null && request.auth.uid == uid;
-      allow write: if false;
+      allow read:   if isAdmin();
+      allow create: if isAdmin() && isSuperAdmin();
+      allow update: if isAdmin() && (isSuperAdmin() || request.auth.uid == uid);
+      allow delete: if isAdmin() && isSuperAdmin() && request.auth.uid != uid;
     }
 
     // Talleres: admin lee/escribe todos; taller lee solo el suyo
@@ -19,7 +27,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Contador de folios: cualquier usuario autenticado puede leer y actualizar
+    // Contador de folios
     match /config/counters {
       allow read, write: if request.auth != null;
     }

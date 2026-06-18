@@ -225,6 +225,42 @@ export async function eliminarTaller(uid) {
   await deleteDoc(doc(db, 'talleres', uid));
 }
 
+// ── Equipo admin en tiempo real ─────────────────────────────────────
+export function useAdminEquipo(user) {
+  const [equipo, setEquipo] = useState([]);
+  useEffect(() => {
+    if (!user || user.role !== 'admin') return;
+    const unsub = onSnapshot(
+      collection(db, 'admins'),
+      snap => setEquipo(snap.docs.map(d => ({ uid: d.id, ...d.data() }))),
+      err => console.error('useAdminEquipo:', err.code)
+    );
+    return unsub;
+  }, [user]);
+  return equipo;
+}
+
+export async function crearAdminUsuario({ nombre, email, password, permisos }) {
+  const secondaryApp = initializeApp(firebaseConfig, `create-admin-${Date.now()}`);
+  const secondaryAuth = getAuth(secondaryApp);
+  let uid;
+  try {
+    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    uid = cred.user.uid;
+  } finally {
+    await deleteApp(secondaryApp);
+  }
+  await setDoc(doc(db, 'admins', uid), { nombre, email, permisos });
+}
+
+export async function actualizarPermisosAdmin(uid, data) {
+  await updateDoc(doc(db, 'admins', uid), data);
+}
+
+export async function eliminarAdminUsuario(uid) {
+  await deleteDoc(doc(db, 'admins', uid));
+}
+
 // ── Facturas en tiempo real ─────────────────────────────────────────
 export function useFacturas(user) {
   const [facturas, setFacturas] = useState([]);
