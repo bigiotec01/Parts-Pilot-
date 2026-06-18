@@ -12,8 +12,21 @@ service cloud.firestore {
       return !('permisos' in d);
     }
 
-    // Admins: cualquier admin puede leer (para listar equipo);
-    // solo superadmin puede crear/eliminar; admin puede actualizarse a sí mismo
+    function getTallerId() {
+      // Para sub-usuarios de taller, obtiene el tallerId de su documento
+      return get(/databases/$(database)/documents/tallerUsuarios/$(request.auth.uid)).data.tallerId;
+    }
+
+    function isTallerMember(tallerId) {
+      // Es la cuenta principal O un sub-usuario del taller
+      return request.auth != null && (
+        request.auth.uid == tallerId ||
+        (exists(/databases/$(database)/documents/tallerUsuarios/$(request.auth.uid)) &&
+         getTallerId() == tallerId)
+      );
+    }
+
+    // Admins
     match /admins/{uid} {
       allow read:   if isAdmin();
       allow create: if isAdmin() && isSuperAdmin();
@@ -21,10 +34,17 @@ service cloud.firestore {
       allow delete: if isAdmin() && isSuperAdmin() && request.auth.uid != uid;
     }
 
-    // Talleres: admin lee/escribe todos; taller lee solo el suyo
+    // Talleres
     match /talleres/{uid} {
-      allow read:  if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow read:  if isAdmin() || isTallerMember(uid);
       allow write: if isAdmin();
+    }
+
+    // Sub-usuarios de taller
+    match /tallerUsuarios/{uid} {
+      allow read:   if isAdmin() || request.auth.uid == uid;
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
     }
 
     // Contador de folios
@@ -32,17 +52,17 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
-    // Pedidos: admin lee/escribe todos; taller lee/escribe solo los suyos
+    // Pedidos
     match /pedidos/{pedidoId} {
-      allow read:   if isAdmin() || (request.auth != null && resource.data.tallerId == request.auth.uid);
-      allow create: if isAdmin() || (request.auth != null && request.resource.data.tallerId == request.auth.uid);
-      allow update: if isAdmin() || (request.auth != null && resource.data.tallerId == request.auth.uid);
+      allow read:   if isAdmin() || isTallerMember(resource.data.tallerId);
+      allow create: if isAdmin() || isTallerMember(request.resource.data.tallerId);
+      allow update: if isAdmin() || isTallerMember(resource.data.tallerId);
       allow delete: if isAdmin();
     }
 
-    // Facturas: admin lee/escribe todas; taller solo lee las suyas
+    // Facturas
     match /facturas/{facturaId} {
-      allow read:   if isAdmin() || (request.auth != null && resource.data.tallerId == request.auth.uid);
+      allow read:   if isAdmin() || isTallerMember(resource.data.tallerId);
       allow create: if isAdmin();
       allow update: if isAdmin();
       allow delete: if isAdmin();

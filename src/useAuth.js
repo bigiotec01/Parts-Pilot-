@@ -17,6 +17,7 @@ export function useAuth() {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
+          // 1. ¿Es admin?
           const adminDoc = await getDoc(doc(db, 'admins', firebaseUser.uid));
           if (adminDoc.exists()) {
             setUser({ role: 'admin', uid: firebaseUser.uid });
@@ -24,15 +25,32 @@ export function useAuth() {
             setCargando(false);
             return;
           }
+
+          // 2. ¿Es cuenta principal de taller?
           const tallerDoc = await getDoc(doc(db, 'talleres', firebaseUser.uid));
           if (tallerDoc.exists()) {
             setUser({ role: 'taller', uid: firebaseUser.uid, tallerId: firebaseUser.uid });
             setPerfil(tallerDoc.data());
-          } else {
-            // Autenticado pero sin perfil en Firestore
-            setError('Tu cuenta no tiene perfil asignado. Contacta al administrador.');
-            await signOut(auth);
+            setCargando(false);
+            return;
           }
+
+          // 3. ¿Es sub-usuario de un taller?
+          const subUserDoc = await getDoc(doc(db, 'tallerUsuarios', firebaseUser.uid));
+          if (subUserDoc.exists()) {
+            const subData = subUserDoc.data();
+            const tallerId = subData.tallerId;
+            // Carga el perfil del taller principal
+            const mainTallerDoc = await getDoc(doc(db, 'talleres', tallerId));
+            setUser({ role: 'taller', uid: firebaseUser.uid, tallerId });
+            setPerfil(mainTallerDoc.exists() ? mainTallerDoc.data() : subData);
+            setCargando(false);
+            return;
+          }
+
+          // Sin perfil asignado
+          setError('Tu cuenta no tiene perfil asignado. Contacta al administrador.');
+          await signOut(auth);
         } catch (e) {
           if (e.code === 'permission-denied') {
             setError('Error de permisos en la base de datos. Verifica las reglas de Firestore.');

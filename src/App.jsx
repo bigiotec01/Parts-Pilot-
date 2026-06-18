@@ -867,7 +867,84 @@ function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFilterTal
   );
 }
 
-function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDeleteTaller, onUpdateTaller }) {
+function TallerSubUsuarios({ tallerId, usuarios, onCrear, onEliminar }) {
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ nombre: '', email: '', password: '' });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const miembros = usuarios.filter(u => u.tallerId === tallerId);
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (!form.nombre || !form.email || !form.password) return;
+    setSaving(true); setError('');
+    try {
+      await onCrear(tallerId, { nombre: form.nombre.trim(), email: form.email.trim(), password: form.password });
+      setForm({ nombre: '', email: '', password: '' });
+      setShowForm(false);
+    } catch (err) {
+      setError(err.code === 'auth/email-already-in-use' ? 'Ese correo ya está registrado.' : 'Error: ' + err.message);
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="mt-3 pt-3" style={{ borderTop: '1px dashed #e7e9ed' }}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[11px] font-bold uppercase" style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>
+          Usuarios ({miembros.length + 1})
+        </span>
+        <button onClick={() => { setShowForm(s => !s); setError(''); }}
+          className="flex items-center gap-1 text-[11.5px] font-semibold hover:opacity-80 transition-opacity"
+          style={{ color: '#e8632f' }}>
+          <Plus className="w-3 h-3" strokeWidth={2.5} /> Agregar
+        </button>
+      </div>
+
+      {/* Usuario principal */}
+      <div className="flex items-center gap-2 py-1.5 px-2 rounded-[8px] mb-1" style={{ background: '#f8f9fa' }}>
+        <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #e8632f, #c9491c)', color: '#fff' }}>P</div>
+        <span className="text-[12px] font-semibold flex-1" style={{ color: '#181b21' }}>Cuenta principal</span>
+        <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-[6px]" style={{ background: '#fdeee7', color: '#c9491c' }}>Admin taller</span>
+      </div>
+
+      {/* Sub-usuarios */}
+      {miembros.map(u => (
+        <div key={u.uid} className="flex items-center gap-2 py-1.5 px-2 rounded-[8px] mb-1" style={{ background: '#f8f9fa' }}>
+          <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #f3f4f6, #e8eaed)', color: '#4a505c' }}>
+            {(u.nombre || u.email || '?')[0].toUpperCase()}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[12px] font-semibold truncate" style={{ color: '#181b21' }}>{u.nombre}</div>
+            <div className="text-[11px] truncate" style={{ color: '#8a909c' }}>{u.email}</div>
+          </div>
+          <button onClick={() => { if (window.confirm(`¿Eliminar a ${u.nombre}?`)) onEliminar(u.uid); }}
+            className="w-6 h-6 rounded-[6px] flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors flex-shrink-0" style={{ color: '#aab0b9' }}>
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      ))}
+
+      {/* Formulario nuevo sub-usuario */}
+      {showForm && (
+        <form onSubmit={handleCreate} className="mt-2 p-3 rounded-[11px] space-y-2 border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+          <p className="text-[11.5px] font-bold" style={{ color: '#181b21' }}>Nuevo usuario</p>
+          <input value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} placeholder="Nombre" className={inputClass} required />
+          <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Correo electrónico" className={inputClass} required />
+          <input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="Contraseña (mín. 6)" className={inputClass} required minLength={6} />
+          {error && <p className="text-[12px] px-3 py-2 rounded-[9px]" style={{ background: '#fdecec', color: '#dc2626' }}>{error}</p>}
+          <div className="flex gap-2 pt-1">
+            <button type="submit" disabled={saving} className="flex-1 py-2 rounded-[9px] text-white text-[12.5px] font-bold hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+              {saving ? 'Creando…' : 'Crear usuario'}
+            </button>
+            <button type="button" onClick={() => { setShowForm(false); setError(''); }} className="px-3 py-2 rounded-[9px] border text-[12.5px] font-semibold hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>✕</button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos, onCreateTaller, onDeleteTaller, onUpdateTaller, onCrearSubUsuario, onEliminarSubUsuario }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ nombre: '', contacto: '', telefono: '', email: '', usuario: '', password: '' });
   const [error, setError] = useState('');
@@ -1088,6 +1165,14 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
                   </button>
                 </div>
               </div>
+
+              {/* Sub-usuarios del taller */}
+              <TallerSubUsuarios
+                tallerId={t.uid}
+                usuarios={tallerUsuarios}
+                onCrear={onCrearSubUsuario}
+                onEliminar={onEliminarSubUsuario}
+              />
             </div>
           );
         })}
@@ -2497,7 +2582,7 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
   );
 }
 
-function AdminApp({ pedidos, talleres, facturas, equipo, perfil, currentUid, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onAgregarFactura, onActualizarFactura, onEliminarFactura, onCrearAdmin, onActualizarAdmin, onEliminarAdmin }) {
+function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, currentUid, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onAgregarFactura, onActualizarFactura, onEliminarFactura, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
@@ -2583,7 +2668,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, perfil, currentUid, onL
               <AdminEstimados solicitudes={solicitudes} getTaller={getTaller} onSelect={setSelectedId} />
             )}
             {activeTab === 'talleres' && (
-              <AdminTalleres talleres={talleres} pedidos={pedidos} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} />
+              <AdminTalleres talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} />
             )}
             {activeTab === 'nuevo' && (
               <AdminNuevoPedido talleres={talleres} onCreate={(data) => { onCreateOrder(data); goTo('pedidos'); }} />
@@ -3254,14 +3339,15 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
 /* ------------------------------------------------------------------ */
 
 import { useAuth } from './useAuth';
-import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura, actualizarFactura, eliminarFactura, useAdminEquipo, crearAdminUsuario, actualizarPermisosAdmin, eliminarAdminUsuario } from './firestore';
+import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura, actualizarFactura, eliminarFactura, useAdminEquipo, crearAdminUsuario, actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario, eliminarTallerUsuario } from './firestore';
 
 export default function App() {
   const { user, perfil, cargando, error, login, logout, setError } = useAuth();
-  const pedidos = usePedidos(user);
-  const talleres = useTalleres(user);
-  const facturas = useFacturas(user);
-  const equipo   = useAdminEquipo(user);
+  const pedidos        = usePedidos(user);
+  const talleres       = useTalleres(user);
+  const facturas       = useFacturas(user);
+  const equipo         = useAdminEquipo(user);
+  const tallerUsuarios = useTallerUsuarios(user);
 
   if (cargando) {
     return (
@@ -3292,6 +3378,7 @@ export default function App() {
         talleres={talleres}
         facturas={facturas}
         equipo={equipo}
+        tallerUsuarios={tallerUsuarios}
         perfil={perfil}
         currentUid={user.uid}
         onLogout={logout}
@@ -3312,6 +3399,8 @@ export default function App() {
         onCrearAdmin={(data) => crearAdminUsuario(data)}
         onActualizarAdmin={(uid, data) => actualizarPermisosAdmin(uid, data)}
         onEliminarAdmin={(uid) => eliminarAdminUsuario(uid)}
+        onCrearSubUsuario={(tallerId, data) => crearTallerUsuario(tallerId, data)}
+        onEliminarSubUsuario={(uid) => eliminarTallerUsuario(uid)}
       />
     );
   }

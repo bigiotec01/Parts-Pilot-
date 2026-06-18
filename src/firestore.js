@@ -24,9 +24,8 @@ export function usePedidos(user) {
     if (user.role === 'admin') {
       q = query(collection(db, 'pedidos'), orderBy('fecha', 'desc'));
     } else {
-      // Sin orderBy para evitar requerir indice compuesto en Firestore.
-      // El orden se aplica en el cliente (ClientApp).
-      q = query(collection(db, 'pedidos'), where('tallerId', '==', user.uid));
+      // Para sub-usuarios de taller, usar tallerId (puede diferir del uid)
+      q = query(collection(db, 'pedidos'), where('tallerId', '==', user.tallerId || user.uid));
     }
     const unsub = onSnapshot(
       q,
@@ -46,8 +45,9 @@ export function useTalleres(user) {
     if (!user) return;
     if (user.role !== 'admin') {
       // El cliente solo puede leer su propio documento de taller
+      // Para sub-usuarios, usar tallerId (puede diferir del uid)
       const unsub = onSnapshot(
-        doc(db, 'talleres', user.uid),
+        doc(db, 'talleres', user.tallerId || user.uid),
         (snap) => {
           if (snap.exists()) setTalleres([{ uid: snap.id, ...snap.data() }]);
         },
@@ -225,6 +225,38 @@ export async function eliminarTaller(uid) {
   await deleteDoc(doc(db, 'talleres', uid));
 }
 
+// ── Sub-usuarios de talleres ────────────────────────────────────────
+export function useTallerUsuarios(user) {
+  const [tallerUsuarios, setTallerUsuarios] = useState([]);
+  useEffect(() => {
+    if (!user || user.role !== 'admin') return;
+    const unsub = onSnapshot(
+      collection(db, 'tallerUsuarios'),
+      snap => setTallerUsuarios(snap.docs.map(d => ({ uid: d.id, ...d.data() }))),
+      err => console.error('useTallerUsuarios:', err.code)
+    );
+    return unsub;
+  }, [user]);
+  return tallerUsuarios;
+}
+
+export async function crearTallerUsuario(tallerId, { nombre, email, password }) {
+  const secondaryApp = initializeApp(firebaseConfig, `create-taller-user-${Date.now()}`);
+  const secondaryAuth = getAuth(secondaryApp);
+  let uid;
+  try {
+    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    uid = cred.user.uid;
+  } finally {
+    await deleteApp(secondaryApp);
+  }
+  await setDoc(doc(db, 'tallerUsuarios', uid), { tallerId, nombre, email });
+}
+
+export async function eliminarTallerUsuario(uid) {
+  await deleteDoc(doc(db, 'tallerUsuarios', uid));
+}
+
 // ── Equipo admin en tiempo real ─────────────────────────────────────
 export function useAdminEquipo(user) {
   const [equipo, setEquipo] = useState([]);
@@ -270,7 +302,7 @@ export function useFacturas(user) {
     if (user.role === 'admin') {
       q = query(collection(db, 'facturas'), orderBy('createdAt', 'asc'));
     } else {
-      q = query(collection(db, 'facturas'), where('tallerId', '==', user.uid));
+      q = query(collection(db, 'facturas'), where('tallerId', '==', user.tallerId || user.uid));
     }
     const unsub = onSnapshot(q,
       snap => setFacturas(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
