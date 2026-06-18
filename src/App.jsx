@@ -2097,21 +2097,34 @@ function ClientPerfil({ taller, onUpdate }) {
     } finally { setSaving(false); }
   };
 
+  const initials = (n) => (n || '').split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'T';
+
   return (
-    <div className="max-w-lg mx-auto">
-      <h2 className="font-semibold text-stone-900 mb-1 text-lg">Mi Perfil</h2>
-      <p className="text-sm text-stone-500 mb-4">Actualiza la información de tu taller.</p>
-      {done && <div className="mb-4 text-sm text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Cambios guardados.</div>}
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-stone-200 p-5 space-y-4">
-        <FormField label="Nombre del taller"><input value={form.nombre} onChange={e => set('nombre', e.target.value)} className={inputClass} required /></FormField>
-        <FormField label="Contacto"><input value={form.contacto} onChange={e => set('contacto', e.target.value)} className={inputClass} /></FormField>
-        <FormField label="Teléfono"><input value={form.telefono} onChange={e => set('telefono', e.target.value)} className={inputClass} /></FormField>
-        <FormField label="Correo electrónico"><input type="email" value={form.email} onChange={e => set('email', e.target.value)} className={inputClass} /></FormField>
-        {error && <div className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</div>}
-        <button type="submit" disabled={saving} className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors">
-          {saving ? 'Guardando…' : 'Guardar cambios'}
-        </button>
-      </form>
+    <div className="flex flex-col items-center py-4">
+      {/* Avatar */}
+      <div className="w-[72px] h-[72px] rounded-[20px] flex items-center justify-center text-[24px] font-extrabold mb-3" style={{ background: 'linear-gradient(150deg, #f3f4f6, #e3e6ea)', color: '#4a505c' }}>
+        {initials(taller.nombre)}
+      </div>
+      <h2 className="text-[17px] font-bold mb-0.5" style={{ color: '#181b21' }}>{taller.nombre || 'Mi taller'}</h2>
+      <p className="text-[13px] mb-6" style={{ color: '#767d8a' }}>{taller.contacto || ''}</p>
+
+      <div className="w-full max-w-md">
+        {done && (
+          <div className="mb-4 flex items-center gap-2 px-3 py-2.5 rounded-[11px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}>
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> Cambios guardados.
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="rounded-[16px] p-[18px] space-y-4 border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+          <FormField label="Nombre del taller"><input value={form.nombre} onChange={e => set('nombre', e.target.value)} className={inputClass} required /></FormField>
+          <FormField label="Contacto"><input value={form.contacto} onChange={e => set('contacto', e.target.value)} className={inputClass} /></FormField>
+          <FormField label="Teléfono"><input value={form.telefono} onChange={e => set('telefono', e.target.value)} className={inputClass} /></FormField>
+          <FormField label="Correo electrónico"><input type="email" value={form.email} onChange={e => set('email', e.target.value)} className={inputClass} /></FormField>
+          {error && <div className="text-[13px] px-3 py-2.5 rounded-[11px]" style={{ background: '#fdecec', color: '#dc2626' }}>{error}</div>}
+          <button type="submit" disabled={saving} className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14px] transition-all hover:brightness-105 disabled:opacity-60" style={{ background: '#181b21' }}>
+            {saving ? 'Guardando…' : 'Guardar cambios'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
