@@ -4,7 +4,7 @@ import {
   Building2, Phone, X, ThumbsUp, ThumbsDown, ChevronRight, AlertCircle,
   LayoutDashboard, ClipboardList, Users, Calendar, Send, Eye, EyeOff, MessageSquare, Paperclip, Mail,
   Printer, Trash2, Pencil, History, UserCircle, CheckCheck, StickyNote, NotebookPen,
-  PackageCheck, Hourglass, ClipboardCheck
+  PackageCheck, Hourglass, ClipboardCheck, Bell
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -16,14 +16,14 @@ import {
 const STATUS_ORDER = ['pendiente', 'cotizando', 'pedido_fabrica', 'ordenadas', 'esperando_piezas', 'en_transito', 'recibido', 'entregado'];
 
 const STATUS_CONFIG = {
-  pendiente:        { label: 'Pendiente de cotizar', short: 'Pendiente',  badge: 'bg-stone-100 text-stone-600 border-stone-200',    dot: 'bg-stone-400',   icon: Clock },
-  cotizando:        { label: 'Cotización enviada',   short: 'Cotizando',  badge: 'bg-blue-50 text-blue-700 border-blue-200',        dot: 'bg-blue-500',    icon: FileText },
-  pedido_fabrica:   { label: 'Pedido a fábrica',     short: 'Fábrica',    badge: 'bg-violet-50 text-violet-700 border-violet-200',  dot: 'bg-violet-500',  icon: Package },
-  ordenadas:        { label: 'Piezas ordenadas',     short: 'Ordenadas',  badge: 'bg-indigo-50 text-indigo-700 border-indigo-200',  dot: 'bg-indigo-500',  icon: PackageCheck },
-  esperando_piezas: { label: 'Esperando piezas',     short: 'Esperando',  badge: 'bg-orange-50 text-orange-700 border-orange-200',  dot: 'bg-orange-400',  icon: Hourglass },
-  en_transito:      { label: 'En tránsito',          short: 'En camino',  badge: 'bg-amber-50 text-amber-700 border-amber-200',     dot: 'bg-amber-500',   icon: Truck },
-  recibido:         { label: 'Recibido en Tienda',   short: 'En Tienda',  badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', icon: Package },
-  entregado:        { label: 'Orden Completa',       short: 'Completa',   badge: 'bg-teal-50 text-teal-700 border-teal-200',        dot: 'bg-teal-600',    icon: CheckCircle2 },
+  pendiente:        { label: 'Pendiente de cotizar', short: 'Pendiente',  dot: '#94a3b8', bg: '#f1f3f5', tx: '#5b626e', icon: Clock },
+  cotizando:        { label: 'Cotización enviada',   short: 'Cotizando',  dot: '#3b82f6', bg: '#eef4ff', tx: '#2563eb', icon: FileText },
+  pedido_fabrica:   { label: 'Pedido a fábrica',     short: 'Fábrica',    dot: '#8b5cf6', bg: '#f4effe', tx: '#7c3aed', icon: Package },
+  ordenadas:        { label: 'Piezas ordenadas',     short: 'Ordenadas',  dot: '#6366f1', bg: '#eef0fe', tx: '#4f46e5', icon: PackageCheck },
+  esperando_piezas: { label: 'Esperando piezas',     short: 'Esperando',  dot: '#f59e0b', bg: '#fef6e9', tx: '#b7791f', icon: Hourglass },
+  en_transito:      { label: 'En tránsito',          short: 'En camino',  dot: '#eab308', bg: '#fdfae8', tx: '#a16207', icon: Truck },
+  recibido:         { label: 'Recibido en Tienda',   short: 'En Tienda',  dot: '#10b981', bg: '#eafaf2', tx: '#059669', icon: Package },
+  entregado:        { label: 'Orden Completa',       short: 'Completa',   dot: '#14b8a6', bg: '#e9faf7', tx: '#0d9488', icon: CheckCircle2 },
 };
 
 const PEDIDOS_INICIAL = [
@@ -98,48 +98,94 @@ function formatDate(d) {
 /*  COMPONENTES COMPARTIDOS                                            */
 /* ------------------------------------------------------------------ */
 
-function AdminHeader({ tabs, activeTab, onChange, userLabel, onLogout }) {
+function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onLogout }) {
+  const primaryItems = [
+    { id: 'dashboard',  label: 'Resumen',    icon: LayoutDashboard },
+    { id: 'pedidos',    label: 'Pedidos',    icon: ClipboardList, badge: pedidosCount },
+    { id: 'estimados',  label: 'Estimados',  icon: FileText, badge: solicitudesCount, accent: true },
+    { id: 'talleres',   label: 'Talleres',   icon: Users },
+  ];
+  const secondaryItems = [
+    { id: 'nuevo',      label: 'Nuevo pedido',     icon: Plus },
+    { id: 'cotizacion', label: 'Nueva cotización',  icon: ClipboardCheck },
+  ];
+
+  const NavBtn = ({ id, label, icon: Icon, badge, accent }) => {
+    const active = activeTab === id;
+    return (
+      <button
+        onClick={() => onChange(id)}
+        className={`w-full flex items-center gap-2.5 px-2.5 py-[9px] rounded-[10px] text-[13.5px] font-semibold mb-0.5 transition-colors ${!active ? 'hover:bg-[#1f2228]' : ''}`}
+        style={{ background: active ? '#e8632f' : 'transparent', color: active ? '#fff' : '#9aa1ad' }}
+      >
+        <Icon className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={1.8} />
+        {label}
+        {badge > 0 && (
+          <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-[7px] leading-tight"
+            style={{ background: active ? 'rgba(255,255,255,.2)' : (accent ? '#e8632f' : '#2a2e36'), color: active ? '#fff' : (accent ? '#fff' : '#9aa1ad') }}>
+            {badge}
+          </span>
+        )}
+      </button>
+    );
+  };
+
   return (
-    <header className="bg-stone-900 text-white sticky top-0 z-20 shadow-lg safe-top">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 flex items-center h-14 gap-2 sm:gap-6">
-        {/* Logo */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
-            <CarFront className="w-4 h-4 text-white" />
-          </div>
-          <span className="hidden sm:inline font-bold text-base tracking-tight">Parts Pilot</span>
+    <aside className="w-[252px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: '#141619' }}>
+      <div className="px-5 py-[22px] flex items-center gap-2.5">
+        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #e8632f, #c9491c)', boxShadow: '0 6px 16px -6px rgba(201,73,28,.6)' }}>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
         </div>
+        <div>
+          <div className="font-extrabold text-[15.5px] leading-none whitespace-nowrap" style={{ color: '#fff', letterSpacing: '-.01em' }}>Parts Pilot</div>
+          <div className="mt-1 text-[10.5px] font-bold uppercase" style={{ color: '#6a7180', letterSpacing: '.04em' }}>Admin</div>
+        </div>
+      </div>
 
-        {/* Nav links */}
-        <nav className="flex items-center flex-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {tabs.map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => onChange(tab.id)}
-                className={`relative flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
-                  isActive ? 'bg-orange-500 text-white' : 'text-stone-400 hover:text-white hover:bg-stone-800'
-                }`}
-              >
-                <Icon className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">{tab.label}</span>
-                {tab.badge > 0 && (
-                  <span className="bg-white text-orange-600 text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">{tab.badge}</span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
+      <div className="px-3 flex-1 overflow-y-auto">
+        <div className="text-[10.5px] font-bold uppercase px-2.5 py-2 mb-1" style={{ color: '#565d6b', letterSpacing: '.08em' }}>Operación</div>
+        {primaryItems.map(item => <NavBtn key={item.id} {...item} />)}
+        <div className="my-3" style={{ borderTop: '1px solid #1e2127' }} />
+        {secondaryItems.map(item => <NavBtn key={item.id} {...item} />)}
+      </div>
 
-        {/* Usuario + logout */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="hidden md:inline text-sm text-stone-400 truncate max-w-[120px]">{userLabel}</span>
-          <button onClick={onLogout} className="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 transition-colors" title="Cerrar sesión">
-            <LogOut className="w-4 h-4" />
+      <div className="p-3.5">
+        <div className="rounded-[13px] p-3 flex items-center gap-2.5" style={{ background: '#1c1f25' }}>
+          <div className="w-9 h-9 rounded-[9px] flex items-center justify-center text-[13px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #3a3f49, #272b32)', color: '#d6dae0' }}>AD</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[12.5px] font-bold truncate" style={{ color: '#e8eaee' }}>Administrador</div>
+            <div className="text-[11px] truncate" style={{ color: '#6a7180' }}>admin</div>
+          </div>
+          <button onClick={onLogout} className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: '#262a31', color: '#8a909c' }} title="Cerrar sesión">
+            <LogOut className="w-3.5 h-3.5" />
           </button>
         </div>
+      </div>
+    </aside>
+  );
+}
+
+function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo }) {
+  return (
+    <header className="h-[70px] flex-shrink-0 flex items-center gap-[18px] px-[30px] sticky top-0 z-20 border-b" style={{ background: 'rgba(244,245,247,.88)', backdropFilter: 'blur(8px)', borderColor: '#e7e9ed' }}>
+      <div className="min-w-0">
+        <h1 className="text-[19px] font-bold leading-tight" style={{ color: '#181b21', letterSpacing: '-.02em' }}>{pageTitle}</h1>
+        <p className="text-[12.5px] font-medium" style={{ color: '#767d8a' }}>{pageSub}</p>
+      </div>
+      <div className="ml-auto flex items-center gap-3">
+        <div className="relative flex items-center">
+          <Search className="w-4 h-4 absolute left-3 pointer-events-none" style={{ color: '#9aa1ad' }} />
+          <input placeholder="Buscar pedido, vehículo, folio…" className="pl-9 pr-3 py-[9px] rounded-[10px] text-[13px] border outline-none transition-[width] focus:w-[280px] focus:border-[#e8632f] focus:ring-2 focus:ring-[#e8632f]/10" style={{ width: 240, background: '#fff', borderColor: '#e3e5ea', color: '#181b21' }} />
+        </div>
+        <div className="relative">
+          <button className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center border hover:bg-stone-50 transition-colors" style={{ background: '#fff', borderColor: '#e3e5ea', color: '#5b626e' }} title="Notificaciones">
+            <Bell className="w-[18px] h-[18px]" strokeWidth={1.8} />
+          </button>
+          {solicitudesCount > 0 && <span className="absolute top-2 right-2.5 w-[7px] h-[7px] rounded-full border-2 border-white" style={{ background: '#e8632f' }} />}
+        </div>
+        <button onClick={onGoToNuevo} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#2a2e36]" style={{ background: '#181b21' }}>
+          <Plus className="w-4 h-4" strokeWidth={2.2} /> Nuevo pedido
+        </button>
       </div>
     </header>
   );
@@ -197,10 +243,12 @@ function NavTabs({ tabs, active, onChange, maxWidth = 'max-w-6xl' }) {
 
 function StatusBadge({ estado }) {
   const cfg = STATUS_CONFIG[estado];
-  const Icon = cfg.icon;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border whitespace-nowrap ${cfg.badge}`}>
-      <Icon className="w-3.5 h-3.5" />
+    <span
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
+      style={{ background: cfg.bg, color: cfg.tx }}
+    >
+      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: cfg.dot }} />
       {cfg.short}
     </span>
   );
@@ -219,11 +267,25 @@ function StatusStepper({ estado }) {
           return (
             <div key={status} className="flex items-center">
               <div className="flex flex-col items-center gap-1.5 w-14 sm:w-16">
-                <div className={`w-3.5 h-3.5 rounded-full ${active ? cfg.dot : 'bg-stone-200'} ${isCurrent ? 'ring-4 ring-stone-100' : ''}`} />
-                <span className={`text-[10px] text-center leading-tight ${isCurrent ? 'font-semibold text-stone-800' : 'text-stone-400'}`}>{cfg.short}</span>
+                <div
+                  className="w-3.5 h-3.5 rounded-full"
+                  style={{
+                    background: active ? cfg.dot : '#e3e6ea',
+                    boxShadow: isCurrent ? `0 0 0 4px ${cfg.bg}` : 'none',
+                  }}
+                />
+                <span
+                  className="text-[9.5px] text-center leading-tight"
+                  style={{ color: isCurrent ? '#181b21' : '#aab0b9', fontWeight: isCurrent ? 700 : 500 }}
+                >
+                  {cfg.short}
+                </span>
               </div>
               {i < STATUS_ORDER.length - 1 && (
-                <div className={`h-0.5 w-6 sm:w-10 -mt-4 ${i < currentIndex ? cfg.dot : 'bg-stone-200'}`} />
+                <div
+                  className="h-0.5 w-6 sm:w-10 -mt-4"
+                  style={{ background: isDone ? cfg.dot : '#e8eaed' }}
+                />
               )}
             </div>
           );
@@ -239,73 +301,133 @@ function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0 }) {
   const cardSub = !hasNewIds && order.referencia ? order.vehiculo : null;
 
   return (
-    <button onClick={onClick} className="w-full text-left bg-white border border-stone-200 rounded-xl p-4 hover:border-orange-300 hover:shadow-md transition-all">
-      <div className="flex items-start justify-between gap-3 mb-2">
+    <button
+      onClick={onClick}
+      className="w-full text-left rounded-[15px] p-[17px] border transition-all hover:border-[#e8632f] hover:shadow-[0_8px_24px_-14px_rgba(24,27,33,.3)]"
+      style={{ background: '#fff', borderColor: '#e7e9ed' }}
+    >
+      <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-stone-900 truncate">{cardTitle}</h3>
+            <h3 className="font-bold text-[14.5px] truncate" style={{ color: '#181b21' }}>{cardTitle}</h3>
             {unreadCount > 0 && (
-              <span className="flex items-center gap-1 text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse inline-block" />
+              <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold flex-shrink-0" style={{ background: '#fdeee7', color: '#c9491c' }}>
+                <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: '#e8632f' }} />
                 {unreadCount} nuevo{unreadCount !== 1 ? 's' : ''}
               </span>
             )}
           </div>
-          {cardSub && <p className="text-sm text-stone-500 truncate">{cardSub}</p>}
+          {cardSub && <p className="text-[12.5px] mt-0.5 truncate" style={{ color: '#767d8a' }}>{cardSub}</p>}
+          {order.pieza && !cardSub && <p className="text-[12.5px] mt-0.5 truncate" style={{ color: '#767d8a' }}>{order.pieza}</p>}
           {hasNewIds && (
             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-              {order.numeroPO && (
-                <span className="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md font-medium">PO# {order.numeroPO}</span>
-              )}
-              {order.numeroOrden && (
-                <span className="text-[11px] bg-violet-50 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-md font-medium">Orden {order.numeroOrden}</span>
-              )}
+              {order.numeroPO && <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: '#eef4ff', color: '#2563eb', border: '1px solid #dbe7fe' }}>PO# {order.numeroPO}</span>}
+              {order.numeroOrden && <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: '#f4effe', color: '#7c3aed', border: '1px solid #e9d5ff' }}>Orden {order.numeroOrden}</span>}
             </div>
           )}
         </div>
         <StatusBadge estado={order.estado} />
       </div>
-      <div className="flex flex-col gap-1 text-xs text-stone-500 mt-3 pt-3 border-t border-dashed border-stone-200">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            {showTaller && (
-              <span className="flex items-center gap-1 truncate"><Building2 className="w-3.5 h-3.5 flex-shrink-0" />{taller?.nombre}</span>
-            )}
-            <span className="flex items-center gap-1 flex-shrink-0"><Calendar className="w-3.5 h-3.5 flex-shrink-0" />{formatDate(order.fecha)}</span>
-          </div>
-          <div className="flex items-center gap-3 flex-shrink-0">
-            {order.mensajes?.length > 0 && (
-              <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" />{order.mensajes.length}</span>
-            )}
-            {order.estimado && <span className="flex items-center gap-1 text-orange-500"><FileText className="w-3.5 h-3.5" />Estimado</span>}
-            {showTaller && order.notasInternas && <span className="flex items-center gap-1 text-slate-400"><StickyNote className="w-3.5 h-3.5" /></span>}
-          </div>
+      <div className="flex items-center justify-between gap-2 pt-3" style={{ borderTop: '1px dashed #e7e9ed' }}>
+        <div className="flex items-center gap-3 text-[11.5px] min-w-0" style={{ color: '#8a909c' }}>
+          <span className="font-mono font-semibold" style={{ color: '#5b626e' }}>{order.folio || order.id?.slice(0, 8)}</span>
+          {showTaller && taller && (
+            <span className="flex items-center gap-1 truncate"><Building2 className="w-3.5 h-3.5 flex-shrink-0" />{taller.nombre}</span>
+          )}
+          <span className="flex items-center gap-1 flex-shrink-0"><Calendar className="w-3 h-3 flex-shrink-0" />{formatDate(order.fecha)}</span>
         </div>
-        {order.fechaEntrega && (
-          <span className="flex items-center gap-1 text-blue-600 font-medium">
-            <Truck className="w-3.5 h-3.5 flex-shrink-0" /> Entrega est.: {formatDate(order.fechaEntrega)}
-          </span>
-        )}
+        <div className="flex items-center gap-2.5 flex-shrink-0 text-[11.5px]" style={{ color: '#8a909c' }}>
+          {order.mensajes?.length > 0 && <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" />{order.mensajes.length}</span>}
+          {order.estimado && <span className="flex items-center gap-1 font-semibold" style={{ color: '#c9491c' }}><FileText className="w-3.5 h-3.5" />Estimado</span>}
+          {showTaller && order.notasInternas && <StickyNote className="w-3.5 h-3.5" style={{ color: '#aab0b9' }} />}
+        </div>
       </div>
+      {order.fechaEntrega && (
+        <div className="mt-2 flex items-center gap-1 text-[11.5px] font-semibold" style={{ color: '#2563eb' }}>
+          <Truck className="w-3.5 h-3.5 flex-shrink-0" /> Entrega est.: {formatDate(order.fechaEntrega)}
+        </div>
+      )}
     </button>
   );
 }
 
 function Modal({ title, onClose, children }) {
   return (
-    <div className="fixed inset-0 bg-stone-900/60 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" style={{ background: 'rgba(20,22,26,.5)' }} onClick={onClose}>
       <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-3xl h-[92vh] sm:h-auto sm:max-h-[90vh] overflow-y-auto flex flex-col" onClick={e => e.stopPropagation()}>
-        {/* drag handle en móvil */}
-        <div className="flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-10 h-1 rounded-full bg-stone-200" />
+        <div className="flex justify-center pt-3 pb-1 sm:hidden"><div className="w-10 h-1 rounded-full bg-stone-200" /></div>
+        <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 bg-white z-10" style={{ borderColor: '#eef0f2' }}>
+          <h2 className="font-mono tracking-wider text-sm truncate pr-4" style={{ color: '#767d8a' }}>{title}</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-stone-100 flex-shrink-0"><X className="w-5 h-5" style={{ color: '#767d8a' }} /></button>
         </div>
-        <div className="flex items-center justify-between px-5 py-3 border-b border-stone-100 sticky top-0 bg-white z-10">
-          <h2 className="font-mono tracking-wider text-sm text-stone-500 truncate pr-4">{title}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-stone-100 flex-shrink-0">
-            <X className="w-5 h-5 text-stone-500" />
+        <div className="p-6 flex-1">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function OrderDrawer({ order, title, onClose, detailContent, chatProps }) {
+  const [tab, setTab] = useState('detalle');
+  const messageCount = (order.mensajes || []).length;
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="absolute inset-0" style={{ background: 'rgba(20,22,26,.42)', animation: 'ppFade .2s ease both' }} onClick={onClose} />
+      <div className="relative w-[480px] max-w-[92vw] h-full flex flex-col" style={{ background: '#fff', boxShadow: '-20px 0 50px -20px rgba(0,0,0,.3)', animation: 'ppSlide .28s cubic-bezier(.2,.8,.2,1) both' }}>
+        <div className="px-6 py-5 border-b flex items-start justify-between gap-3 flex-shrink-0" style={{ borderColor: '#eef0f2' }}>
+          <div className="min-w-0">
+            <div className="font-mono text-[12px] font-semibold mb-1" style={{ color: '#9aa1ad' }}>{order.folio || order.id?.slice(0,8)}</div>
+            <h2 className="text-[18px] font-bold leading-tight" style={{ color: '#181b21', letterSpacing: '-.01em' }}>{title}</h2>
+            {order.pieza && <p className="text-[13px] mt-0.5" style={{ color: '#767d8a' }}>{order.pieza}</p>}
+          </div>
+          <button onClick={onClose} className="w-[34px] h-[34px] rounded-[9px] border flex items-center justify-center flex-shrink-0 hover:bg-stone-50 transition-colors" style={{ borderColor: '#e7e9ed', color: '#767d8a' }}>
+            <X className="w-[17px] h-[17px]" />
           </button>
         </div>
-        <div className="p-5 flex-1">{children}</div>
+        <div className="flex px-6 border-b flex-shrink-0" style={{ borderColor: '#eef0f2' }}>
+          {[['detalle','Detalle'], ['chat','Mensajes']].map(([id, lbl]) => (
+            <button key={id} onClick={() => setTab(id)} className={`px-1 py-3 text-sm font-semibold border-b-2 mr-5 transition-colors flex items-center gap-1.5 ${tab === id ? 'border-[#e8632f] text-[#181b21]' : 'border-transparent text-[#9aa1ad] hover:text-[#5b626e]'}`}>
+              {id === 'chat' && <MessageSquare className="w-4 h-4" />}{lbl}
+              {id === 'chat' && messageCount > 0 && <span className="text-[10px] font-bold rounded-full px-1.5 py-0.5" style={{ background: '#f1f3f5', color: '#5b626e' }}>{messageCount}</span>}
+            </button>
+          ))}
+        </div>
+        <div className="flex-1 overflow-y-auto p-6">
+          {tab === 'detalle' ? detailContent : <OrderChat order={order} {...chatProps} />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OrderSheet({ order, title, onClose, detailContent, chatProps }) {
+  const [tab, setTab] = useState('detalle');
+  const messageCount = (order.mensajes || []).length;
+  return (
+    <div className="fixed inset-0 z-50">
+      <div className="absolute inset-0" style={{ background: 'rgba(20,22,26,.45)', animation: 'ppFade .2s ease both' }} onClick={onClose} />
+      <div className="pp-scroll absolute bottom-0 left-0 right-0 max-h-[88%] overflow-y-auto rounded-t-[28px] flex flex-col" style={{ background: '#fff', animation: 'ppSheet .3s cubic-bezier(.2,.8,.2,1) both' }}>
+        <div className="sticky top-0 bg-white z-10 px-5 pt-3 pb-4 border-b" style={{ borderColor: '#eef0f2' }}>
+          <div className="w-10 h-1 rounded-full mx-auto mb-4" style={{ background: '#e3e6ea' }} />
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="font-mono text-[11.5px] font-semibold" style={{ color: '#9aa1ad' }}>{order.folio || order.id?.slice(0,8)}</div>
+              <h2 className="text-[17px] font-bold mt-0.5" style={{ color: '#181b21', letterSpacing: '-.01em' }}>{title}</h2>
+              {order.pieza && <p className="text-[12.5px]" style={{ color: '#767d8a' }}>{order.pieza}</p>}
+            </div>
+            <button onClick={onClose} className="w-8 h-8 rounded-[9px] border flex items-center justify-center flex-shrink-0" style={{ borderColor: '#e7e9ed', color: '#767d8a' }}><X className="w-4 h-4" /></button>
+          </div>
+          <div className="flex gap-4 mt-3">
+            {[['detalle','Detalle'], ['chat','Mensajes']].map(([id, lbl]) => (
+              <button key={id} onClick={() => setTab(id)} className={`py-2 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${tab === id ? 'border-[#e8632f] text-[#181b21]' : 'border-transparent text-[#9aa1ad]'}`}>
+                {id === 'chat' && <MessageSquare className="w-4 h-4" />}{lbl}
+                {id === 'chat' && messageCount > 0 && <span className="text-[10px] rounded-full px-1.5 py-0.5" style={{ background: '#f1f3f5', color: '#5b626e' }}>{messageCount}</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="p-5 pb-8">
+          {tab === 'detalle' ? detailContent : <OrderChat order={order} {...chatProps} />}
+        </div>
       </div>
     </div>
   );
@@ -372,12 +494,20 @@ function OrderChat({ order, role, otherPartyName, onSendMessage }) {
           const isMine = m.from === role;
           return (
             <div key={i} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-              {!isMine && <span className="text-[11px] text-stone-400 mb-0.5 px-1">{otherPartyName}</span>}
-              <div className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm leading-snug space-y-1.5 ${isMine ? 'bg-orange-500 text-white' : 'bg-stone-100 text-stone-800'}`}>
+              {!isMine && <span className="text-[11px] mb-0.5 px-1" style={{ color: '#aab0b9' }}>{otherPartyName}</span>}
+              <div
+                className="max-w-[82%] rounded-[14px] px-3.5 py-2.5 text-[13px] leading-snug space-y-1.5"
+                style={{
+                  background: isMine ? '#181b21' : '#f1f3f5',
+                  color: isMine ? '#fff' : '#181b21',
+                  borderBottomRightRadius: isMine ? 5 : 14,
+                  borderBottomLeftRadius: isMine ? 14 : 5,
+                }}
+              >
                 {m.attachment && <ChatAttachment attachment={m.attachment} isMine={isMine} />}
                 {m.texto && <p>{m.texto}</p>}
               </div>
-              <span className="text-[10px] text-stone-400 mt-0.5 px-1">{m.hora}</span>
+              <span className="text-[10.5px] mt-1 px-1" style={{ color: '#aab0b9' }}>{m.hora}</span>
             </div>
           );
         })}
@@ -430,7 +560,7 @@ function OrderModal({ order, title, onClose, detailContent, chatProps }) {
 function FormField({ label, children }) {
   return (
     <div>
-      <label className="text-sm font-medium text-stone-700 block mb-1.5">{label}</label>
+      <label className="text-[12.5px] font-semibold block mb-1.5" style={{ color: '#4a505c' }}>{label}</label>
       {children}
     </div>
   );
@@ -438,23 +568,23 @@ function FormField({ label, children }) {
 
 function InfoItem({ label, value }) {
   return (
-    <div className="bg-stone-50 rounded-lg p-2.5">
-      <p className="text-xs text-stone-400">{label}</p>
-      <p className="font-medium text-stone-800 truncate">{value}</p>
+    <div className="rounded-[11px] p-3" style={{ background: '#f8f9fa' }}>
+      <p className="text-[11px] mb-0.5" style={{ color: '#9aa1ad' }}>{label}</p>
+      <p className="text-[13.5px] font-semibold truncate" style={{ color: '#181b21' }}>{value}</p>
     </div>
   );
 }
 
 function EmptyState({ text }) {
   return (
-    <div className="text-center py-14 text-stone-400">
+    <div className="text-center py-14" style={{ color: '#9aa1ad' }}>
       <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
       <p className="text-sm">{text}</p>
     </div>
   );
 }
 
-const inputClass = "w-full px-3 py-2.5 rounded-lg border border-stone-200 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none transition-all";
+const inputClass = "w-full px-3.5 py-[11px] rounded-[11px] border border-[#e3e5ea] text-sm outline-none transition-all focus:border-[#e8632f] focus:ring-2 focus:ring-[#e8632f]/10 bg-white text-[#181b21]";
 
 /* ------------------------------------------------------------------ */
 /*  LOGIN                                                              */
@@ -471,42 +601,41 @@ function LoginScreen({ onLogin, error }) {
   };
 
   return (
-    <div className="min-h-screen bg-stone-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-orange-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/30">
-            <CarFront className="w-8 h-8 text-white" />
+    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'radial-gradient(900px 600px at 70% -10%, #23262e 0%, #14161a 55%, #101115 100%)' }}>
+      <div className="w-full max-w-[400px]" style={{ animation: 'ppRise .5s ease both' }}>
+        <div className="text-center mb-7">
+          <div className="inline-flex items-center justify-center rounded-[16px] mb-[18px]" style={{ width: 60, height: 60, background: 'linear-gradient(160deg, #e8632f, #c9491c)', boxShadow: '0 12px 30px -8px rgba(201,73,28,.55)' }}>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
           </div>
-          <h1 className="text-white text-2xl font-bold tracking-tight">Parts Pilot</h1>
-          <p className="text-stone-400 text-sm mt-1">Portal de pedidos · Depto. de Piezas</p>
+          <h1 className="font-extrabold text-[26px] tracking-tight" style={{ color: '#fff', letterSpacing: '-.02em' }}>Parts Pilot</h1>
+          <p className="mt-1.5 text-[13.5px] font-medium" style={{ color: '#8a909c' }}>Portal de pedidos · Departamento de Piezas</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 shadow-xl space-y-4">
+        <form onSubmit={handleSubmit} className="rounded-[18px] p-7 space-y-4" style={{ background: '#fff', boxShadow: '0 30px 60px -20px rgba(0,0,0,.5)' }}>
           <FormField label="Correo electrónico">
             <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="tu@correo.com" className={inputClass} required />
           </FormField>
           <FormField label="Contraseña">
             <div className="relative">
               <input value={password} onChange={e => setPassword(e.target.value)} type={showPassword ? 'text' : 'password'} placeholder="••••••" className={`${inputClass} pr-10`} required />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400">
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: '#9aa1ad' }}>
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </FormField>
           {error && (
-            <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              {error}
+            <div className="flex items-center gap-2 text-sm px-3 py-2 rounded-[11px]" style={{ background: '#fdecec', color: '#dc2626' }}>
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
             </div>
           )}
-          <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 rounded-lg transition-colors">
+          <button type="submit" className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14.5px] transition-all hover:brightness-105" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)', boxShadow: '0 10px 22px -10px rgba(201,73,28,.7)' }}>
             Iniciar sesión
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-stone-500">
+        <p className="text-center mt-6 text-[11.5px] leading-loose" style={{ color: '#6b7280' }}>
           © 2026 Parts Pilot · Todos los derechos reservados.<br />
-          Soporte: <a href="mailto:Bigio_tec@me.com" className="text-stone-400 hover:text-orange-400 transition-colors">Bigio_tec@me.com</a>
+          Soporte: <a href="mailto:Bigio_tec@me.com" style={{ color: '#9aa0ab' }}>Bigio_tec@me.com</a>
         </p>
       </div>
     </div>
@@ -517,14 +646,17 @@ function LoginScreen({ onLogin, error }) {
 /*  VISTA ADMINISTRADOR                                                */
 /* ------------------------------------------------------------------ */
 
-function StatCard({ label, value, icon: Icon, color, highlight }) {
+function StatCard({ label, value, icon: Icon, iconBg, iconColor, chipLabel, chipBg, chipColor, highlight }) {
   return (
-    <div className={`bg-white rounded-xl border p-4 ${highlight ? 'border-orange-200 ring-1 ring-orange-100' : 'border-stone-200'}`}>
-      <div className={`w-9 h-9 rounded-lg ${color} flex items-center justify-center mb-2`}>
-        <Icon className="w-5 h-5" />
+    <div className="rounded-[15px] p-[18px]" style={{ background: '#fff', border: `1px solid ${highlight ? '#f3d9cb' : '#e7e9ed'}` }}>
+      <div className="flex items-center justify-between mb-3.5">
+        <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center" style={{ background: iconBg, color: iconColor }}>
+          <Icon className="w-[19px] h-[19px]" strokeWidth={1.8} />
+        </div>
+        {chipLabel && <span className="text-[11px] font-bold px-2 py-0.5 rounded-[7px]" style={{ background: chipBg, color: chipColor }}>{chipLabel}</span>}
       </div>
-      <p className="text-2xl font-bold text-stone-900">{value}</p>
-      <p className="text-xs text-stone-500">{label}</p>
+      <p className="text-[30px] font-extrabold leading-none" style={{ color: '#181b21', fontVariantNumeric: 'tabular-nums', letterSpacing: '-.02em' }}>{value}</p>
+      <p className="text-[12.5px] font-medium mt-1.5" style={{ color: '#767d8a' }}>{label}</p>
     </div>
   );
 }
@@ -541,25 +673,31 @@ function DashboardChart({ pedidos }) {
     if (m) { m.total++; if (p.estado === 'entregado') m.entregados++; }
   });
   const max = Math.max(...months.map(m => m.total), 1);
+  const H = 150;
   return (
-    <div className="mt-6">
-      <div className="flex items-end gap-2 h-20">
-        {months.map((m, i) => (
-          <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-            {m.total > 0 && <span className="text-[10px] text-stone-400 leading-none">{m.total}</span>}
-            <div className="w-full flex flex-col gap-0.5 justify-end" style={{ height: `${(m.total / max) * 100}%` }}>
-              <div className="w-full rounded-t-md bg-orange-400" style={{ height: m.total > 0 ? `${100 - (m.entregados / m.total) * 100}%` : '0%', minHeight: m.total > m.entregados ? 4 : 0 }} />
-              {m.entregados > 0 && <div className="w-full bg-teal-400 rounded-b-md" style={{ height: `${(m.entregados / m.total) * 100}%` }} />}
+    <div className="mt-5">
+      <div className="flex items-end gap-3.5" style={{ height: H }}>
+        {months.map((m, i) => {
+          const totalPx = (m.total / max) * H;
+          const donePx = m.total > 0 ? (m.entregados / m.total) * totalPx : 0;
+          const procPx = totalPx - donePx;
+          return (
+            <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+              {m.total > 0 && <span className="text-[11.5px] font-bold" style={{ color: '#9aa1ad' }}>{m.total}</span>}
+              <div className="w-full max-w-[46px] rounded-[7px] overflow-hidden flex flex-col justify-end" style={{ height: totalPx || 0 }}>
+                {procPx > 0 && <div style={{ background: '#e8632f', height: procPx }} />}
+                {donePx > 0 && <div style={{ background: '#14b8a6', height: donePx }} />}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
-      <div className="flex gap-2 mt-2">
-        {months.map((m, i) => <div key={i} className="flex-1 text-center text-[10px] text-stone-400 capitalize">{m.label}</div>)}
+      <div className="flex gap-3.5 mt-2">
+        {months.map((m, i) => <div key={i} className="flex-1 text-center text-[11.5px] font-semibold capitalize" style={{ color: '#767d8a' }}>{m.label}</div>)}
       </div>
       <div className="flex items-center gap-4 mt-3">
-        <span className="flex items-center gap-1.5 text-[11px] text-stone-500"><span className="w-2.5 h-2.5 rounded-sm bg-orange-400 inline-block" />En proceso</span>
-        <span className="flex items-center gap-1.5 text-[11px] text-stone-500"><span className="w-2.5 h-2.5 rounded-sm bg-teal-400 inline-block" />Completados</span>
+        <span className="flex items-center gap-1.5 text-[11.5px] font-medium" style={{ color: '#5b626e' }}><span className="w-2.5 h-2.5 rounded-[3px] inline-block" style={{ background: '#e8632f' }} />En proceso</span>
+        <span className="flex items-center gap-1.5 text-[11.5px] font-medium" style={{ color: '#5b626e' }}><span className="w-2.5 h-2.5 rounded-[3px] inline-block" style={{ background: '#14b8a6' }} />Completados</span>
       </div>
     </div>
   );
@@ -568,92 +706,80 @@ function DashboardChart({ pedidos }) {
 function AdminDashboard({ pedidos, solicitudes, talleres, getTaller, onSelect, onGoToPedidos, onGoToEstimados, onGoToNuevo, onShowReporte }) {
   const total = pedidos.length;
   const enProceso = pedidos.filter(p => ['cotizando', 'pedido_fabrica', 'en_transito', 'recibido'].includes(p.estado)).length;
-  const entregados = pedidos.filter(p => p.estado === 'entregado').length;
   const toMs = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime();
   const recientes = [...pedidos].sort((a, b) => toMs(b.fecha) - toMs(a.fecha)).slice(0, 6);
 
   return (
-    <div className="space-y-5">
-      {/* Fila superior */}
-      <div className="grid lg:grid-cols-3 gap-4">
-        {/* Panel principal */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-stone-200 p-6">
-          <h2 className="font-bold text-stone-900">Panel principal</h2>
-          <p className="text-sm text-stone-400 mb-6">Vista rápida del estado actual del sistema.</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+    <div className="space-y-4">
+      {/* KPIs */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        <StatCard label="Solicitudes nuevas" value={solicitudes.length} icon={FileText} iconBg="#fdeee7" iconColor="#c9491c" chipLabel="Atención" chipBg="#fdeee7" chipColor="#c9491c" highlight />
+        <StatCard label="En proceso" value={enProceso} icon={Clock} iconBg="#eef0fe" iconColor="#4f46e5" chipLabel="+2" chipBg="#eef0fe" chipColor="#4f46e5" />
+        <StatCard label="Total pedidos" value={total} icon={ClipboardList} iconBg="#f1f3f5" iconColor="#5b626e" chipLabel="Año" chipBg="#f1f3f5" chipColor="#767d8a" />
+        <StatCard label="Talleres activos" value={talleres.length} icon={Building2} iconBg="#e9faf7" iconColor="#0d9488" chipLabel="Todos" chipBg="#e9faf7" chipColor="#0d9488" />
+      </div>
+
+      {/* Chart + atención */}
+      <div className="grid xl:grid-cols-[1.7fr_1fr] gap-4">
+        <div className="rounded-[16px] p-6 border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+          <div className="flex items-start justify-between mb-1">
             <div>
-              <p className={`text-3xl font-bold ${solicitudes.length > 0 ? 'text-amber-500' : 'text-stone-300'}`}>{solicitudes.length}</p>
-              <p className="text-xs text-stone-500 mt-1">Solicitudes nuevas</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-violet-500">{enProceso}</p>
-              <p className="text-xs text-stone-500 mt-1">En proceso</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-orange-500">{total}</p>
-              <p className="text-xs text-stone-500 mt-1">Total pedidos</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-teal-500">{talleres.length}</p>
-              <p className="text-xs text-stone-500 mt-1">Talleres activos</p>
+              <h2 className="text-[15px] font-bold" style={{ color: '#181b21' }}>Volumen de pedidos</h2>
+              <p className="text-[12.5px]" style={{ color: '#767d8a' }}>Últimos 6 meses</p>
             </div>
           </div>
           <DashboardChart pedidos={[...pedidos, ...solicitudes]} />
         </div>
 
-        {/* Acciones rápidas */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-6">
-          <h2 className="font-bold text-stone-900 mb-4">Acciones rápidas</h2>
-          <div className="flex flex-col gap-2">
-            <button onClick={onGoToEstimados} className="w-full text-sm font-medium text-stone-700 border border-stone-200 rounded-xl px-4 py-2.5 hover:bg-stone-50 transition-colors flex items-center gap-2">
-              <FileText className="w-4 h-4 text-amber-500 flex-shrink-0" />
-              Ver Estimados
-              {solicitudes.length > 0 && (
-                <span className="ml-auto bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">{solicitudes.length}</span>
-              )}
-            </button>
-            <button onClick={onGoToNuevo} className="w-full text-sm font-medium text-stone-700 border border-stone-200 rounded-xl px-4 py-2.5 hover:bg-stone-50 transition-colors flex items-center gap-2">
-              <Plus className="w-4 h-4 text-orange-500 flex-shrink-0" />
-              Nuevo Pedido
-            </button>
-            <button onClick={onShowReporte} className="w-full text-sm font-medium text-stone-700 border border-stone-200 rounded-xl px-4 py-2.5 hover:bg-stone-50 transition-colors flex items-center gap-2">
-              <Printer className="w-4 h-4 text-stone-400 flex-shrink-0" />
-              Generar Reporte
-            </button>
+        <div className="rounded-[16px] p-6 border flex flex-col" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-[15px] font-bold" style={{ color: '#181b21' }}>Requiere atención</h2>
+            {solicitudes.length > 0 && <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-[7px]" style={{ background: '#fdeee7', color: '#c9491c' }}>{solicitudes.length}</span>}
           </div>
-          <p className="text-xs text-stone-400 mt-4">Atajos: <kbd className="bg-stone-100 px-1 rounded">E</kbd> estimados &nbsp; <kbd className="bg-stone-100 px-1 rounded">N</kbd> nuevo pedido</p>
+          <p className="text-[12.5px] mb-3" style={{ color: '#767d8a' }}>Solicitudes esperando estimado</p>
+          <div className="flex flex-col gap-2.5 flex-1">
+            {solicitudes.slice(0, 3).map(p => (
+              <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[12px] p-3 flex gap-2.5 items-center border transition-colors hover:border-[#e8632f] hover:bg-white" style={{ background: '#fbfbfc', borderColor: '#ebedf0' }}>
+                <span className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5" style={{ background: '#e8632f' }} />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] font-bold truncate" style={{ color: '#181b21' }}>{p.vehiculo}</div>
+                  <div className="text-[11.5px] truncate" style={{ color: '#767d8a' }}>{getTaller(p.tallerId)?.nombre} · {p.pieza || p.notas?.slice(0,30)}</div>
+                </div>
+                <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: '#b6bcc5' }} />
+              </button>
+            ))}
+            {solicitudes.length === 0 && <p className="text-[13px] py-4 text-center" style={{ color: '#9aa1ad' }}>Sin solicitudes pendientes</p>}
+          </div>
+          <button onClick={onGoToEstimados} className="mt-3 w-full py-[9px] rounded-[10px] text-[12.5px] font-semibold border transition-colors hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#4a505c' }}>Ver todos los estimados</button>
         </div>
       </div>
 
-      {/* Pedidos recientes */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-stone-900">Pedidos recientes</h2>
-          <button onClick={onGoToPedidos} className="text-sm text-orange-600 font-medium hover:text-orange-700 flex items-center gap-1">
-            Ver todos <ChevronRight className="w-4 h-4" />
-          </button>
+      {/* Tabla recientes */}
+      <div className="rounded-[16px] overflow-hidden border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+        <div className="flex items-center justify-between px-6 py-[18px]">
+          <h2 className="text-[15px] font-bold" style={{ color: '#181b21' }}>Pedidos recientes</h2>
+          <button onClick={onGoToPedidos} className="flex items-center gap-1 text-[13px] font-bold transition-colors hover:opacity-80" style={{ color: '#c9491c' }}>Ver todos <ChevronRight className="w-4 h-4" /></button>
         </div>
-        <table className="w-full">
+        <table className="w-full border-collapse">
           <thead>
-            <tr className="border-b border-stone-100 text-left">
-              <th className="pb-2 text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Folio</th>
-              <th className="pb-2 text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Taller</th>
-              <th className="pb-2 text-[11px] font-semibold text-stone-400 uppercase tracking-wider hidden sm:table-cell">Vehículo</th>
-              <th className="pb-2 text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Estado</th>
-              <th className="pb-2 text-[11px] font-semibold text-stone-400 uppercase tracking-wider hidden sm:table-cell">Fecha</th>
+            <tr style={{ borderTop: '1px solid #eef0f2' }}>
+              {['Folio','Taller','Vehículo / Pieza','Estado','Fecha'].map((h, i) => (
+                <th key={h} className={`text-left py-3 text-[10.5px] font-bold uppercase ${i === 0 ? 'px-6' : 'px-3'} ${i === 4 ? 'text-right pr-6' : ''} ${i >= 2 && i <= 2 ? 'hidden sm:table-cell' : ''}`} style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>{h}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {recientes.length === 0 && (
-              <tr><td colSpan={5} className="py-8 text-center text-stone-400 text-sm">Sin pedidos aún.</td></tr>
-            )}
+            {recientes.length === 0 && <tr><td colSpan={5} className="py-10 text-center text-sm" style={{ color: '#9aa1ad' }}>Sin pedidos aún.</td></tr>}
             {recientes.map(p => (
-              <tr key={p.id} onClick={() => onSelect(p.id)} className="border-b border-stone-50 last:border-0 hover:bg-stone-50 cursor-pointer transition-colors">
-                <td className="py-3 text-sm font-semibold text-stone-800">{p.folio || p.id.slice(0, 8)}</td>
-                <td className="py-3 text-sm text-stone-600 max-w-[140px] truncate">{getTaller(p.tallerId)?.nombre || '—'}</td>
-                <td className="py-3 text-sm text-stone-500 hidden sm:table-cell max-w-[160px] truncate">{p.vehiculo || '—'}</td>
-                <td className="py-3"><StatusBadge estado={p.estado} /></td>
-                <td className="py-3 text-sm text-stone-400 hidden sm:table-cell">{formatDate(p.fecha)}</td>
+              <tr key={p.id} onClick={() => onSelect(p.id)} className="cursor-pointer transition-colors hover:bg-[#fafbfc]" style={{ borderTop: '1px solid #f1f2f4' }}>
+                <td className="py-3.5 px-6 font-mono text-[12.5px] font-semibold whitespace-nowrap" style={{ color: '#181b21' }}>{p.folio || p.id.slice(0,8)}</td>
+                <td className="py-3.5 px-3 text-[13px] max-w-[150px] truncate" style={{ color: '#4a505c' }}>{getTaller(p.tallerId)?.nombre || '—'}</td>
+                <td className="py-3.5 px-3 hidden sm:table-cell">
+                  <div className="text-[13px] font-semibold" style={{ color: '#181b21' }}>{p.vehiculo || '—'}</div>
+                  {p.pieza && <div className="text-[11.5px]" style={{ color: '#8a909c' }}>{p.pieza}</div>}
+                </td>
+                <td className="py-3.5 px-3"><StatusBadge estado={p.estado} /></td>
+                <td className="py-3.5 pr-6 text-right text-[12.5px] whitespace-nowrap" style={{ color: '#8a909c' }}>{formatDate(p.fecha)}</td>
               </tr>
             ))}
           </tbody>
@@ -1506,42 +1632,39 @@ function ReporteModal({ pedidos, talleres, onClose }) {
 
 function AdminEstimados({ solicitudes, getTaller, onSelect }) {
   if (solicitudes.length === 0) return (
-    <div className="text-center py-14 text-stone-400">
+    <div className="text-center py-14" style={{ color: '#9aa1ad' }}>
       <FileText className="w-10 h-10 mx-auto mb-2 opacity-40" />
       <p className="text-sm">No hay solicitudes de estimado pendientes.</p>
     </div>
   );
   return (
     <div className="space-y-4">
-      <p className="text-sm text-stone-500">
-        <span className="font-semibold text-stone-800">{solicitudes.length}</span> solicitud{solicitudes.length !== 1 ? 'es' : ''} esperando estimado.
+      <p className="text-[13px]" style={{ color: '#767d8a' }}>
+        <strong style={{ color: '#181b21' }}>{solicitudes.length}</strong> solicitud{solicitudes.length !== 1 ? 'es' : ''} esperando estimado.
       </p>
-      <div className="grid sm:grid-cols-2 gap-3">
+      <div className="grid sm:grid-cols-2 gap-3.5">
         {[...solicitudes].sort((a, b) => {
           const t = f => f?.toDate ? f.toDate().getTime() : new Date(f + 'T00:00:00').getTime();
           return t(a.fecha) - t(b.fecha);
         }).map(p => {
           const taller = getTaller(p.tallerId);
           return (
-            <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left bg-white border border-amber-200 ring-1 ring-amber-50 rounded-xl p-4 hover:border-orange-400 hover:shadow-md transition-all">
-              <div className="flex items-start justify-between gap-3 mb-2">
+            <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[15px] p-[17px] border transition-all hover:border-[#e8632f] hover:shadow-[0_8px_24px_-14px_rgba(201,73,28,.4)]" style={{ background: '#fff', borderColor: '#f3d9cb' }}>
+              <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-xs text-stone-400 mb-0.5 flex items-center gap-1 truncate">
+                  <p className="text-[11.5px] flex items-center gap-1 mb-1 truncate" style={{ color: '#8a909c' }}>
                     <Building2 className="w-3 h-3 flex-shrink-0" />{taller?.nombre || '—'}
                   </p>
-                  <h3 className="font-semibold text-stone-900 truncate">{p.vehiculo}</h3>
+                  <h3 className="text-[14.5px] font-bold truncate" style={{ color: '#181b21' }}>{p.vehiculo}</h3>
+                  {p.pieza && <p className="text-[12.5px] mt-0.5" style={{ color: '#767d8a' }}>{p.pieza}</p>}
                 </div>
-                <span className="text-xs text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 whitespace-nowrap flex items-center gap-1 flex-shrink-0">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0" style={{ background: '#fdeee7', color: '#c9491c' }}>
                   <Clock className="w-3 h-3" /> Sin estimado
                 </span>
               </div>
-              {p.notas && <p className="text-sm text-stone-500 line-clamp-2 mb-2">{p.notas}</p>}
-              {p.archivo && (
-                <p className="text-xs text-stone-400 flex items-center gap-1 mb-1.5">
-                  <Paperclip className="w-3 h-3" />{p.archivo.name}
-                </p>
-              )}
-              <p className="text-xs text-stone-400">{formatDate(p.fecha)}</p>
+              {p.notas && <p className="text-[13px] line-clamp-2 mt-2" style={{ color: '#767d8a' }}>{p.notas}</p>}
+              {p.archivo && <p className="text-[11.5px] flex items-center gap-1 mt-1.5" style={{ color: '#9aa1ad' }}><Paperclip className="w-3 h-3" />{p.archivo.name}</p>}
+              <p className="font-mono text-[11.5px] mt-2.5" style={{ color: '#9aa1ad' }}>{p.folio || p.id?.slice(0,8)} · {formatDate(p.fecha)}</p>
             </button>
           );
         })}
@@ -1571,47 +1694,74 @@ function AdminApp({ pedidos, talleres, perfil, onLogout, onChangeStatus, onSendE
     return true;
   });
 
-  const tabsConBadge = ADMIN_TABS.map(t => t.id === 'estimados' ? { ...t, badge: solicitudes.length } : t);
+  const PAGE_META = {
+    dashboard:  { title: 'Resumen',           sub: 'Vista general de la operación' },
+    pedidos:    { title: 'Pedidos',            sub: `${solosPedidos.length} pedidos en total` },
+    estimados:  { title: 'Estimados',          sub: 'Solicitudes esperando cotización' },
+    talleres:   { title: 'Talleres',           sub: `${talleres.length} talleres registrados` },
+    nuevo:      { title: 'Nuevo pedido',       sub: 'Registra un folio a nombre de un taller' },
+    cotizacion: { title: 'Nueva cotización',   sub: 'Crea una cotización con estimado incluido' },
+  };
+  const meta = PAGE_META[activeTab] || PAGE_META.dashboard;
+
+  const goTo = (tab) => { setActiveTab(tab); setSelectedId(null); };
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <AdminHeader tabs={tabsConBadge} activeTab={activeTab} onChange={(t) => { setActiveTab(t); setSelectedId(null); }} userLabel="Administrador" onLogout={onLogout} />
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-20 safe-bottom">
-        {activeTab === 'dashboard' && (
-          <AdminDashboard
-            pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres}
-            getTaller={getTaller} onSelect={setSelectedId}
-            onGoToPedidos={() => setActiveTab('pedidos')}
-            onGoToEstimados={() => setActiveTab('estimados')}
-            onGoToNuevo={() => setActiveTab('nuevo')}
-            onShowReporte={() => setShowReporte(true)}
-          />
-        )}
-        {activeTab === 'pedidos' && (
-          <AdminPedidos
-            pedidos={filteredPedidos} talleres={talleres} getTaller={getTaller}
-            filterTaller={filterTaller} setFilterTaller={setFilterTaller}
-            filterEstado={filterEstado} setFilterEstado={setFilterEstado}
-            search={search} setSearch={setSearch}
-            onSelect={setSelectedId}
-            onExport={() => setShowReporte(true)}
-          />
-        )}
-        {activeTab === 'estimados' && (
-          <AdminEstimados solicitudes={solicitudes} getTaller={getTaller} onSelect={setSelectedId} />
-        )}
-        {activeTab === 'talleres' && (
-          <AdminTalleres talleres={talleres} pedidos={pedidos} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); setActiveTab('pedidos'); }} />
-        )}
-        {activeTab === 'nuevo' && (
-          <AdminNuevoPedido talleres={talleres} onCreate={(data) => { onCreateOrder(data); setActiveTab('pedidos'); }} />
-        )}
-        {activeTab === 'cotizacion' && (
-          <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); setActiveTab('pedidos'); }} />
-        )}
-      </main>
+    <div className="flex min-h-screen" style={{ background: '#f4f5f7' }}>
+      <AdminSidebar
+        activeTab={activeTab}
+        onChange={goTo}
+        solicitudesCount={solicitudes.length}
+        pedidosCount={solosPedidos.length}
+        onLogout={onLogout}
+      />
+      <div className="flex-1 min-w-0 flex flex-col">
+        <AdminTopbar
+          pageTitle={meta.title}
+          pageSub={meta.sub}
+          solicitudesCount={solicitudes.length}
+          onGoToNuevo={() => goTo('nuevo')}
+        />
+        <main className="flex-1 overflow-y-auto px-[30px] py-7 pb-14">
+          <div className="max-w-[1180px] mx-auto">
+            {activeTab === 'dashboard' && (
+              <AdminDashboard
+                pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres}
+                getTaller={getTaller} onSelect={setSelectedId}
+                onGoToPedidos={() => goTo('pedidos')}
+                onGoToEstimados={() => goTo('estimados')}
+                onGoToNuevo={() => goTo('nuevo')}
+                onShowReporte={() => setShowReporte(true)}
+              />
+            )}
+            {activeTab === 'pedidos' && (
+              <AdminPedidos
+                pedidos={filteredPedidos} talleres={talleres} getTaller={getTaller}
+                filterTaller={filterTaller} setFilterTaller={setFilterTaller}
+                filterEstado={filterEstado} setFilterEstado={setFilterEstado}
+                search={search} setSearch={setSearch}
+                onSelect={setSelectedId}
+                onExport={() => setShowReporte(true)}
+              />
+            )}
+            {activeTab === 'estimados' && (
+              <AdminEstimados solicitudes={solicitudes} getTaller={getTaller} onSelect={setSelectedId} />
+            )}
+            {activeTab === 'talleres' && (
+              <AdminTalleres talleres={talleres} pedidos={pedidos} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} />
+            )}
+            {activeTab === 'nuevo' && (
+              <AdminNuevoPedido talleres={talleres} onCreate={(data) => { onCreateOrder(data); goTo('pedidos'); }} />
+            )}
+            {activeTab === 'cotizacion' && (
+              <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />
+            )}
+          </div>
+        </main>
+      </div>
+
       {selectedOrder && (
-        <OrderModal
+        <OrderDrawer
           order={selectedOrder}
           title={selectedOrder.referencia || selectedOrder.vehiculo}
           onClose={() => setSelectedId(null)}
@@ -2021,7 +2171,6 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
     localStorage.setItem(`pp_seen_${order.id}`, String(n));
   };
   const getUnread = (order) => Math.max(0, (order.mensajes || []).filter(m => m.from === 'admin').length - getSeenCount(order.id));
-  const totalUnread = pedidosActivos.reduce((s, p) => s + getUnread(p), 0);
 
   const handleSelect = (id) => {
     const order = pedidos.find(p => p.id === id);
@@ -2030,42 +2179,61 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
   };
 
   const totalEstimados = solicitudes.length + cotizacionesPendientes.length;
-  const tabs = CLIENT_TABS.map(t => {
-    if (t.id === 'pedidos') return { ...t, badge: estimadosPorResponder + totalUnread };
-    if (t.id === 'estimados') return { ...t, badge: totalEstimados };
-    return t;
-  });
+
+  const goTab = (t) => { setActiveTab(t); setSelectedId(null); setSearch(''); };
+
+  const bottomNav = [
+    { id: 'pedidos',   label: 'Pedidos',   icon: ClipboardList },
+    { id: 'estimados', label: 'Estimados', icon: FileText, badge: totalEstimados },
+    { id: 'nueva',     label: 'Solicitar', icon: Plus, center: true },
+    { id: 'historial', label: 'Historial', icon: History },
+    { id: 'perfil',    label: 'Perfil',    icon: UserCircle },
+  ];
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <Header title="Parts Pilot" subtitle={taller.nombre} userLabel={taller.contacto} onLogout={onLogout} maxWidth="max-w-2xl" />
-      <NavTabs tabs={tabs} active={activeTab} onChange={(t) => { setActiveTab(t); setSelectedId(null); setSearch(''); }} maxWidth="max-w-2xl" />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-20 safe-bottom">
+    <div className="min-h-screen" style={{ background: '#f4f5f7' }}>
+      {/* Header ink */}
+      <div className="safe-top" style={{ background: '#141619' }}>
+        <div className="px-5 py-[18px] pb-4 flex items-center gap-2.5">
+          <div className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #e8632f, #c9491c)', boxShadow: '0 6px 16px -6px rgba(201,73,28,.6)' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[15px] font-extrabold truncate" style={{ color: '#fff', letterSpacing: '-.01em' }}>{taller.nombre || 'Parts Pilot'}</div>
+            <div className="text-[11.5px]" style={{ color: '#8a909c' }}>{taller.contacto || ''}</div>
+          </div>
+          <button onClick={onLogout} className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: '#262a31', color: '#9aa1ad' }}>
+            <LogOut className="w-4 h-4" strokeWidth={1.9} />
+          </button>
+        </div>
+      </div>
 
-        {/* Mini resumen — visible siempre */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="bg-white rounded-xl border border-stone-200 px-3 py-3 text-center">
-            <p className="text-2xl font-bold text-orange-500">{pedidosActivos.length}</p>
-            <p className="text-[11px] text-stone-400 mt-0.5">Activos</p>
+      {/* Content */}
+      <main className="max-w-2xl mx-auto px-4 py-5 pb-32">
+        {/* Mini stats */}
+        <div className="grid grid-cols-3 gap-3 mb-5">
+          <div className="rounded-[14px] px-3 py-3 text-center border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+            <p className="text-[24px] font-extrabold leading-none" style={{ color: '#e8632f' }}>{pedidosActivos.length}</p>
+            <p className="text-[11px] mt-1 font-medium" style={{ color: '#8a909c' }}>Activos</p>
           </div>
-          <div className="bg-white rounded-xl border border-stone-200 px-3 py-3 text-center">
-            <p className={`text-2xl font-bold ${totalEstimados > 0 ? 'text-amber-500' : 'text-stone-300'}`}>{totalEstimados}</p>
-            <p className="text-[11px] text-stone-400 mt-0.5">Estimados</p>
+          <div className="rounded-[14px] px-3 py-3 text-center border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+            <p className="text-[24px] font-extrabold leading-none" style={{ color: totalEstimados > 0 ? '#b7791f' : '#d1d5db' }}>{totalEstimados}</p>
+            <p className="text-[11px] mt-1 font-medium" style={{ color: '#8a909c' }}>Estimados</p>
           </div>
-          <div className="bg-white rounded-xl border border-stone-200 px-3 py-3 text-center">
-            <p className="text-2xl font-bold text-teal-500">{pedidosHistorial.length}</p>
-            <p className="text-[11px] text-stone-400 mt-0.5">Completados</p>
+          <div className="rounded-[14px] px-3 py-3 text-center border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+            <p className="text-[24px] font-extrabold leading-none" style={{ color: '#0d9488' }}>{pedidosHistorial.length}</p>
+            <p className="text-[11px] mt-1 font-medium" style={{ color: '#8a909c' }}>Completados</p>
           </div>
         </div>
 
         {activeTab === 'pedidos' && (
           <div className="space-y-3">
             <div className="relative">
-              <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio…" className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-stone-200 bg-white text-sm outline-none focus:ring-2 focus:ring-orange-300" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#9aa1ad' }} />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio…" className="w-full pl-10 pr-4 py-[11px] rounded-[12px] border text-[13.5px] outline-none focus:border-[#e8632f] focus:ring-2 focus:ring-[#e8632f]/10" style={{ background: '#fff', borderColor: '#e3e5ea' }} />
             </div>
             {pedidosFiltrados.length === 0
-              ? <EmptyState text={search ? 'Sin resultados para esa búsqueda.' : 'Aún no tienes pedidos activos. Cuando el depto. de piezas prepare tu estimado aparecerá aquí.'} />
+              ? <EmptyState text={search ? 'Sin resultados para esa búsqueda.' : 'Aún no tienes pedidos activos.'} />
               : pedidosFiltrados.map(p => <OrderCard key={p.id} order={p} onClick={() => handleSelect(p.id)} unreadCount={getUnread(p)} />)
             }
           </div>
@@ -2077,8 +2245,39 @@ function ClientApp({ taller, pedidos, onLogout, onCreateOrder, onRespondEstimate
         )}
         {activeTab === 'perfil' && <ClientPerfil taller={taller} onUpdate={(data) => onUpdateTaller(taller.id, data)} />}
       </main>
+
+      {/* Bottom nav */}
+      <div className="fixed bottom-0 left-0 right-0 z-10 safe-bottom" style={{ background: 'rgba(255,255,255,.95)', backdropFilter: 'blur(12px)', borderTop: '1px solid #e7e9ed' }}>
+        <div className="flex items-end justify-between px-2 pt-2 pb-2 max-w-2xl mx-auto">
+          {bottomNav.map(({ id, label, icon: Icon, badge, center }) => {
+            const active = activeTab === id;
+            if (center) {
+              return (
+                <button key={id} onClick={() => goTab(id)} className="flex flex-col items-center gap-1 flex-1">
+                  <div className="w-[46px] h-[46px] -mt-4 rounded-[15px] flex items-center justify-center" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)', boxShadow: '0 10px 20px -8px rgba(201,73,28,.6)' }}>
+                    <Plus className="w-6 h-6 text-white" strokeWidth={2.4} />
+                  </div>
+                  <span className="text-[10px] font-semibold" style={{ color: active ? '#e8632f' : '#9aa1ad' }}>{label}</span>
+                </button>
+              );
+            }
+            return (
+              <button key={id} onClick={() => goTab(id)} className="flex flex-col items-center gap-1 flex-1 relative pt-1">
+                <div className="relative">
+                  <Icon className="w-[22px] h-[22px]" strokeWidth={1.9} style={{ color: active ? '#e8632f' : '#9aa1ad' }} />
+                  {badge > 0 && (
+                    <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: '#e8632f' }}>{badge}</span>
+                  )}
+                </div>
+                <span className="text-[10px] font-semibold" style={{ color: active ? '#e8632f' : '#9aa1ad' }}>{label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {selectedOrder && (
-        <OrderModal
+        <OrderSheet
           order={selectedOrder}
           title={selectedOrder.referencia || selectedOrder.vehiculo}
           onClose={() => setSelectedId(null)}
@@ -2108,12 +2307,12 @@ export default function App() {
 
   if (cargando) {
     return (
-      <div className="min-h-screen bg-stone-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#101115' }}>
         <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl bg-orange-500 flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <CarFront className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 rounded-2xl inline-flex items-center justify-center mb-4 animate-pulse" style={{ background: 'linear-gradient(160deg, #e8632f, #c9491c)' }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
           </div>
-          <p className="text-stone-400 text-sm">Cargando Parts Pilot...</p>
+          <p className="text-sm" style={{ color: '#6a7180' }}>Cargando Parts Pilot…</p>
         </div>
       </div>
     );
