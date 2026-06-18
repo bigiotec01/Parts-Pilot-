@@ -3390,7 +3390,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-[12px] font-bold truncate" style={{ color: '#e8eaee' }}>{taller.contacto || taller.nombre}</div>
-                <div className="text-[10.5px] truncate" style={{ color: '#6a7180' }}>{taller.usuario || 'taller'}</div>
+                <div className="text-[10.5px] truncate" style={{ color: '#6a7180' }}>{taller.isSubUser ? 'taller' : (taller.usuario || 'taller')}</div>
               </div>
               <button onClick={onLogout} className="w-[28px] h-[28px] rounded-[7px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: '#262a31', color: '#8a909c' }} title="Salir">
                 <LogOut className="w-3.5 h-3.5" />
