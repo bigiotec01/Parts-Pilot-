@@ -931,26 +931,35 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
     }
   };
 
+  const initials = (n) => (n || '').split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
+
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
+    <div className="space-y-5">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-stone-900">Talleres registrados</h2>
+        <div>
+          <h2 className="text-[15px] font-bold" style={{ color: '#181b21' }}>Talleres registrados</h2>
+          <p className="text-[12.5px]" style={{ color: '#767d8a' }}>{talleres.length} taller{talleres.length !== 1 ? 'es' : ''} en el sistema</p>
+        </div>
         <button
           onClick={() => { setShowForm(s => !s); setError(''); }}
-          className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors"
+          className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:brightness-105"
+          style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)', boxShadow: '0 8px 18px -8px rgba(201,73,28,.5)' }}
         >
-          <Plus className="w-4 h-4" /> Nuevo taller
+          <Plus className="w-4 h-4" strokeWidth={2.2} /> Nuevo taller
         </button>
       </div>
 
       {done && (
-        <div className="text-sm text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4" /> Taller registrado correctamente.
+        <div className="flex items-center gap-2 px-4 py-3 rounded-[11px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}>
+          <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> Taller registrado correctamente.
         </div>
       )}
 
+      {/* Formulario nuevo taller */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-stone-200 p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="rounded-[16px] p-6 border space-y-4" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+          <p className="text-[14px] font-bold" style={{ color: '#181b21' }}>Nuevo taller</p>
           <FormField label="Nombre del taller">
             <input value={form.nombre} onChange={e => handleChange('nombre', e.target.value)} placeholder="ej. Hojalatería y Pintura Martínez" className={inputClass} required />
           </FormField>
@@ -972,117 +981,121 @@ function AdminTalleres({ talleres, pedidos, onVerPedidos, onCreateTaller, onDele
             <FormField label="Contraseña (opcional)">
               <div className="flex gap-2">
                 <input value={form.password} onChange={e => handleChange('password', e.target.value)} placeholder="••••••" className={`${inputClass} font-mono`} />
-                <button type="button" onClick={generarPassword} className="px-3 rounded-lg border border-stone-200 text-stone-500 hover:bg-stone-50 text-xs font-medium whitespace-nowrap transition-colors">
+                <button type="button" onClick={generarPassword} className="px-3 rounded-[11px] border text-[12px] font-semibold whitespace-nowrap transition-colors hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>
                   Generar
                 </button>
               </div>
             </FormField>
           </div>
           {error && (
-            <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+            <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[11px]" style={{ background: '#fdecec', color: '#dc2626' }}>
               <AlertCircle className="w-4 h-4 flex-shrink-0" /> {error}
             </div>
           )}
-          <button type="submit" disabled={saving} className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors">
-            {saving ? 'Creando...' : 'Crear taller'}
-          </button>
+          <div className="flex gap-3 pt-1">
+            <button type="submit" disabled={saving} className="flex-1 py-[11px] rounded-[11px] text-white font-bold text-[13.5px] transition-all hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+              {saving ? 'Creando…' : 'Crear taller'}
+            </button>
+            <button type="button" onClick={() => { setShowForm(false); setError(''); }} className="px-5 py-[11px] rounded-[11px] border text-[13.5px] font-semibold transition-colors hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>
+              Cancelar
+            </button>
+          </div>
         </form>
       )}
 
-      <div className="grid sm:grid-cols-2 gap-3">
-      {talleres.map(t => {
-        const pedidosTaller = pedidos.filter(p => p.tallerId === t.uid);
-        const activos = pedidosTaller.filter(p => p.estado !== 'entregado').length;
+      {/* Grid de talleres */}
+      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {talleres.map(t => {
+          const pedidosTaller = pedidos.filter(p => p.tallerId === t.uid);
+          const activos = pedidosTaller.filter(p => p.estado !== 'entregado').length;
 
-        if (editingId === t.uid) {
-          return (
-            <div key={t.uid} className="bg-white rounded-xl border border-orange-300 ring-1 ring-orange-100 p-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-semibold text-stone-800">Editar taller</p>
-                <button onClick={() => setEditingId(null)} className="text-stone-400 hover:text-stone-600"><X className="w-4 h-4" /></button>
-              </div>
-              <div className="space-y-3">
-                <FormField label="Nombre del taller">
-                  <input value={editForm.nombre} onChange={e => handleEditChange('nombre', e.target.value)} className={inputClass} />
-                </FormField>
-                <div className="grid grid-cols-2 gap-3">
-                  <FormField label="Contacto">
-                    <input value={editForm.contacto} onChange={e => handleEditChange('contacto', e.target.value)} className={inputClass} />
-                  </FormField>
-                  <FormField label="Teléfono">
-                    <input value={editForm.telefono} onChange={e => handleEditChange('telefono', e.target.value)} className={inputClass} />
-                  </FormField>
+          if (editingId === t.uid) {
+            return (
+              <div key={t.uid} className="rounded-[15px] border p-5 space-y-3" style={{ background: '#fff', borderColor: '#e8632f', boxShadow: '0 0 0 3px rgba(232,99,47,.08)' }}>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-[13.5px] font-bold" style={{ color: '#181b21' }}>Editar taller</p>
+                  <button onClick={() => setEditingId(null)} className="w-7 h-7 rounded-[7px] flex items-center justify-center hover:bg-stone-100 transition-colors" style={{ color: '#9aa1ad' }}><X className="w-4 h-4" /></button>
                 </div>
-                <FormField label="Correo electrónico">
-                  <input type="email" value={editForm.email} onChange={e => handleEditChange('email', e.target.value)} className={inputClass} />
-                </FormField>
-                <FormField label="Usuario">
-                  <input value={editForm.usuario} onChange={e => handleEditChange('usuario', e.target.value)} className={`${inputClass} font-mono`} />
-                </FormField>
-                {editError && (
-                  <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" /> {editError}
-                  </div>
-                )}
+                <FormField label="Nombre"><input value={editForm.nombre} onChange={e => handleEditChange('nombre', e.target.value)} className={inputClass} /></FormField>
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField label="Contacto"><input value={editForm.contacto} onChange={e => handleEditChange('contacto', e.target.value)} className={inputClass} /></FormField>
+                  <FormField label="Teléfono"><input value={editForm.telefono} onChange={e => handleEditChange('telefono', e.target.value)} className={inputClass} /></FormField>
+                </div>
+                <FormField label="Correo"><input type="email" value={editForm.email} onChange={e => handleEditChange('email', e.target.value)} className={inputClass} /></FormField>
+                <FormField label="Usuario"><input value={editForm.usuario} onChange={e => handleEditChange('usuario', e.target.value)} className={`${inputClass} font-mono`} /></FormField>
+                {editError && <div className="flex items-center gap-2 text-[13px] px-3 py-2 rounded-[11px]" style={{ background: '#fdecec', color: '#dc2626' }}><AlertCircle className="w-4 h-4 flex-shrink-0" />{editError}</div>}
                 <div className="flex gap-2 pt-1">
-                  <button onClick={handleUpdate} disabled={editSaving} className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white text-sm font-semibold py-2 rounded-lg transition-colors">
-                    {editSaving ? 'Guardando…' : 'Guardar cambios'}
+                  <button onClick={handleUpdate} disabled={editSaving} className="flex-1 py-[10px] rounded-[11px] text-white text-[13px] font-bold transition-all hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+                    {editSaving ? 'Guardando…' : 'Guardar'}
                   </button>
-                  <button onClick={() => setEditingId(null)} className="px-4 bg-stone-100 hover:bg-stone-200 text-stone-600 text-sm font-medium py-2 rounded-lg transition-colors">
+                  <button onClick={() => setEditingId(null)} className="px-4 py-[10px] rounded-[11px] border text-[13px] font-semibold transition-colors hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>
                     Cancelar
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div key={t.uid} className="rounded-[15px] border p-[18px]" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+              {/* Cabecera */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 rounded-[12px] flex items-center justify-center text-[15px] font-extrabold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #f3f4f6, #e8eaed)', color: '#4a505c' }}>
+                  {initials(t.nombre)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-[14px] font-bold truncate" style={{ color: '#181b21' }}>{t.nombre}</h3>
+                  <p className="text-[12px]" style={{ color: '#8a909c' }}>{t.contacto}</p>
+                </div>
+              </div>
+
+              {/* Datos de contacto */}
+              <div className="space-y-1.5 mb-4">
+                {t.telefono && (
+                  <p className="flex items-center gap-2 text-[12.5px]" style={{ color: '#5b626e' }}>
+                    <Phone className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#aab0b9' }} />{t.telefono}
+                  </p>
+                )}
+                {t.email && (
+                  <p className="flex items-center gap-2 text-[12.5px] truncate" style={{ color: '#5b626e' }}>
+                    <Mail className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#aab0b9' }} />{t.email}
+                  </p>
+                )}
+              </div>
+
+              {/* Pie */}
+              <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px dashed #e7e9ed' }}>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[11.5px]" style={{ color: '#8a909c' }}>
+                    Usuario: <span className="font-mono font-semibold" style={{ color: '#5b626e' }}>{t.usuario || '—'}</span>
+                  </span>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: activos > 0 ? '#fef6e9' : '#f1f3f5', color: activos > 0 ? '#b7791f' : '#767d8a' }}>
+                    {activos} activos
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <button onClick={() => onVerPedidos(t.uid)} className="flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[12px] font-bold transition-colors hover:bg-[#fdeee7]" style={{ color: '#c9491c' }}>
+                    Ver <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => startEdit(t)} className="w-7 h-7 rounded-[8px] flex items-center justify-center transition-colors hover:bg-[#fdeee7] hover:text-[#e8632f]" style={{ color: '#aab0b9' }} title="Editar">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => { if (window.confirm(`¿Eliminar el taller "${t.nombre}"? Esta acción no se puede deshacer.`)) onDeleteTaller(t.uid); }} className="w-7 h-7 rounded-[8px] flex items-center justify-center transition-colors hover:bg-red-50 hover:text-red-500" style={{ color: '#aab0b9' }} title="Eliminar">
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
             </div>
           );
-        }
-
-        return (
-          <div key={t.uid} className="bg-white rounded-xl border border-stone-200 p-4">
-            <div className="flex items-start gap-3 mb-3">
-              <div className="w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center flex-shrink-0">
-                <Building2 className="w-5 h-5 text-stone-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-stone-900 truncate">{t.nombre}</h3>
-                <p className="text-sm text-stone-500">{t.contacto}</p>
-              </div>
-            </div>
-            <p className="flex items-center gap-1.5 text-sm text-stone-500 mb-1">
-              <Phone className="w-3.5 h-3.5" />{t.telefono}
-            </p>
-            {t.email && (
-              <p className="flex items-center gap-1.5 text-sm text-stone-500 mb-3 truncate">
-                <Mail className="w-3.5 h-3.5 flex-shrink-0" />{t.email}
-              </p>
-            )}
-            <div className="flex items-center justify-between text-sm border-t border-dashed border-stone-200 pt-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-stone-500">Usuario: <span className="font-mono font-medium text-stone-700">{t.usuario}</span></span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${activos > 0 ? 'bg-amber-50 text-amber-700' : 'bg-stone-100 text-stone-500'}`}>
-                  {activos} activos · {pedidosTaller.length} total
-                </span>
-              </div>
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <button onClick={() => onVerPedidos(t.uid)} className="text-orange-600 font-medium text-sm hover:text-orange-700 flex items-center gap-1 px-2 py-1">
-                  Ver <ChevronRight className="w-4 h-4" />
-                </button>
-                <button onClick={() => startEdit(t)} className="p-1.5 rounded-lg text-stone-400 hover:text-orange-500 hover:bg-orange-50 transition-colors" title="Editar taller">
-                  <Pencil className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => { if (window.confirm(`¿Eliminar el taller "${t.nombre}"? Esta acción no se puede deshacer.`)) onDeleteTaller(t.uid); }}
-                  className="p-1.5 rounded-lg text-stone-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                  title="Eliminar taller"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })}
+        })}
       </div>
+
+      {talleres.length === 0 && !showForm && (
+        <div className="text-center py-16" style={{ color: '#9aa1ad' }}>
+          <Building2 className="w-10 h-10 mx-auto mb-2 opacity-40" />
+          <p className="text-sm">No hay talleres registrados aún.</p>
+        </div>
+      )}
     </div>
   );
 }
