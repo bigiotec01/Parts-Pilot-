@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import {
   CarFront, Package, Truck, CheckCircle2, Clock, FileText, LogOut, Plus, Search,
@@ -1355,51 +1355,56 @@ function AdminNuevaCotizacion({ talleres, onCreate }) {
 }
 
 function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDeleteOrder, onUpdateNotes, onUpdateReferencias }) {
+  // Estado local — nada se guarda hasta presionar "Actualizar"
+  const [estado, setEstado]             = useState(order.estado);
+  const [fechaEntrega, setFechaEntrega] = useState(order.fechaEntrega || '');
+  const [numeroPO, setNumeroPO]         = useState(order.numeroPO ?? '');
+  const [numeroOrden, setNumeroOrden]   = useState(order.numeroOrden ?? '');
+  const [notasInt, setNotasInt]         = useState(order.notasInternas ?? '');
+  // Estimado (sección separada)
   const [notasEstimado, setNotasEstimado] = useState(order.estimado?.notas ?? '');
-  const [archivo, setArchivo] = useState(order.estimado?.archivo ?? null);
-  const [sent, setSent] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [sendError, setSendError] = useState('');
-  const [showEmail, setShowEmail] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [notasInt, setNotasInt] = useState(order.notasInternas ?? '');
-  const [savingNotes, setSavingNotes] = useState(false);
-  const [savedNotes, setSavedNotes] = useState(false);
-  const [numeroPO, setNumeroPO] = useState(order.numeroPO ?? '');
-  const [numeroOrden, setNumeroOrden] = useState(order.numeroOrden ?? '');
-  const [savingRefs, setSavingRefs] = useState(false);
-  const [savedRefs, setSavedRefs] = useState(false);
+  const [archivo, setArchivo]           = useState(order.estimado?.archivo ?? null);
+  // UI state
+  const [saving, setSaving]             = useState(false);
+  const [saved, setSaved]               = useState(false);
+  const [sending, setSending]           = useState(false);
+  const [sent, setSent]                 = useState(false);
+  const [sendError, setSendError]       = useState('');
+  const [showEmail, setShowEmail]       = useState(false);
+  const [copied, setCopied]             = useState(false);
 
-  const handleSaveNotes = async () => {
-    setSavingNotes(true);
-    try {
-      await onUpdateNotes(order.id, notasInt);
-      setSavedNotes(true);
-      setTimeout(() => setSavedNotes(false), 2000);
-    } finally { setSavingNotes(false); }
-  };
+  // Sincroniza estado local cuando se abre un pedido diferente
+  useEffect(() => {
+    setEstado(order.estado);
+    setFechaEntrega(order.fechaEntrega || '');
+    setNumeroPO(order.numeroPO ?? '');
+    setNumeroOrden(order.numeroOrden ?? '');
+    setNotasInt(order.notasInternas ?? '');
+    setNotasEstimado(order.estimado?.notas ?? '');
+    setArchivo(order.estimado?.archivo ?? null);
+  }, [order.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleSaveRefs = async () => {
-    setSavingRefs(true);
+  // Botón único — guarda estado, fecha, PO, orden y notas de una vez
+  const handleActualizar = async () => {
+    setSaving(true);
     try {
+      await onChangeStatus(order.id, estado, fechaEntrega || undefined);
       await onUpdateReferencias(order.id, { numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim() });
-      setSavedRefs(true);
-      setTimeout(() => setSavedRefs(false), 2000);
-    } finally { setSavingRefs(false); }
+      await onUpdateNotes(order.id, notasInt);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } finally { setSaving(false); }
   };
 
   const handleSendEstimate = async () => {
-    setSending(true);
-    setSendError('');
+    setSending(true); setSendError('');
     try {
       await onSendEstimate(order.id, { notas: notasEstimado, archivo });
       setSent(true);
       setTimeout(() => setSent(false), 3000);
     } catch (err) {
       setSendError('Error al enviar: ' + (err.message || err.code));
-    } finally {
-      setSending(false);
-    }
+    } finally { setSending(false); }
   };
 
   const handleFile = (e) => {
@@ -1429,228 +1434,146 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
 
   return (
     <div className="space-y-4">
-      {/* ── Encabezado del pedido ── */}
-      <div className="flex items-center justify-between bg-stone-50 rounded-xl px-4 py-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-white border border-stone-200 flex items-center justify-center flex-shrink-0">
-            <Building2 className="w-4 h-4 text-stone-500" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-semibold text-stone-800 text-sm truncate">{taller?.nombre}</p>
-            <p className="text-xs text-stone-400 font-mono">{order.folio || order.id.slice(0, 8)}</p>
-          </div>
+      {/* Taller + estado actual */}
+      <div className="flex items-center gap-3 rounded-[13px] p-3" style={{ background: '#f8f9fa' }}>
+        <div className="w-10 h-10 rounded-[10px] border flex items-center justify-center font-bold text-[14px] flex-shrink-0" style={{ background: '#fff', borderColor: '#e7e9ed', color: '#4a505c' }}>
+          {(taller?.nombre || '?').split(' ').filter(w => w.length > 2).slice(0,2).map(w => w[0]).join('').toUpperCase() || '?'}
         </div>
-        <StatusBadge estado={order.estado} />
+        <div className="flex-1 min-w-0">
+          <div className="text-[13.5px] font-bold truncate" style={{ color: '#181b21' }}>{taller?.nombre}</div>
+          <div className="text-[12px]" style={{ color: '#8a909c' }}>{taller?.contacto}</div>
+        </div>
+        <StatusBadge estado={estado} />
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        {/* ── COLUMNA IZQUIERDA: Info + Estado ── */}
+        {/* ── Columna izquierda ── */}
         <div className="space-y-3">
-
-          {/* Fechas */}
           <div className="grid grid-cols-2 gap-2">
             <InfoItem label="Fecha de registro" value={formatDate(order.fecha)} />
-            {order.fechaEntrega
-              ? <InfoItem label="Entrega estimada" value={formatDate(order.fechaEntrega)} />
-              : <InfoItem label="Folio" value={order.folio || order.id.slice(0, 8)} />}
+            <InfoItem label="Folio" value={order.folio || order.id.slice(0,8)} />
           </div>
 
-          {/* No. PO / No. Orden */}
-          <div className="bg-stone-50 rounded-xl p-3 space-y-2">
-            <p className="text-[10px] font-semibold text-stone-500 uppercase tracking-wider">Referencia de orden</p>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-[10px] text-stone-400 font-medium block mb-1">No. PO</label>
-                <input
-                  value={numeroPO}
-                  onChange={e => setNumeroPO(e.target.value)}
-                  placeholder="ej. 48213"
-                  className={`${inputClass} bg-white text-sm`}
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-stone-400 font-medium block mb-1">No. Orden</label>
-                <input
-                  value={numeroOrden}
-                  onChange={e => setNumeroOrden(e.target.value)}
-                  placeholder="ej. T-7890"
-                  className={`${inputClass} bg-white text-sm`}
-                />
-              </div>
-            </div>
-            <button
-              onClick={handleSaveRefs}
-              disabled={savingRefs}
-              className="w-full bg-stone-700 hover:bg-stone-800 disabled:opacity-60 text-white text-sm font-semibold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1.5"
-            >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              {savedRefs ? '¡Guardado!' : savingRefs ? 'Guardando…' : 'Guardar referencias'}
-            </button>
+          <FormField label="Estado del pedido">
+            <select value={estado} onChange={e => setEstado(e.target.value)} className={`${inputClass} bg-white`}>
+              {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
+            </select>
+          </FormField>
+
+          {['pedido_fabrica','ordenadas','esperando_piezas','en_transito','recibido','entregado'].includes(estado) && (
+            <FormField label="Fecha estimada de entrega">
+              <input type="date" value={fechaEntrega} onChange={e => setFechaEntrega(e.target.value)} className={inputClass} />
+              {fechaEntrega && <p className="text-[11px] mt-1" style={{ color: '#2563eb' }}>El taller verá esta fecha en su portal.</p>}
+            </FormField>
+          )}
+
+          <div className="grid grid-cols-2 gap-2">
+            <FormField label="No. PO"><input value={numeroPO} onChange={e => setNumeroPO(e.target.value)} placeholder="ej. 48213" className={inputClass} /></FormField>
+            <FormField label="No. Orden"><input value={numeroOrden} onChange={e => setNumeroOrden(e.target.value)} placeholder="ej. T-7890" className={inputClass} /></FormField>
           </div>
 
-          {/* Notas del taller */}
           {order.notas && (
-            <div className="bg-amber-50 border border-amber-100 rounded-xl p-3">
-              <p className="text-[10px] font-semibold text-amber-600 uppercase tracking-wider mb-1">Notas del taller</p>
-              <p className="text-sm text-amber-900">{order.notas}</p>
+            <div className="rounded-[12px] p-3" style={{ background: '#fef9ec', border: '1px solid #f6ead0' }}>
+              <p className="text-[10.5px] font-bold uppercase mb-1" style={{ color: '#b7791f', letterSpacing: '.05em' }}>Notas del taller</p>
+              <p className="text-[13px] leading-relaxed" style={{ color: '#7c5a14' }}>{order.notas}</p>
             </div>
           )}
 
-          {/* Archivo del taller */}
           {order.archivo && (
-            <div className="bg-stone-50 rounded-xl p-3">
-              <p className="text-[10px] font-semibold text-stone-500 uppercase tracking-wider mb-2">Archivo del taller</p>
+            <div className="rounded-[12px] p-3" style={{ background: '#f8f9fa' }}>
+              <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: '#9aa1ad', letterSpacing: '.05em' }}>Archivo del taller</p>
               {order.archivo.type?.startsWith('image/') || order.archivo.url?.match(/\.(jpg|jpeg|png|webp|gif)/i) ? (
-                <a href={order.archivo.url} target="_blank" rel="noreferrer">
-                  <img src={order.archivo.url} alt={order.archivo.name} className="rounded-lg max-h-36 object-cover border border-stone-200" />
-                </a>
+                <a href={order.archivo.url} target="_blank" rel="noreferrer"><img src={order.archivo.url} alt={order.archivo.name} className="rounded-lg max-h-36 object-cover" style={{ border: '1px solid #e7e9ed' }} /></a>
               ) : (
-                <a href={order.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 hover:border-orange-300 hover:text-orange-600 transition-colors w-fit">
+                <a href={order.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-[10px] px-3 py-2 text-[13px] border transition-colors hover:border-[#e8632f] hover:text-[#c9491c]" style={{ background: '#fff', borderColor: '#e7e9ed', color: '#4a505c' }}>
                   <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{order.archivo.name}</span>
                 </a>
               )}
             </div>
           )}
 
-          {/* Estado */}
-          <div className="bg-stone-50 rounded-xl p-4">
-            <p className="text-[10px] font-semibold text-stone-500 uppercase tracking-wider mb-3">Estado del pedido</p>
-            <StatusStepper estado={order.estado} />
-            <select value={order.estado} onChange={e => onChangeStatus(order.id, e.target.value)} className={`${inputClass} bg-white mt-3`}>
-              {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
-            </select>
+          <div className="rounded-[12px] p-3" style={{ background: '#f8f9fa' }}>
+            <p className="text-[10.5px] font-bold uppercase mb-3" style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>Progreso</p>
+            <StatusStepper estado={estado} />
           </div>
 
-          {/* Fecha de entrega */}
-          {['pedido_fabrica', 'ordenadas', 'esperando_piezas', 'en_transito', 'recibido', 'entregado'].includes(order.estado) && (
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-              <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5" /> Fecha estimada de entrega
-              </p>
-              <input
-                type="date"
-                defaultValue={order.fechaEntrega || ''}
-                onChange={e => onChangeStatus(order.id, order.estado, e.target.value)}
-                className={`${inputClass} bg-white`}
-              />
-              {order.fechaEntrega && <p className="text-xs text-blue-500 mt-1.5">El taller verá esta fecha en su portal.</p>}
-            </div>
-          )}
+          <div className="rounded-[12px] p-3" style={{ background: '#f8f9fa' }}>
+            <p className="text-[10.5px] font-bold uppercase mb-2 flex items-center gap-1.5" style={{ color: '#9aa1ad', letterSpacing: '.05em' }}>
+              <StickyNote className="w-3.5 h-3.5" /> Notas internas
+            </p>
+            <textarea value={notasInt} onChange={e => setNotasInt(e.target.value)} placeholder="Solo visibles para el admin…" rows={3}
+              className="w-full text-[13px] rounded-[10px] p-2.5 resize-none border outline-none focus:ring-2 focus:ring-[#e8632f]/10 focus:border-[#e8632f]"
+              style={{ background: '#fff', borderColor: '#e3e5ea', color: '#181b21' }} />
+          </div>
+
+          {saved && <div className="flex items-center gap-2 px-3 py-2.5 rounded-[11px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}><CheckCircle2 className="w-4 h-4" /> Cambios guardados.</div>}
+          <button onClick={handleActualizar} disabled={saving} className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:brightness-105 disabled:opacity-60 transition-all" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)', boxShadow: '0 8px 18px -8px rgba(201,73,28,.5)' }}>
+            {saving ? 'Guardando…' : 'Actualizar'}
+          </button>
         </div>
 
-        {/* ── COLUMNA DERECHA: Estimado ── */}
+        {/* ── Columna derecha: Estimado ── */}
         <div className="space-y-3">
-          <div className="bg-stone-50 rounded-xl p-4 space-y-3">
-            <p className="text-[10px] font-semibold text-stone-500 uppercase tracking-wider flex items-center gap-1.5">
+          <div className="rounded-[13px] p-4 space-y-3 border" style={{ borderColor: '#e7e9ed' }}>
+            <p className="text-[10.5px] font-bold uppercase flex items-center gap-1.5" style={{ color: '#9aa1ad', letterSpacing: '.05em' }}>
               <Send className="w-3.5 h-3.5" /> Estimado
             </p>
-
-            {order.estimado?.respuesta === 'pendiente' && (
-              <div className="text-sm px-3 py-2 rounded-lg bg-amber-50 border border-amber-100 text-amber-700 flex items-center gap-2">
-                <Clock className="w-4 h-4 flex-shrink-0" /> Esperando respuesta del taller…
-              </div>
-            )}
+            {order.estimado?.respuesta === 'pendiente' && <div className="flex items-center gap-2 text-[13px] px-3 py-2 rounded-[10px]" style={{ background: '#fef6e9', color: '#b7791f' }}><Clock className="w-4 h-4 flex-shrink-0" /> Esperando respuesta del taller…</div>}
             {order.estimado?.respuesta && order.estimado.respuesta !== 'pendiente' && (
-              <div className={`text-sm px-3 py-2 rounded-lg flex items-center gap-2 ${order.estimado.respuesta === 'aceptado' ? 'bg-emerald-50 border border-emerald-100 text-emerald-700' : 'bg-red-50 border border-red-100 text-red-700'}`}>
+              <div className="flex items-center gap-2 text-[13px] px-3 py-2 rounded-[10px]" style={{ background: order.estimado.respuesta === 'aceptado' ? '#eafaf2' : '#fdecec', color: order.estimado.respuesta === 'aceptado' ? '#059669' : '#dc2626' }}>
                 {order.estimado.respuesta === 'aceptado' ? <ThumbsUp className="w-4 h-4 flex-shrink-0" /> : <ThumbsDown className="w-4 h-4 flex-shrink-0" />}
                 El taller {order.estimado.respuesta === 'aceptado' ? 'aceptó' : 'rechazó'} este estimado.
               </div>
             )}
-            {sent && (
-              <div className="text-sm px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> Estimado enviado al taller.
-              </div>
-            )}
-            {sendError && (
-              <div className="text-sm px-3 py-2 rounded-lg bg-red-50 border border-red-100 text-red-700 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" /> {sendError}
-              </div>
-            )}
-
+            {sent && <div className="flex items-center gap-2 text-[13px] px-3 py-2 rounded-[10px]" style={{ background: '#eafaf2', color: '#059669' }}><CheckCircle2 className="w-4 h-4" /> Estimado enviado.</div>}
+            {sendError && <div className="flex items-center gap-2 text-[13px] px-3 py-2 rounded-[10px]" style={{ background: '#fdecec', color: '#dc2626' }}><AlertCircle className="w-4 h-4" />{sendError}</div>}
             <FormField label="Notas para el taller">
-              <textarea value={notasEstimado} onChange={e => setNotasEstimado(e.target.value)} rows={3} placeholder="Tiempo de entrega, condiciones, etc." className={`${inputClass} bg-white resize-none`} />
+              <textarea value={notasEstimado} onChange={e => setNotasEstimado(e.target.value)} rows={3} placeholder="Tiempo de entrega, condiciones, precio…" className={`${inputClass} resize-none`} />
             </FormField>
-
             <FormField label="PDF del estimado (opcional)">
               {archivo ? (
-                <div className="flex items-center justify-between gap-2 bg-white border border-stone-200 rounded-lg px-3 py-2">
-                  <a href={archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-stone-700 truncate hover:underline">
+                <div className="flex items-center justify-between gap-2 rounded-[10px] px-3 py-2 border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+                  <a href={archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[13px] truncate hover:underline" style={{ color: '#4a505c' }}>
                     <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{archivo.name}</span>
                   </a>
-                  <button type="button" onClick={() => setArchivo(null)} className="text-stone-400 hover:text-red-500 flex-shrink-0"><X className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => setArchivo(null)} style={{ color: '#aab0b9' }}><X className="w-4 h-4" /></button>
                 </div>
               ) : (
-                <label className="flex items-center justify-center gap-2 border border-dashed border-stone-300 rounded-lg px-3 py-2.5 text-sm text-stone-500 hover:border-orange-300 hover:text-orange-600 cursor-pointer transition-colors bg-white">
+                <label className="flex items-center justify-center gap-2 border-dashed border rounded-[10px] px-3 py-2.5 text-[13px] cursor-pointer transition-colors hover:border-[#e8632f] hover:text-[#c9491c]" style={{ borderColor: '#d3d6db', color: '#8a909c' }}>
                   <Paperclip className="w-4 h-4" /> Adjuntar PDF
                   <input type="file" accept="application/pdf" onChange={handleFile} className="hidden" />
                 </label>
               )}
             </FormField>
-
-            <button onClick={handleSendEstimate} disabled={sending} className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
-              <Send className="w-4 h-4" /> {sending ? 'Enviando…' : order.estimado ? 'Actualizar y reenviar' : 'Enviar estimado al taller'}
+            <button onClick={handleSendEstimate} disabled={sending} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:brightness-105 disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: '#181b21' }}>
+              <Send className="w-4 h-4" /> {sending ? 'Enviando…' : order.estimado ? 'Actualizar estimado' : 'Enviar estimado al taller'}
             </button>
           </div>
 
-          {/* Email */}
-          {taller?.email ? (
+          {taller?.email && (
             <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => setShowEmail(v => !v)}
-                className="w-full bg-white border border-stone-200 hover:border-orange-300 hover:text-orange-600 text-stone-600 font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
-              >
+              <button type="button" onClick={() => setShowEmail(v => !v)} className="w-full py-[9px] rounded-[10px] text-[13px] font-semibold border flex items-center justify-center gap-2 hover:bg-stone-50 transition-colors" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>
                 <Mail className="w-4 h-4" /> Correo a {taller.email}
               </button>
               {showEmail && (() => {
-                const { subject, body } = buildEmailContent();
+                const subject = `Estimado · ${order.referencia || order.vehiculo}`;
+                const body = [`Hola ${taller.contacto || ''},`, '', `Estimado para: ${order.vehiculo}`, notasEstimado ? `Notas: ${notasEstimado}` : '', '', 'Puedes verlo en Parts Pilot.', '', 'Saludos.'].filter((l, i) => !(i === 3 && !notasEstimado)).join('\n');
                 return (
-                  <div className="bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-2 text-sm">
-                    <div><span className="font-medium text-stone-500">Para:</span> <span className="text-stone-700">{taller.email}</span></div>
-                    <div><span className="font-medium text-stone-500">Asunto:</span> <span className="text-stone-700">{subject}</span></div>
-                    <div>
-                      <span className="font-medium text-stone-500 block mb-1">Cuerpo:</span>
-                      <textarea readOnly value={body} rows={5} className="w-full text-xs text-stone-600 bg-white border border-stone-200 rounded-lg p-2 resize-none focus:outline-none" />
-                    </div>
-                    <button type="button" onClick={handleCopyEmail} className="w-full bg-stone-800 hover:bg-stone-900 text-white text-sm font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
-                      {copied ? <><CheckCircle2 className="w-4 h-4" /> ¡Copiado!</> : <><Paperclip className="w-4 h-4" /> Copiar correo completo</>}
+                  <div className="rounded-[12px] p-3 border space-y-2 text-[13px]" style={{ background: '#f8f9fa', borderColor: '#e7e9ed' }}>
+                    <div><span className="font-semibold" style={{ color: '#767d8a' }}>Para: </span><span style={{ color: '#181b21' }}>{taller.email}</span></div>
+                    <div><span className="font-semibold" style={{ color: '#767d8a' }}>Asunto: </span><span style={{ color: '#181b21' }}>{subject}</span></div>
+                    <textarea readOnly value={body} rows={4} className="w-full text-[12px] rounded-[10px] p-2 resize-none outline-none border" style={{ background: '#fff', borderColor: '#e7e9ed', color: '#5b626e' }} />
+                    <button type="button" onClick={() => navigator.clipboard.writeText(`Para: ${taller.email}\nAsunto: ${subject}\n\n${body}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); })} className="w-full py-2 rounded-[10px] text-white text-[13px] font-semibold flex items-center justify-center gap-2" style={{ background: '#181b21' }}>
+                      {copied ? <><CheckCircle2 className="w-4 h-4" /> ¡Copiado!</> : <><Paperclip className="w-4 h-4" /> Copiar correo</>}
                     </button>
                   </div>
                 );
               })()}
             </div>
-          ) : (
-            <p className="text-xs text-stone-400 text-center py-1">Este taller no tiene correo registrado.</p>
           )}
 
-          {/* Notas internas */}
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
-            <p className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
-              <StickyNote className="w-3.5 h-3.5" /> Notas internas
-            </p>
-            <textarea
-              value={notasInt}
-              onChange={e => setNotasInt(e.target.value)}
-              placeholder="Solo visibles para el admin…"
-              rows={3}
-              className="w-full text-sm text-slate-800 bg-white border border-slate-200 rounded-lg p-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-slate-300 placeholder-slate-300"
-            />
-            <button
-              onClick={handleSaveNotes}
-              disabled={savingNotes}
-              className="w-full bg-slate-600 hover:bg-slate-700 disabled:opacity-60 text-white text-sm font-semibold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1.5"
-            >
-              <NotebookPen className="w-3.5 h-3.5" />
-              {savedNotes ? '¡Guardado!' : savingNotes ? 'Guardando…' : 'Guardar nota'}
-            </button>
-          </div>
-
-          {/* Eliminar */}
-          <button
-            type="button"
-            onClick={() => { if (window.confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.')) onDeleteOrder(order.id); }}
-            className="w-full flex items-center justify-center gap-2 text-sm text-red-400 hover:text-red-600 hover:bg-red-50 py-2.5 rounded-lg transition-colors border border-dashed border-red-200"
-          >
+          <button type="button" onClick={() => { if (window.confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.')) onDeleteOrder(order.id); }}
+            className="w-full flex items-center justify-center gap-2 text-[13px] py-2.5 rounded-[10px] border border-dashed transition-colors hover:bg-red-50 hover:text-red-500" style={{ color: '#aab0b9', borderColor: '#f0b8b8' }}>
             <Trash2 className="w-4 h-4" /> Eliminar pedido
           </button>
         </div>
@@ -2179,13 +2102,18 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
 /*  CLIENT FACTURAS                                                     */
 /* ------------------------------------------------------------------ */
 
-function ClientFacturas({ facturas, taller }) {
+function ClientFacturas({ facturas, taller, onArchivar }) {
   const marcasDisponibles = [...new Set(facturas.map(f => f.marca))].sort();
   const [marca, setMarca] = useState(marcasDisponibles[0] || 'KIA');
+  const [verHistorial, setVerHistorial] = useState(false);
 
-  const facturasMarca = [...facturas]
+  const todasMarca = [...facturas]
     .filter(f => f.marca === marca)
     .sort((a, b) => (a.fechaFactura || '').localeCompare(b.fechaFactura || ''));
+
+  const facturasMarca  = todasMarca.filter(f => !f.archivada);
+  const facturasArch   = todasMarca.filter(f => f.archivada);
+  const pagadasSinArch = facturasMarca.filter(f => Number(f.pendiente || 0) <= 0);
 
   const numeroCuenta = taller?.numeroCuentas?.[marca] || '';
 
@@ -2193,6 +2121,12 @@ function ClientFacturas({ facturas, taller }) {
     (acc, f) => ({ valor: acc.valor + Number(f.valor || 0), pagado: acc.pagado + Number(f.pagado || 0), pendiente: acc.pendiente + Number(f.pendiente || 0) }),
     { valor: 0, pagado: 0, pendiente: 0 }
   );
+
+  const handleArchivarPagadas = async () => {
+    if (!pagadasSinArch.length) return;
+    if (!window.confirm(`¿Archivar ${pagadasSinArch.length} factura(s) pagada(s)? Se moverán al historial.`)) return;
+    for (const f of pagadasSinArch) await onArchivar(f.id, true);
+  };
 
   const handlePrint = () => {
     const rows = facturasMarca.map(f => `
@@ -2252,6 +2186,13 @@ function ClientFacturas({ facturas, taller }) {
 
   if (facturas.length === 0) return <EmptyState text="No tienes facturas asignadas aún." />;
 
+  // Stats financieras para las tarjetas superiores
+  const statsAll = facturas.filter(f => !f.archivada);
+  const statsTotals = statsAll.reduce(
+    (a, f) => ({ valor: a.valor + Number(f.valor||0), pagado: a.pagado + Number(f.pagado||0), pendiente: a.pendiente + Number(f.pendiente||0) }),
+    { valor: 0, pagado: 0, pendiente: 0 }
+  );
+
   const thSt = { color: '#9aa1ad', letterSpacing: '.06em' };
 
   return (
@@ -2265,9 +2206,16 @@ function ClientFacturas({ facturas, taller }) {
             </button>
           ))}
         </div>
-        <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border hover:bg-stone-50 transition-colors" style={{ borderColor: '#e3e5ea', color: '#4a505c' }}>
-          <Printer className="w-4 h-4" /> Imprimir / PDF
-        </button>
+        <div className="flex items-center gap-2">
+          {pagadasSinArch.length > 0 && (
+            <button onClick={handleArchivarPagadas} className="flex items-center gap-2 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border hover:bg-stone-50 transition-colors" style={{ borderColor: '#059669', color: '#059669' }}>
+              <CheckCircle2 className="w-4 h-4" /> Archivar pagadas ({pagadasSinArch.length})
+            </button>
+          )}
+          <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border hover:bg-stone-50 transition-colors" style={{ borderColor: '#e3e5ea', color: '#4a505c' }}>
+            <Printer className="w-4 h-4" /> Imprimir / PDF
+          </button>
+        </div>
       </div>
 
       {numeroCuenta && (
@@ -2316,6 +2264,45 @@ function ClientFacturas({ facturas, taller }) {
           )}
         </table>
       </div>
+
+      {/* Historial de pagadas archivadas */}
+      {facturasArch.length > 0 && (
+        <div>
+          <button onClick={() => setVerHistorial(v => !v)} className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#e8632f]" style={{ color: '#9aa1ad' }}>
+            <ChevronRight className={`w-4 h-4 transition-transform ${verHistorial ? 'rotate-90' : ''}`} />
+            Historial de pagadas ({facturasArch.length})
+          </button>
+          {verHistorial && (
+            <div className="mt-3 rounded-[16px] border overflow-x-auto" style={{ background: '#fff', borderColor: '#e7e9ed', opacity: 0.85 }}>
+              <table className="w-full" style={{ minWidth: 700 }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #eef0f2' }}>
+                    {['Fecha','# Factura','PO Tag','Valor','Pagado','# Check','F. Pago',''].map((h, i) => (
+                      <th key={i} className={`text-left py-2.5 text-[10.5px] font-bold uppercase ${i===0?'pl-5 pr-3':'px-3'}`} style={thSt}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {facturasArch.map(f => (
+                    <tr key={f.id} style={{ borderTop: '1px solid #f1f2f4' }}>
+                      <td className="py-3 pl-5 pr-3 text-[12px] whitespace-nowrap" style={{ color: '#aab0b9' }}>{fmtDateDisp(f.fechaFactura)}</td>
+                      <td className="py-3 px-3 font-mono text-[12px]" style={{ color: '#aab0b9' }}>{f.numeroFactura}</td>
+                      <td className="py-3 px-3 font-mono text-[12px]" style={{ color: '#aab0b9' }}>{f.poTag||'—'}</td>
+                      <td className="py-3 px-3 text-[12px]" style={{ color: '#aab0b9' }}>{fmtCur(f.valor)}</td>
+                      <td className="py-3 px-3 text-[12px] font-semibold" style={{ color: '#059669' }}>{fmtCur(f.pagado)}</td>
+                      <td className="py-3 px-3 font-mono text-[12px]" style={{ color: '#aab0b9' }}>{f.numeroCheck||'—'}</td>
+                      <td className="py-3 px-3 text-[12px] whitespace-nowrap" style={{ color: '#aab0b9' }}>{fmtDateDisp(f.fechaPago)}</td>
+                      <td className="py-3 pr-4">
+                        <button onClick={() => onArchivar(f.id, false)} className="text-[11px] font-semibold hover:underline" style={{ color: '#e8632f' }}>Restaurar</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -3151,19 +3138,40 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
 
   const contentView = (
     <>
-      {/* Mini stats */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
-        {[
-          { val: pedidosActivos.length,  label: 'Activos',     color: '#e8632f' },
-          { val: totalEstimados,         label: 'Estimados',   color: totalEstimados > 0 ? '#b7791f' : '#d1d5db' },
-          { val: pedidosHistorial.length,label: 'Completados', color: '#0d9488' },
-        ].map(({ val, label, color }) => (
-          <div key={label} className="rounded-[14px] px-3 py-3 text-center border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
-            <p className="text-[24px] font-extrabold leading-none" style={{ color }}>{val}</p>
-            <p className="text-[11px] mt-1 font-medium" style={{ color: '#8a909c' }}>{label}</p>
+      {/* Mini stats — financieras en facturas, de pedidos en el resto */}
+      {activeTab === 'facturas' ? (() => {
+        const af = facturas.filter(f => !f.archivada);
+        const totV = af.reduce((s,f)=>s+Number(f.valor||0),0);
+        const totP = af.reduce((s,f)=>s+Number(f.pagado||0),0);
+        const totPend = af.reduce((s,f)=>s+Number(f.pendiente||0),0);
+        return (
+          <div className="grid grid-cols-3 gap-3 mb-5">
+            {[
+              { val: fmtCur(totV),    label: 'Total facturas', color: '#181b21' },
+              { val: fmtCur(totP),    label: 'Pagado',         color: '#059669' },
+              { val: fmtCur(totPend), label: 'Pendiente',      color: totPend > 0 ? '#b7791f' : '#0d9488' },
+            ].map(({ val, label, color }) => (
+              <div key={label} className="rounded-[14px] px-3 py-3 text-center border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+                <p className="text-[15px] font-extrabold leading-none truncate" style={{ color }}>{val}</p>
+                <p className="text-[11px] mt-1 font-medium" style={{ color: '#8a909c' }}>{label}</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        );
+      })() : (
+        <div className="grid grid-cols-3 gap-3 mb-5">
+          {[
+            { val: pedidosActivos.length,  label: 'Activos',     color: '#e8632f' },
+            { val: totalEstimados,         label: 'Estimados',   color: totalEstimados > 0 ? '#b7791f' : '#d1d5db' },
+            { val: pedidosHistorial.length,label: 'Completados', color: '#0d9488' },
+          ].map(({ val, label, color }) => (
+            <div key={label} className="rounded-[14px] px-3 py-3 text-center border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+              <p className="text-[24px] font-extrabold leading-none" style={{ color }}>{val}</p>
+              <p className="text-[11px] mt-1 font-medium" style={{ color: '#8a909c' }}>{label}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {activeTab === 'pedidos' && (
         <div className="space-y-3">
@@ -3184,23 +3192,26 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
       {activeTab === 'nueva' && (
         <ClientNuevaSolicitud onCreate={(data) => { onCreateOrder({ ...data, tallerId: taller.id }); goTab('estimados'); }} />
       )}
-      {activeTab === 'facturas' && <ClientFacturas facturas={facturas} taller={taller} />}
+      {activeTab === 'facturas' && <ClientFacturas facturas={facturas} taller={taller} onArchivar={(id, v) => archivarFactura(id, v)} />}
       {activeTab === 'perfil' && <ClientPerfil taller={taller} onUpdate={(data) => onUpdateTaller(taller.id, data)} />}
     </>
   );
 
+  const orderDetailProps = {
+    order: selectedOrder || {},
+    title: (selectedOrder?.referencia || selectedOrder?.vehiculo) ?? '',
+    onClose: () => setSelectedId(null),
+    detailContent: selectedOrder ? <ClientOrderDetail order={selectedOrder} onRespond={onRespondEstimate} /> : null,
+    chatProps: {
+      role: 'taller',
+      otherPartyName: 'Depto. de Piezas',
+      onSendMessage: (orderId, texto, attachment) => onSendMessage(orderId, texto, 'taller', attachment),
+    },
+  };
   const orderModal = selectedOrder && (
-    <OrderDrawer
-      order={selectedOrder}
-      title={selectedOrder.referencia || selectedOrder.vehiculo}
-      onClose={() => setSelectedId(null)}
-      detailContent={<ClientOrderDetail order={selectedOrder} onRespond={onRespondEstimate} />}
-      chatProps={{
-        role: 'taller',
-        otherPartyName: 'Depto. de Piezas',
-        onSendMessage: (orderId, texto, attachment) => onSendMessage(orderId, texto, 'taller', attachment),
-      }}
-    />
+    window.innerWidth >= 1024
+      ? <OrderDrawer {...orderDetailProps} />
+      : <OrderSheet {...orderDetailProps} />
   );
 
   /* ── DESKTOP (lg+): sidebar layout ── */
@@ -3339,7 +3350,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
 /* ------------------------------------------------------------------ */
 
 import { useAuth } from './useAuth';
-import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura, actualizarFactura, eliminarFactura, useAdminEquipo, crearAdminUsuario, actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario, eliminarTallerUsuario } from './firestore';
+import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura, actualizarFactura, eliminarFactura, archivarFactura, useAdminEquipo, crearAdminUsuario, actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario, eliminarTallerUsuario } from './firestore';
 
 export default function App() {
   const { user, perfil, cargando, error, login, logout, setError } = useAuth();

@@ -325,6 +325,10 @@ export async function eliminarFactura(id) {
   await deleteDoc(doc(db, 'facturas', id));
 }
 
+export async function archivarFactura(id, archivada = true) {
+  await updateDoc(doc(db, 'facturas', id), { archivada });
+}
+
 // ── Crear taller (admin) ────────────────────────────────────────────
 export async function crearTaller({ nombre, contacto, telefono, email, usuario, password }) {
   let uid;
