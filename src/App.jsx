@@ -2055,6 +2055,20 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
         <span className="text-[11.5px]" style={{ color: '#aab0b9' }}>Se guarda al salir del campo</span>
       </div>
 
+      {/* Tarjetas de totales */}
+      <div className="grid grid-cols-3 gap-4">
+        {[
+          { label: 'Total facturas', val: fmtCur(totals.valor),    color: '#181b21' },
+          { label: 'Pagado',         val: fmtCur(totals.pagado),   color: '#059669' },
+          { label: 'Pendiente',      val: fmtCur(totals.pendiente),color: totals.pendiente > 0 ? '#b7791f' : '#059669' },
+        ].map(({ label, val, color }) => (
+          <div key={label} className="rounded-[15px] p-4 border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+            <p className="text-[12px] font-medium mb-1" style={{ color: '#767d8a' }}>{label}</p>
+            <p className="text-[22px] font-extrabold leading-none" style={{ color }}>{val}</p>
+          </div>
+        ))}
+      </div>
+
       {/* Tabla */}
       <div className="rounded-[16px] border overflow-x-auto" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
         <table className="w-full" style={{ minWidth: 920 }}>
