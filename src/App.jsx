@@ -1808,27 +1808,36 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
     await onUpdateTaller(tallerSel, { [`numeroCuentas.${marca}`]: num });
   };
 
-  // Convierte número serial de Excel a string YYYY-MM-DD
-  const excelDateToStr = (val) => {
+  const toDateStr = (val) => {
     if (!val) return '';
-    if (typeof val === 'string' && val.includes('/')) {
-      // ya viene como m/d/yyyy
+    if (val instanceof Date) {
+      const y = val.getFullYear();
+      const m = String(val.getMonth() + 1).padStart(2, '0');
+      const d = String(val.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    if (typeof val === 'number' && val > 1000) {
+      // Serial de Excel: días desde 1899-12-30
+      const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+      const y = d.getUTCFullYear();
+      const mo = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      return `${y}-${mo}-${day}`;
+    }
+    if (typeof val === 'string') {
       const parts = val.split('/');
       if (parts.length === 3) {
         const [m, d, y] = parts;
-        return `${y.length === 2 ? '20' + y : y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+        const year = y.length <= 2 ? '20' + y : y;
+        return `${year}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
       }
     }
-    if (typeof val === 'number') {
-      const date = XLSX.SSF.parse_date_code(val);
-      if (date) return `${date.y}-${String(date.m).padStart(2,'0')}-${String(date.d).padStart(2,'0')}`;
-    }
-    return String(val || '');
+    return '';
   };
 
-  const parseMoney = (val) => {
-    if (!val && val !== 0) return 0;
-    return parseFloat(String(val).replace(/[$,]/g, '')) || 0;
+  const toNum = (val) => {
+    if (val === '' || val == null) return 0;
+    return parseFloat(String(val).replace(/[$,\s]/g, '')) || 0;
   };
 
   const handleXlsx = (e) => {
@@ -1838,39 +1847,48 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const wb = XLSX.read(ev.target.result, { type: 'array', cellDates: false });
+        const wb = XLSX.read(ev.target.result, { type: 'array', cellDates: true });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
-        // Busca la fila de encabezado (contiene "FACTURA" o "FECHA")
+        // Detecta fila de encabezados buscando # FACTURA o FECHA
         let headerIdx = raw.findIndex(row =>
-          row.some(cell => String(cell).toUpperCase().includes('FACTURA') || String(cell).toUpperCase().includes('FECHA'))
+          row.some(c => /FACTURA|FECHA/i.test(String(c)))
         );
         if (headerIdx === -1) headerIdx = 0;
 
-        const dataRows = raw.slice(headerIdx + 1).filter(row =>
-          row.some(cell => cell !== '') && !String(row[0]).toUpperCase().includes('TOTAL')
-        );
+        const dataRows = raw
+          .slice(headerIdx + 1)
+          .filter(row => {
+            const hasData = row.some(c => c !== '' && c != null);
+            const isTotal = /TOTAL/i.test(String(row[0])) || /TOTAL/i.test(String(row[1]));
+            return hasData && !isTotal;
+          });
 
         const parsed = dataRows.map(row => {
-          const valor = parseMoney(row[3]);
-          const pagado = parseMoney(row[4]);
-          const pendiente = parseMoney(row[5]) || (valor - pagado);
+          const valor = toNum(row[3]);
+          const pagado = toNum(row[4]);
+          const pendiente = toNum(row[5]) > 0 ? toNum(row[5]) : Math.max(0, valor - pagado);
           return {
-            fechaFactura: excelDateToStr(row[0]),
+            fechaFactura:  toDateStr(row[0]),
             numeroFactura: String(row[1] || '').trim(),
-            poTag: String(row[2] || '').trim(),
+            poTag:         String(row[2] || '').trim(),
             valor,
             pagado,
             pendiente,
-            numeroCheck: String(row[6] || '').trim(),
-            fechaPago: excelDateToStr(row[7]),
+            numeroCheck:   String(row[6] || '').trim(),
+            fechaPago:     toDateStr(row[7]),
           };
-        }).filter(r => r.numeroFactura);
+        }).filter(r => r.numeroFactura !== '');
+
+        if (parsed.length === 0) {
+          alert(`No se encontraron filas de datos.\n\nEl archivo tiene ${raw.length} filas en total. Asegúrate de que la hoja tenga encabezados con la palabra FACTURA y filas de datos debajo.`);
+          return;
+        }
 
         setImportRows(parsed);
       } catch (err) {
-        alert('No se pudo leer el archivo: ' + err.message);
+        alert('Error al leer el archivo: ' + err.message);
       }
     };
     reader.readAsArrayBuffer(file);
