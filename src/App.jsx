@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import * as XLSX from 'xlsx';
 import {
   CarFront, Package, Truck, CheckCircle2, Clock, FileText, LogOut, Plus, Search,
   Building2, Phone, X, ThumbsUp, ThumbsDown, ChevronRight, AlertCircle,
@@ -1758,6 +1759,9 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
   const [addingRow, setAddingRow] = useState(false);
   const [newForm, setNewForm] = useState({});
   const [saving, setSaving] = useState(false);
+  const [importRows, setImportRows] = useState(null); // null = no preview, [] = rows to confirm
+  const [importing, setImporting] = useState(false);
+  const fileRef = useRef();
 
   const tallerActual = talleres.find(t => t.uid === tallerSel);
   const numeroCuenta = tallerActual?.numeroCuentas?.[marca] || '';
@@ -1804,6 +1808,87 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
     await onUpdateTaller(tallerSel, { [`numeroCuentas.${marca}`]: num });
   };
 
+  // Convierte número serial de Excel a string YYYY-MM-DD
+  const excelDateToStr = (val) => {
+    if (!val) return '';
+    if (typeof val === 'string' && val.includes('/')) {
+      // ya viene como m/d/yyyy
+      const parts = val.split('/');
+      if (parts.length === 3) {
+        const [m, d, y] = parts;
+        return `${y.length === 2 ? '20' + y : y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+      }
+    }
+    if (typeof val === 'number') {
+      const date = XLSX.SSF.parse_date_code(val);
+      if (date) return `${date.y}-${String(date.m).padStart(2,'0')}-${String(date.d).padStart(2,'0')}`;
+    }
+    return String(val || '');
+  };
+
+  const parseMoney = (val) => {
+    if (!val && val !== 0) return 0;
+    return parseFloat(String(val).replace(/[$,]/g, '')) || 0;
+  };
+
+  const handleXlsx = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const wb = XLSX.read(ev.target.result, { type: 'array', cellDates: false });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+        // Busca la fila de encabezado (contiene "FACTURA" o "FECHA")
+        let headerIdx = raw.findIndex(row =>
+          row.some(cell => String(cell).toUpperCase().includes('FACTURA') || String(cell).toUpperCase().includes('FECHA'))
+        );
+        if (headerIdx === -1) headerIdx = 0;
+
+        const dataRows = raw.slice(headerIdx + 1).filter(row =>
+          row.some(cell => cell !== '') && !String(row[0]).toUpperCase().includes('TOTAL')
+        );
+
+        const parsed = dataRows.map(row => {
+          const valor = parseMoney(row[3]);
+          const pagado = parseMoney(row[4]);
+          const pendiente = parseMoney(row[5]) || (valor - pagado);
+          return {
+            fechaFactura: excelDateToStr(row[0]),
+            numeroFactura: String(row[1] || '').trim(),
+            poTag: String(row[2] || '').trim(),
+            valor,
+            pagado,
+            pendiente,
+            numeroCheck: String(row[6] || '').trim(),
+            fechaPago: excelDateToStr(row[7]),
+          };
+        }).filter(r => r.numeroFactura);
+
+        setImportRows(parsed);
+      } catch (err) {
+        alert('No se pudo leer el archivo: ' + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const confirmImport = async () => {
+    if (!importRows?.length) return;
+    setImporting(true);
+    try {
+      for (const row of importRows) {
+        await onAgregar({ tallerId: tallerSel, marca, ...row });
+      }
+      setImportRows(null);
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const InlineRow = ({ form, setForm, onSave, onCancel }) => (
     <tr style={{ background: '#fffbf5', borderTop: '1px solid #eef0f2' }}>
       <td className="py-2 pl-5 pr-1"><input type="date" value={form.fechaFactura || ''} onChange={e => setForm(f => ({ ...f, fechaFactura: e.target.value }))} className="w-[130px] px-2 py-1 rounded-[8px] border text-[12px] outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
@@ -1844,10 +1929,68 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
             ))}
           </div>
         </div>
-        <button onClick={startAdd} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:brightness-105" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
-          <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva factura
-        </button>
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border cursor-pointer hover:bg-stone-50 transition-colors" style={{ borderColor: '#e3e5ea', color: '#4a505c' }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Importar .xlsx
+            <input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={handleXlsx} className="hidden" />
+          </label>
+          <button onClick={startAdd} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:brightness-105" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+            <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva factura
+          </button>
+        </div>
       </div>
+
+      {/* Modal previsualización import */}
+      {importRows && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(20,22,26,.5)' }}>
+          <div className="relative w-full flex flex-col rounded-[20px] overflow-hidden" style={{ maxWidth: 900, maxHeight: '85vh', background: '#fff', boxShadow: '0 40px 80px -20px rgba(0,0,0,.35)' }}>
+            <div className="flex items-center justify-between px-7 py-5 border-b flex-shrink-0" style={{ borderColor: '#eef0f2' }}>
+              <div>
+                <h2 className="text-[17px] font-bold" style={{ color: '#181b21' }}>Vista previa de importación</h2>
+                <p className="text-[12.5px] mt-0.5" style={{ color: '#767d8a' }}>{importRows.length} filas detectadas · {marca} · {talleres.find(t => t.uid === tallerSel)?.nombre}</p>
+              </div>
+              <button onClick={() => setImportRows(null)} className="w-9 h-9 rounded-[10px] border flex items-center justify-center hover:bg-stone-50" style={{ borderColor: '#e7e9ed', color: '#767d8a' }}>
+                <X className="w-[17px] h-[17px]" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto px-7 py-5">
+              <table className="w-full text-[12px]" style={{ minWidth: 780 }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #eef0f2' }}>
+                    {['Fecha', '# Factura', 'PO Tag', 'Valor', 'Pagado', 'Pendiente', '# Check', 'F. Pago'].map(h => (
+                      <th key={h} className="text-left pb-2 pr-4 text-[10.5px] font-bold uppercase" style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {importRows.map((r, i) => (
+                    <tr key={i} style={{ borderTop: '1px solid #f1f2f4' }}>
+                      <td className="py-2 pr-4 whitespace-nowrap" style={{ color: '#4a505c' }}>{fmtDateDisp(r.fechaFactura)}</td>
+                      <td className="py-2 pr-4 font-mono font-semibold" style={{ color: '#181b21' }}>{r.numeroFactura}</td>
+                      <td className="py-2 pr-4 font-mono" style={{ color: '#5b626e' }}>{r.poTag || '—'}</td>
+                      <td className="py-2 pr-4 font-semibold" style={{ color: '#181b21' }}>{fmtCur(r.valor)}</td>
+                      <td className="py-2 pr-4 font-semibold" style={{ color: r.pagado > 0 ? '#059669' : '#aab0b9' }}>{r.pagado > 0 ? fmtCur(r.pagado) : '—'}</td>
+                      <td className="py-2 pr-4 font-semibold" style={{ color: r.pendiente > 0 ? '#b7791f' : '#059669' }}>{fmtCur(r.pendiente)}</td>
+                      <td className="py-2 pr-4 font-mono" style={{ color: '#5b626e' }}>{r.numeroCheck || '—'}</td>
+                      <td className="py-2 whitespace-nowrap" style={{ color: '#767d8a' }}>{fmtDateDisp(r.fechaPago)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex items-center justify-between px-7 py-4 border-t flex-shrink-0" style={{ borderColor: '#eef0f2' }}>
+              <p className="text-[12.5px]" style={{ color: '#767d8a' }}>Revisa las filas antes de importar. Se agregarán a las existentes.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setImportRows(null)} className="px-5 py-[9px] rounded-[10px] border text-[13px] font-semibold hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>Cancelar</button>
+                <button onClick={confirmImport} disabled={importing} className="px-5 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+                  {importing ? 'Importando…' : `Importar ${importRows.length} filas`}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* # de cuenta */}
       <div className="flex items-center gap-3">

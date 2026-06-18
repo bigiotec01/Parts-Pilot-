@@ -13,7 +13,8 @@
     "firebase-admin": "^14.0.0",
     "lucide-react": "^0.383.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@vite-pwa/assets-generator": "^1.0.2",
