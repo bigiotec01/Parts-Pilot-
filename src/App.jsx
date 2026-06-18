@@ -3045,7 +3045,7 @@ function ClientHistorial({ pedidos, onSelect }) {
   );
 }
 
-function ClientPerfil({ taller, onUpdate }) {
+function ClientPerfil({ taller, onUpdate, isSubUser = false }) {
   const [form, setForm] = useState({ nombre: taller.nombre || '', contacto: taller.contacto || '', telefono: taller.telefono || '', email: taller.email || '' });
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -3082,10 +3082,25 @@ function ClientPerfil({ taller, onUpdate }) {
           </div>
         )}
         <form onSubmit={handleSubmit} className="rounded-[16px] p-[18px] space-y-4 border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
-          <FormField label="Nombre del taller"><input value={form.nombre} onChange={e => set('nombre', e.target.value)} className={inputClass} required /></FormField>
-          <FormField label="Contacto"><input value={form.contacto} onChange={e => set('contacto', e.target.value)} className={inputClass} /></FormField>
-          <FormField label="Teléfono"><input value={form.telefono} onChange={e => set('telefono', e.target.value)} className={inputClass} /></FormField>
-          <FormField label="Correo electrónico"><input type="email" value={form.email} onChange={e => set('email', e.target.value)} className={inputClass} /></FormField>
+          {isSubUser ? (
+            /* Sub-usuario: solo edita su propio nombre */
+            <>
+              <div className="px-3 py-2.5 rounded-[11px] text-[12.5px]" style={{ background: '#f8f9fa', color: '#767d8a' }}>
+                Eres usuario de <strong style={{ color: '#181b21' }}>{taller.nombre}</strong>. Solo puedes editar tu nombre.
+              </div>
+              <FormField label="Tu nombre">
+                <input value={form.contacto} onChange={e => set('contacto', e.target.value)} className={inputClass} required />
+              </FormField>
+            </>
+          ) : (
+            /* Cuenta principal: edita todos los datos del taller */
+            <>
+              <FormField label="Nombre del taller"><input value={form.nombre} onChange={e => set('nombre', e.target.value)} className={inputClass} required /></FormField>
+              <FormField label="Contacto"><input value={form.contacto} onChange={e => set('contacto', e.target.value)} className={inputClass} /></FormField>
+              <FormField label="Teléfono"><input value={form.telefono} onChange={e => set('telefono', e.target.value)} className={inputClass} /></FormField>
+              <FormField label="Correo electrónico"><input type="email" value={form.email} onChange={e => set('email', e.target.value)} className={inputClass} /></FormField>
+            </>
+          )}
           {error && <div className="text-[13px] px-3 py-2.5 rounded-[11px]" style={{ background: '#fdecec', color: '#dc2626' }}>{error}</div>}
           <button type="submit" disabled={saving} className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14px] transition-all hover:brightness-105 disabled:opacity-60" style={{ background: '#181b21' }}>
             {saving ? 'Guardando…' : 'Guardar cambios'}
@@ -3179,7 +3194,7 @@ function ClientOrderDetail({ order, onRespond }) {
   );
 }
 
-function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespondEstimate, onSendMessage, onUpdateTaller }) {
+function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespondEstimate, onSendMessage, onUpdateTaller, onUpdateSubUsuario }) {
   const [activeTab, setActiveTab] = useState('pedidos');
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState('');
@@ -3290,7 +3305,16 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
         <ClientNuevaSolicitud onCreate={(data) => { onCreateOrder({ ...data, tallerId: taller.id }); goTab('estimados'); }} />
       )}
       {activeTab === 'facturas' && <ClientFacturas facturas={facturas} taller={taller} />}
-      {activeTab === 'perfil' && <ClientPerfil taller={taller} onUpdate={(data) => onUpdateTaller(taller.id, data)} />}
+      {activeTab === 'perfil' && (
+        <ClientPerfil
+          taller={taller}
+          isSubUser={taller.isSubUser}
+          onUpdate={(data) => taller.isSubUser
+            ? onUpdateSubUsuario(taller.id, { nombre: data.contacto })
+            : onUpdateTaller(taller.tallerId, data)
+          }
+        />
+      )}
     </>
   );
 
@@ -3514,17 +3538,21 @@ export default function App() {
     );
   }
 
-  const taller = talleres.find(t => t.uid === user.uid) || { nombre: perfil?.nombre, contacto: perfil?.contacto, uid: user.uid };
+  const isSubUser = !!(user.tallerId && user.tallerId !== user.uid);
+  const mainTaller = talleres.find(t => t.uid === (user.tallerId || user.uid));
+  const taller = mainTaller || { nombre: perfil?.nombre, contacto: perfil?.contacto, uid: user.tallerId || user.uid };
+
   return (
     <ClientApp
-      taller={{ ...taller, id: user.uid }}
+      taller={{ ...taller, id: user.uid, tallerId: user.tallerId || user.uid, isSubUser }}
       pedidos={pedidos}
       facturas={facturas}
       onLogout={logout}
-      onCreateOrder={(data) => crearPedido({ ...data, tallerId: user.uid, tipo: 'solicitud' })}
+      onCreateOrder={(data) => crearPedido({ ...data, tallerId: user.tallerId || user.uid, tipo: 'solicitud' })}
       onRespondEstimate={(id, respuesta) => responderEstimado(id, respuesta)}
       onSendMessage={(id, texto, from, attachment) => enviarMensaje(id, texto, from, attachment)}
       onUpdateTaller={(uid, data) => actualizarTaller(uid, data)}
+      onUpdateSubUsuario={(uid, data) => actualizarTallerUsuario(uid, data)}
     />
   );
 }
