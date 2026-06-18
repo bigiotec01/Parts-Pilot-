@@ -3307,6 +3307,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
       {activeTab === 'facturas' && <ClientFacturas facturas={facturas} taller={taller} />}
       {activeTab === 'perfil' && (
         <ClientPerfil
+          key={taller.id}
           taller={taller}
           isSubUser={taller.isSubUser}
           onUpdate={(data) => taller.isSubUser
@@ -3544,7 +3545,8 @@ export default function App() {
 
   return (
     <ClientApp
-      taller={{ ...taller, id: user.uid, tallerId: user.tallerId || user.uid, isSubUser }}
+      taller={{ ...taller, id: user.uid, tallerId: user.tallerId || user.uid, isSubUser,
+        contacto: isSubUser ? (perfil?.contacto || taller.contacto) : taller.contacto }}
       pedidos={pedidos}
       facturas={facturas}
       onLogout={logout}
