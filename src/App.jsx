@@ -867,11 +867,13 @@ function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFilterTal
   );
 }
 
-function TallerSubUsuarios({ tallerId, usuarios, onCrear, onEliminar }) {
+function TallerSubUsuarios({ tallerId, usuarios, onCrear, onEliminar, onActualizar }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ nombre: '', email: '', password: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [editId, setEditId] = useState(null);
+  const [editNombre, setEditNombre] = useState('');
   const miembros = usuarios.filter(u => u.tallerId === tallerId);
 
   const handleCreate = async (e) => {
@@ -887,20 +889,29 @@ function TallerSubUsuarios({ tallerId, usuarios, onCrear, onEliminar }) {
     } finally { setSaving(false); }
   };
 
+  const handleSaveEdit = async (uid) => {
+    if (!editNombre.trim()) return;
+    setSaving(true);
+    try {
+      await onActualizar(uid, { nombre: editNombre.trim() });
+      setEditId(null);
+    } finally { setSaving(false); }
+  };
+
   return (
     <div className="mt-3 pt-3" style={{ borderTop: '1px dashed #e7e9ed' }}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-[11px] font-bold uppercase" style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>
           Usuarios ({miembros.length + 1})
         </span>
-        <button onClick={() => { setShowForm(s => !s); setError(''); }}
+        <button onClick={() => { setShowForm(s => !s); setError(''); setEditId(null); }}
           className="flex items-center gap-1 text-[11.5px] font-semibold hover:opacity-80 transition-opacity"
           style={{ color: '#e8632f' }}>
           <Plus className="w-3 h-3" strokeWidth={2.5} /> Agregar
         </button>
       </div>
 
-      {/* Usuario principal */}
+      {/* Cuenta principal */}
       <div className="flex items-center gap-2 py-1.5 px-2 rounded-[8px] mb-1" style={{ background: '#f8f9fa' }}>
         <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #e8632f, #c9491c)', color: '#fff' }}>P</div>
         <span className="text-[12px] font-semibold flex-1" style={{ color: '#181b21' }}>Cuenta principal</span>
@@ -909,18 +920,39 @@ function TallerSubUsuarios({ tallerId, usuarios, onCrear, onEliminar }) {
 
       {/* Sub-usuarios */}
       {miembros.map(u => (
-        <div key={u.uid} className="flex items-center gap-2 py-1.5 px-2 rounded-[8px] mb-1" style={{ background: '#f8f9fa' }}>
-          <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #f3f4f6, #e8eaed)', color: '#4a505c' }}>
-            {(u.nombre || u.email || '?')[0].toUpperCase()}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-[12px] font-semibold truncate" style={{ color: '#181b21' }}>{u.nombre}</div>
-            <div className="text-[11px] truncate" style={{ color: '#8a909c' }}>{u.email}</div>
-          </div>
-          <button onClick={() => { if (window.confirm(`¿Eliminar a ${u.nombre}?`)) onEliminar(u.uid); }}
-            className="w-6 h-6 rounded-[6px] flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors flex-shrink-0" style={{ color: '#aab0b9' }}>
-            <X className="w-3 h-3" />
-          </button>
+        <div key={u.uid} className="mb-1">
+          {editId === u.uid ? (
+            /* Edición inline */
+            <div className="flex items-center gap-2 py-1.5 px-2 rounded-[8px]" style={{ background: '#fff', border: '1px solid #e8632f' }}>
+              <input
+                value={editNombre}
+                onChange={e => setEditNombre(e.target.value)}
+                className="flex-1 text-[12px] px-2 py-1 rounded-[7px] border outline-none focus:border-[#e8632f]"
+                style={{ borderColor: '#e3e5ea' }}
+                autoFocus
+              />
+              <button onClick={() => handleSaveEdit(u.uid)} disabled={saving} className="w-6 h-6 rounded-[6px] flex items-center justify-center text-white text-[11px] font-bold" style={{ background: '#10b981' }}>✓</button>
+              <button onClick={() => setEditId(null)} className="w-6 h-6 rounded-[6px] flex items-center justify-center border text-[11px]" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>✕</button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 py-1.5 px-2 rounded-[8px]" style={{ background: '#f8f9fa' }}>
+              <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #f3f4f6, #e8eaed)', color: '#4a505c' }}>
+                {(u.nombre || u.email || '?')[0].toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[12px] font-semibold truncate" style={{ color: '#181b21' }}>{u.nombre}</div>
+                <div className="text-[11px] truncate" style={{ color: '#8a909c' }}>{u.email}</div>
+              </div>
+              <button onClick={() => { setEditId(u.uid); setEditNombre(u.nombre || ''); }}
+                className="w-6 h-6 rounded-[6px] flex items-center justify-center hover:bg-[#fdeee7] transition-colors flex-shrink-0" style={{ color: '#aab0b9' }}>
+                <Pencil className="w-3 h-3" />
+              </button>
+              <button onClick={() => { if (window.confirm(`¿Eliminar a ${u.nombre}?`)) onEliminar(u.uid); }}
+                className="w-6 h-6 rounded-[6px] flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors flex-shrink-0" style={{ color: '#aab0b9' }}>
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
         </div>
       ))}
 
@@ -944,7 +976,7 @@ function TallerSubUsuarios({ tallerId, usuarios, onCrear, onEliminar }) {
   );
 }
 
-function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos, onCreateTaller, onDeleteTaller, onUpdateTaller, onCrearSubUsuario, onEliminarSubUsuario }) {
+function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos, onCreateTaller, onDeleteTaller, onUpdateTaller, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ nombre: '', contacto: '', telefono: '', email: '', usuario: '', password: '' });
   const [error, setError] = useState('');
@@ -1172,6 +1204,7 @@ function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos, onCrea
                 usuarios={tallerUsuarios}
                 onCrear={onCrearSubUsuario}
                 onEliminar={onEliminarSubUsuario}
+                onActualizar={onActualizarSubUsuario}
               />
             </div>
           );
@@ -2719,7 +2752,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
               <AdminEstimados solicitudes={solicitudes} getTaller={getTaller} onSelect={setSelectedId} />
             )}
             {activeTab === 'talleres' && (
-              <AdminTalleres talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} />
+              <AdminTalleres talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} onActualizarSubUsuario={onActualizarSubUsuario} />
             )}
             {activeTab === 'nuevo' && (
               <AdminNuevoPedido talleres={talleres} onCreate={(data) => { onCreateOrder(data); goTo('pedidos'); }} />
@@ -3414,7 +3447,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
 /* ------------------------------------------------------------------ */
 
 import { useAuth } from './useAuth';
-import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura, actualizarFactura, eliminarFactura, archivarFactura, useAdminEquipo, crearAdminUsuario, actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario, eliminarTallerUsuario } from './firestore';
+import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura, actualizarFactura, eliminarFactura, archivarFactura, useAdminEquipo, crearAdminUsuario, actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario, eliminarTallerUsuario, actualizarTallerUsuario } from './firestore';
 
 export default function App() {
   const { user, perfil, cargando, error, login, logout, setError } = useAuth();
@@ -3476,6 +3509,7 @@ export default function App() {
         onEliminarAdmin={(uid) => eliminarAdminUsuario(uid)}
         onCrearSubUsuario={(tallerId, data) => crearTallerUsuario(tallerId, data)}
         onEliminarSubUsuario={(uid) => eliminarTallerUsuario(uid)}
+        onActualizarSubUsuario={(uid, data) => actualizarTallerUsuario(uid, data)}
       />
     );
   }

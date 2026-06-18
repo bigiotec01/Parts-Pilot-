@@ -42,6 +42,7 @@ service cloud.firestore {
     match /tallerUsuarios/{uid} {
       allow read:   if isAdmin() || (request.auth != null && request.auth.uid == uid);
       allow create: if isAdmin();
+      allow update: if isAdmin();
       allow delete: if isAdmin();
     }
 

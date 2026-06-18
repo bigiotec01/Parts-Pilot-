@@ -257,6 +257,10 @@ export async function eliminarTallerUsuario(uid) {
   await deleteDoc(doc(db, 'tallerUsuarios', uid));
 }
 
+export async function actualizarTallerUsuario(uid, data) {
+  await updateDoc(doc(db, 'tallerUsuarios', uid), data);
+}
+
 // ── Equipo admin en tiempo real ─────────────────────────────────────
 export function useAdminEquipo(user) {
   const [equipo, setEquipo] = useState([]);
