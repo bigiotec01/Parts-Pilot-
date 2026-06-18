@@ -1950,8 +1950,8 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
         <div className="flex items-center gap-2">
           <label className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border cursor-pointer hover:bg-stone-50 transition-colors" style={{ borderColor: '#e3e5ea', color: '#4a505c' }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Importar .xlsx
-            <input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={handleXlsx} className="hidden" />
+            Importar CSV / Excel
+            <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleXlsx} className="hidden" />
           </label>
           <button onClick={startAdd} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:brightness-105" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
             <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva factura
