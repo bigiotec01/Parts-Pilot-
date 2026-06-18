@@ -1762,8 +1762,6 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
   const [importRows, setImportRows] = useState(null);
   const [importing, setImporting] = useState(false);
   const fileRef = useRef();
-  const [expandedId, setExpandedId] = useState(null);
-  const [pagoForm, setPagoForm] = useState({ monto: '', numeroCheck: '', fechaPago: '' });
 
   const tallerActual = talleres.find(t => t.uid === tallerSel);
   const numeroCuenta = tallerActual?.numeroCuentas?.[marca] || '';
@@ -1909,44 +1907,6 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
     }
   };
 
-  // Compatibilidad con filas antiguas (campo único) y nuevas (array pagos)
-  const getPagos = (f) => {
-    if (f.pagos?.length) return f.pagos;
-    if (f.numeroCheck || Number(f.pagado) > 0)
-      return [{ monto: Number(f.pagado || 0), numeroCheck: f.numeroCheck || '', fechaPago: f.fechaPago || '' }];
-    return [];
-  };
-
-  const addPago = async (f) => {
-    if (!pagoForm.monto) return;
-    setSaving(true);
-    try {
-      const existing = getPagos(f);
-      const newPagos = [...existing, { monto: Number(pagoForm.monto), numeroCheck: pagoForm.numeroCheck.trim(), fechaPago: pagoForm.fechaPago }];
-      const totalPagado = newPagos.reduce((s, p) => s + Number(p.monto || 0), 0);
-      await onActualizar(f.id, {
-        pagos: newPagos,
-        pagado: totalPagado,
-        pendiente: Math.max(0, Number(f.valor || 0) - totalPagado),
-        numeroCheck: newPagos.map(p => p.numeroCheck).filter(Boolean).join(', '),
-        fechaPago: newPagos[newPagos.length - 1]?.fechaPago || '',
-      });
-      setPagoForm({ monto: '', numeroCheck: '', fechaPago: '' });
-    } finally { setSaving(false); }
-  };
-
-  const deletePago = async (f, idx) => {
-    const newPagos = getPagos(f).filter((_, i) => i !== idx);
-    const totalPagado = newPagos.reduce((s, p) => s + Number(p.monto || 0), 0);
-    await onActualizar(f.id, {
-      pagos: newPagos,
-      pagado: totalPagado,
-      pendiente: Math.max(0, Number(f.valor || 0) - totalPagado),
-      numeroCheck: newPagos.map(p => p.numeroCheck).filter(Boolean).join(', '),
-      fechaPago: newPagos[newPagos.length - 1]?.fechaPago || '',
-    });
-  };
-
   const InlineRow = ({ form, setForm, onSave, onCancel }) => (
     <tr style={{ background: '#fffbf5', borderTop: '1px solid #eef0f2' }}>
       <td className="py-2 pl-5 pr-1"><input type="date" value={form.fechaFactura || ''} onChange={e => setForm(f => ({ ...f, fechaFactura: e.target.value }))} className="w-[130px] px-2 py-1 rounded-[8px] border text-[12px] outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
@@ -2078,89 +2038,37 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
             {facturasFiltradas.length === 0 && !addingRow && (
               <tr><td colSpan={9} className="py-12 text-center text-[13px]" style={{ color: '#9aa1ad' }}>Sin facturas. Usa "+ Nueva factura" para agregar.</td></tr>
             )}
-            {facturasFiltradas.map(f => {
-              if (editId === f.id) return <InlineRow key={f.id} form={editForm} setForm={setEditForm} onSave={saveEdit} onCancel={cancelEdit} />;
-              const pagos = getPagos(f);
-              const isExpanded = expandedId === f.id;
-              return (
-                <>
-                  <tr key={f.id} onClick={() => startEdit(f)} className="cursor-pointer hover:bg-[#fafbfc] transition-colors" style={{ borderTop: '1px solid #f1f2f4' }}>
-                    <td className={`${tdCls} pl-5 pr-2 whitespace-nowrap`} style={{ color: '#4a505c' }}>{fmtDateDisp(f.fechaFactura)}</td>
-                    <td className={`${tdCls} px-2 font-mono font-semibold`} style={{ color: '#181b21' }}>{f.numeroFactura}</td>
-                    <td className={`${tdCls} px-2 font-mono`} style={{ color: '#5b626e' }}>{f.poTag || '—'}</td>
-                    <td className={`${tdCls} px-2 font-semibold`} style={{ color: '#181b21' }}>{fmtCur(f.valor)}</td>
-                    <td className={`${tdCls} px-2 font-semibold`} style={{ color: Number(f.pagado) > 0 ? '#059669' : '#aab0b9' }}>{Number(f.pagado) > 0 ? fmtCur(f.pagado) : '—'}</td>
-                    <td className={`${tdCls} px-2 font-semibold`} style={{ color: Number(f.pendiente) > 0 ? '#b7791f' : '#059669' }}>{fmtCur(f.pendiente)}</td>
-                    {/* Cheques — muestra resumen + botón expandir */}
-                    <td className={`${tdCls} px-2`} onClick={e => { e.stopPropagation(); setExpandedId(isExpanded ? null : f.id); setPagoForm({ monto: '', numeroCheck: '', fechaPago: '' }); }}>
-                      <div className="flex items-center gap-1.5 cursor-pointer group">
-                        <span className="font-mono text-[12px]" style={{ color: '#5b626e' }}>
-                          {pagos.length === 0 ? '—' : pagos.length === 1 ? (pagos[0].numeroCheck || '—') : `${pagos.length} cheques`}
-                        </span>
-                        <span className="w-5 h-5 rounded-[6px] flex items-center justify-center transition-colors group-hover:bg-[#fdeee7]" style={{ color: '#e8632f' }}>
-                          <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-                        </span>
-                      </div>
-                    </td>
-                    <td className={`${tdCls} px-2 whitespace-nowrap`} style={{ color: '#767d8a' }}>
-                      {pagos.length > 0 ? fmtDateDisp(pagos[pagos.length - 1].fechaPago) : '—'}
-                    </td>
-                    <td className="py-2 pl-1 pr-4">
-                      <button onClick={e => { e.stopPropagation(); if (window.confirm('¿Eliminar esta factura?')) onEliminar(f.id); }} className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors" style={{ color: '#aab0b9' }}>
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
-                  </tr>
-
-                  {/* Panel de cheques expandido */}
-                  {isExpanded && (
-                    <tr key={`${f.id}-pagos`} style={{ borderTop: 'none' }}>
-                      <td colSpan={9} className="px-5 pb-4 pt-0" style={{ background: '#f8f9fa', borderBottom: '2px solid #e8632f' }}>
-                        <div className="pl-[calc(22%+8px)]">
-                          <p className="text-[10.5px] font-bold uppercase mb-2 pt-2" style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>Pagos registrados</p>
-
-                          {/* Pagos existentes */}
-                          {pagos.length === 0 && <p className="text-[12px] mb-3" style={{ color: '#aab0b9' }}>Sin pagos aún.</p>}
-                          {pagos.map((p, i) => (
-                            <div key={i} className="flex items-center gap-3 mb-2 p-2 rounded-[10px]" style={{ background: '#fff', border: '1px solid #e7e9ed' }}>
-                              <span className="text-[12.5px] font-semibold w-24" style={{ color: '#059669' }}>{fmtCur(p.monto)}</span>
-                              <span className="font-mono text-[12px]" style={{ color: '#5b626e' }}>Check #{p.numeroCheck || '—'}</span>
-                              <span className="text-[12px]" style={{ color: '#767d8a' }}>{fmtDateDisp(p.fechaPago)}</span>
-                              <button onClick={() => deletePago(f, i)} className="ml-auto w-6 h-6 rounded-[6px] flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors" style={{ color: '#aab0b9' }}>
-                                <X className="w-3 h-3" />
-                              </button>
-                            </div>
-                          ))}
-
-                          {/* Formulario nuevo pago */}
-                          <div className="flex items-center gap-2 mt-3 flex-wrap">
-                            <input
-                              type="number" step="0.01" value={pagoForm.monto}
-                              onChange={e => setPagoForm(p => ({ ...p, monto: e.target.value }))}
-                              placeholder="Monto" className="w-28 px-2.5 py-1.5 rounded-[9px] border text-[12.5px] outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }}
-                            />
-                            <input
-                              value={pagoForm.numeroCheck}
-                              onChange={e => setPagoForm(p => ({ ...p, numeroCheck: e.target.value }))}
-                              placeholder="# Check" className="w-28 px-2.5 py-1.5 rounded-[9px] border text-[12.5px] font-mono outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }}
-                            />
-                            <input
-                              type="date" value={pagoForm.fechaPago}
-                              onChange={e => setPagoForm(p => ({ ...p, fechaPago: e.target.value }))}
-                              className="px-2.5 py-1.5 rounded-[9px] border text-[12.5px] outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }}
-                            />
-                            <button onClick={() => addPago(f)} disabled={!pagoForm.monto || saving} className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] text-white text-[12.5px] font-bold hover:brightness-105 disabled:opacity-50" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
-                              <Plus className="w-3.5 h-3.5" strokeWidth={2.5} /> Añadir cheque
-                            </button>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </>
-              );
-            })}
+            {facturasFiltradas.map(f => editId === f.id
+              ? <InlineRow key={f.id} form={editForm} setForm={setEditForm} onSave={saveEdit} onCancel={cancelEdit} />
+              : (
+                <tr key={f.id} onClick={() => startEdit(f)} className="cursor-pointer hover:bg-[#fafbfc] transition-colors" style={{ borderTop: '1px solid #f1f2f4' }}>
+                  <td className={`${tdCls} pl-5 pr-2 whitespace-nowrap`} style={{ color: '#4a505c' }}>{fmtDateDisp(f.fechaFactura)}</td>
+                  <td className={`${tdCls} px-2 font-mono font-semibold`} style={{ color: '#181b21' }}>{f.numeroFactura}</td>
+                  <td className={`${tdCls} px-2 font-mono`} style={{ color: '#5b626e' }}>{f.poTag || '—'}</td>
+                  <td className={`${tdCls} px-2 font-semibold`} style={{ color: '#181b21' }}>{fmtCur(f.valor)}</td>
+                  <td className={`${tdCls} px-2 font-semibold`} style={{ color: Number(f.pagado) > 0 ? '#059669' : '#aab0b9' }}>{Number(f.pagado) > 0 ? fmtCur(f.pagado) : '—'}</td>
+                  <td className={`${tdCls} px-2 font-semibold`} style={{ color: Number(f.pendiente) > 0 ? '#b7791f' : '#059669' }}>{fmtCur(f.pendiente)}</td>
+                  <td className={`${tdCls} px-2 font-mono`} style={{ color: '#5b626e' }}>{f.numeroCheck || '—'}</td>
+                  <td className={`${tdCls} px-2 whitespace-nowrap`} style={{ color: '#767d8a' }}>{fmtDateDisp(f.fechaPago)}</td>
+                  <td className="py-2 pl-1 pr-4">
+                    <button onClick={e => { e.stopPropagation(); if (window.confirm('¿Eliminar esta factura?')) onEliminar(f.id); }} className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors" style={{ color: '#aab0b9' }}>
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
+                </tr>
+              )
+            )}
             {addingRow && <InlineRow form={newForm} setForm={setNewForm} onSave={saveNew} onCancel={() => setAddingRow(false)} />}
+            {/* Fila de acción rápida al fondo */}
+            {!addingRow && (
+              <tr style={{ borderTop: '1px solid #f1f2f4' }}>
+                <td colSpan={9} className="py-2 pl-5">
+                  <button onClick={startAdd} className="flex items-center gap-1.5 text-[12.5px] font-semibold transition-colors hover:text-[#e8632f]" style={{ color: '#aab0b9' }}>
+                    <Plus className="w-4 h-4" strokeWidth={2.5} /> Añadir fila
+                  </button>
+                </td>
+              </tr>
+            )}
           </tbody>
           {facturasFiltradas.length > 0 && (
             <tfoot>
@@ -2301,12 +2209,8 @@ function ClientFacturas({ facturas, taller }) {
                   <td className="py-3.5 px-3 text-[12.5px] font-semibold" style={{ color: '#181b21' }}>{fmtCur(f.valor)}</td>
                   <td className="py-3.5 px-3 text-[12.5px] font-semibold" style={{ color: Number(f.pagado) > 0 ? '#059669' : '#aab0b9' }}>{Number(f.pagado) > 0 ? fmtCur(f.pagado) : '—'}</td>
                   <td className="py-3.5 px-3 text-[12.5px] font-semibold" style={{ color: isPending ? '#b7791f' : '#059669' }}>{fmtCur(f.pendiente)}</td>
-                  <td className="py-3.5 px-3 text-[12px] font-mono" style={{ color: '#5b626e' }}>
-                    {(f.pagos?.length > 1) ? `${f.pagos.length} cheques` : (f.numeroCheck || '—')}
-                  </td>
-                  <td className="py-3.5 pl-3 pr-5 text-[12.5px] whitespace-nowrap" style={{ color: '#767d8a' }}>
-                    {f.pagos?.length > 0 ? fmtDateDisp(f.pagos[f.pagos.length - 1].fechaPago) : fmtDateDisp(f.fechaPago)}
-                  </td>
+                  <td className="py-3.5 px-3 font-mono text-[12.5px]" style={{ color: '#5b626e' }}>{f.numeroCheck || '—'}</td>
+                  <td className="py-3.5 pl-3 pr-5 text-[12.5px] whitespace-nowrap" style={{ color: '#767d8a' }}>{fmtDateDisp(f.fechaPago)}</td>
                 </tr>
               );
             })}
