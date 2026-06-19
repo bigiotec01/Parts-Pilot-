@@ -2900,7 +2900,6 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
                 `Hola ${taller.contacto || ''},\n\n` +
                 `Te informamos que las piezas de tu pedido están listas en nuestra tienda y esperando la fecha de entrega.\n\n` +
                 `📋 Detalles del pedido:\n` +
-                `• Folio: ${order.folio || order.id?.slice(0,8)}\n` +
                 `• Vehículo: ${order.vehiculo || '—'}\n` +
                 (order.pieza ? `• Pieza: ${order.pieza}\n` : '') +
                 (order.numeroPO ? `• No. PO: ${order.numeroPO}\n` : '') +
