@@ -1806,6 +1806,28 @@ function fmtDateDisp(d) {
 /*  ADMIN FACTURAS                                                      */
 /* ------------------------------------------------------------------ */
 
+function FacturaInlineRow({ form, setForm, onSave, onCancel, saving }) {
+  const inp = "px-2 py-1 rounded-[8px] border text-[16px] outline-none focus:border-[#e8632f]";
+  return (
+    <tr style={{ background: '#fffbf5', borderTop: '1px solid #eef0f2' }}>
+      <td className="py-2 pl-5 pr-1"><input type="date" value={form.fechaFactura || ''} onChange={e => setForm(f => ({ ...f, fechaFactura: e.target.value }))} className={`w-[130px] ${inp}`} style={{ borderColor: '#e3e5ea' }} /></td>
+      <td className="py-2 px-1"><input value={form.numeroFactura || ''} onChange={e => setForm(f => ({ ...f, numeroFactura: e.target.value }))} placeholder="# Factura" className={`w-[88px] font-mono ${inp}`} style={{ borderColor: '#e3e5ea' }} /></td>
+      <td className="py-2 px-1"><input value={form.poTag || ''} onChange={e => setForm(f => ({ ...f, poTag: e.target.value }))} placeholder="PO Tag" className={`w-[88px] font-mono ${inp}`} style={{ borderColor: '#e3e5ea' }} /></td>
+      <td className="py-2 px-1"><input type="number" step="0.01" value={form.valor || ''} onChange={e => setForm(f => ({ ...f, valor: e.target.value }))} placeholder="0.00" className={`w-[90px] ${inp}`} style={{ borderColor: '#e3e5ea' }} /></td>
+      <td className="py-2 px-1"><input type="number" step="0.01" value={form.pagado || ''} onChange={e => setForm(f => ({ ...f, pagado: e.target.value }))} placeholder="0.00" className={`w-[90px] ${inp}`} style={{ borderColor: '#e3e5ea' }} /></td>
+      <td className="py-2 px-2 text-[12.5px] font-semibold" style={{ color: '#b7791f' }}>{fmtCur(Number(form.valor || 0) - Number(form.pagado || 0))}</td>
+      <td className="py-2 px-1"><input value={form.numeroCheck || ''} onChange={e => setForm(f => ({ ...f, numeroCheck: e.target.value }))} placeholder="Check" className={`w-[80px] font-mono ${inp}`} style={{ borderColor: '#e3e5ea' }} /></td>
+      <td className="py-2 px-1"><input type="date" value={form.fechaPago || ''} onChange={e => setForm(f => ({ ...f, fechaPago: e.target.value }))} className={`w-[130px] ${inp}`} style={{ borderColor: '#e3e5ea' }} /></td>
+      <td className="py-2 pl-1 pr-4">
+        <div className="flex gap-1">
+          <button onClick={onSave} disabled={saving} className="w-7 h-7 rounded-[8px] flex items-center justify-center text-white text-[13px] font-bold" style={{ background: '#10b981' }}>✓</button>
+          <button onClick={onCancel} className="w-7 h-7 rounded-[8px] flex items-center justify-center border text-[13px]" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>✕</button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
 function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar, onUpdateTaller, readOnly = false }) {
   const [tallerSel, setTallerSel] = useState(talleres[0]?.uid || '');
   const [marca, setMarca] = useState('KIA');
@@ -1975,24 +1997,7 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
     }
   };
 
-  const InlineRow = ({ form, setForm, onSave, onCancel }) => (
-    <tr style={{ background: '#fffbf5', borderTop: '1px solid #eef0f2' }}>
-      <td className="py-2 pl-5 pr-1"><input type="date" value={form.fechaFactura || ''} onChange={e => setForm(f => ({ ...f, fechaFactura: e.target.value }))} className="w-[130px] px-2 py-1 rounded-[8px] border text-[12px] outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
-      <td className="py-2 px-1"><input value={form.numeroFactura || ''} onChange={e => setForm(f => ({ ...f, numeroFactura: e.target.value }))} placeholder="# Factura" className="w-[88px] px-2 py-1 rounded-[8px] border text-[12px] font-mono outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
-      <td className="py-2 px-1"><input value={form.poTag || ''} onChange={e => setForm(f => ({ ...f, poTag: e.target.value }))} placeholder="PO Tag" className="w-[88px] px-2 py-1 rounded-[8px] border text-[12px] font-mono outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
-      <td className="py-2 px-1"><input type="number" step="0.01" value={form.valor || ''} onChange={e => setForm(f => ({ ...f, valor: e.target.value }))} placeholder="0.00" className="w-[90px] px-2 py-1 rounded-[8px] border text-[12px] outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
-      <td className="py-2 px-1"><input type="number" step="0.01" value={form.pagado || ''} onChange={e => setForm(f => ({ ...f, pagado: e.target.value }))} placeholder="0.00" className="w-[90px] px-2 py-1 rounded-[8px] border text-[12px] outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
-      <td className="py-2 px-2 text-[12.5px] font-semibold" style={{ color: '#b7791f' }}>{fmtCur(Number(form.valor || 0) - Number(form.pagado || 0))}</td>
-      <td className="py-2 px-1"><input value={form.numeroCheck || ''} onChange={e => setForm(f => ({ ...f, numeroCheck: e.target.value }))} placeholder="Check" className="w-[80px] px-2 py-1 rounded-[8px] border text-[12px] font-mono outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
-      <td className="py-2 px-1"><input type="date" value={form.fechaPago || ''} onChange={e => setForm(f => ({ ...f, fechaPago: e.target.value }))} className="w-[130px] px-2 py-1 rounded-[8px] border text-[12px] outline-none focus:border-[#e8632f]" style={{ borderColor: '#e3e5ea' }} /></td>
-      <td className="py-2 pl-1 pr-4">
-        <div className="flex gap-1">
-          <button onClick={onSave} disabled={saving} className="w-7 h-7 rounded-[8px] flex items-center justify-center text-white text-[13px] font-bold" style={{ background: '#10b981' }}>✓</button>
-          <button onClick={onCancel} className="w-7 h-7 rounded-[8px] flex items-center justify-center border text-[13px]" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>✕</button>
-        </div>
-      </td>
-    </tr>
-  );
+  // InlineRow definido como JSX directo para evitar remount en cada tecla
 
   const thCls = "text-left py-3 text-[10.5px] font-bold uppercase";
   const thSt = { color: '#9aa1ad', letterSpacing: '.06em' };
@@ -2130,7 +2135,7 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
               <tr><td colSpan={9} className="py-12 text-center text-[13px]" style={{ color: '#9aa1ad' }}>Sin facturas. Usa "+ Nueva factura" para agregar.</td></tr>
             )}
             {facturasFiltradas.map(f => editId === f.id
-              ? <InlineRow key={f.id} form={editForm} setForm={setEditForm} onSave={saveEdit} onCancel={cancelEdit} />
+              ? <FacturaInlineRow key={f.id} form={editForm} setForm={setEditForm} onSave={saveEdit} onCancel={cancelEdit} saving={saving} />
               : (
                 <tr key={f.id} onClick={() => startEdit(f)} className="cursor-pointer hover:bg-[#fafbfc] transition-colors" style={{ borderTop: '1px solid #f1f2f4' }}>
                   <td className={`${tdCls} pl-5 pr-2 whitespace-nowrap`} style={{ color: '#4a505c' }}>{fmtDateDisp(f.fechaFactura)}</td>
@@ -2149,7 +2154,7 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
                 </tr>
               )
             )}
-            {addingRow && <InlineRow form={newForm} setForm={setNewForm} onSave={saveNew} onCancel={() => setAddingRow(false)} />}
+            {addingRow && <FacturaInlineRow form={newForm} setForm={setNewForm} onSave={saveNew} onCancel={() => setAddingRow(false)} saving={saving} />}
             {/* Fila de acción rápida al fondo */}
             {!addingRow && !readOnly && (
               <tr style={{ borderTop: '1px solid #f1f2f4' }}>
@@ -3590,7 +3595,12 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
 
   const goTab = (t) => { setActiveTab(t); setSelectedId(null); setSearch(''); };
 
-  const isDesktop = false; // Taller siempre usa layout móvil con bottom nav
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768);
+  useEffect(() => {
+    const handler = () => setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
 
   const bottomNav = [
     { id: 'pedidos',   label: 'Pedidos',   icon: ClipboardList },
