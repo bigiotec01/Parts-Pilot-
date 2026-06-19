@@ -2912,7 +2912,10 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
             {/* Estimado tab */}
             {tab === 'estimado' && (
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {order.estimado?.respuesta === 'pendiente' && <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: '#fef6e9', color: '#b7791f' }}><Clock className="w-4 h-4 flex-shrink-0" /> Esperando respuesta del taller…</div>}
+                {/* Solo mostrar estado de respuesta cuando el pedido está en cotizando */}
+                {order.estado === 'cotizando' && order.estimado?.respuesta === 'pendiente' && (
+                  <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: '#fef6e9', color: '#b7791f' }}><Clock className="w-4 h-4 flex-shrink-0" /> Esperando respuesta del taller…</div>
+                )}
                 {order.estimado?.respuesta && order.estimado.respuesta !== 'pendiente' && (
                   <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: order.estimado.respuesta === 'aceptado' ? '#eafaf2' : '#fdecec', color: order.estimado.respuesta === 'aceptado' ? '#059669' : '#dc2626' }}>
                     {order.estimado.respuesta === 'aceptado' ? <ThumbsUp className="w-4 h-4" /> : <ThumbsDown className="w-4 h-4" />}
