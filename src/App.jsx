@@ -3048,7 +3048,8 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
   const selectedOrder = pedidos.find(p => p.id === selectedId);
 
   const solicitudes = pedidos.filter(p => p.tipo === 'solicitud');
-  const solosPedidos = pedidos.filter(p => p.tipo === 'pedido' || !p.tipo);
+  const todosPedidos = pedidos.filter(p => p.tipo === 'pedido' || !p.tipo);
+  const solosPedidos = todosPedidos.filter(p => p.estado !== 'entregado');
 
   const filteredPedidos = solosPedidos.filter(p => {
     if (filterTaller !== 'todos' && String(p.tallerId) !== filterTaller) return false;
@@ -3092,7 +3093,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
           {activeTab === 'cotizacion' && <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />}
           {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} />}
           {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
-          {activeTab === 'historial' && <AdminHistorial pedidos={solosPedidos} talleres={talleres} getTaller={getTaller} onSelect={setSelectedId} />}
+          {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={setSelectedId} />}
         </div>
       </main>
     </div>
@@ -3137,7 +3138,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
             {activeTab === 'cotizacion' && <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />}
             {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} />}
             {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
-          {activeTab === 'historial' && <AdminHistorial pedidos={solosPedidos} talleres={talleres} getTaller={getTaller} onSelect={setSelectedId} />}
+          {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={setSelectedId} />}
           </div>
         </main>
 
