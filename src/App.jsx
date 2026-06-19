@@ -3272,12 +3272,13 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
 
   const goTab = (t) => { setActiveTab(t); setSelectedId(null); setSearch(''); };
 
-  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768);
+  const mq = window.matchMedia('(min-width: 768px)');
+  const [isDesktop, setIsDesktop] = useState(() => mq.matches);
   useEffect(() => {
-    const handler = () => setIsDesktop(window.innerWidth >= 768);
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, []);
+    const handler = (e) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const bottomNav = [
     { id: 'pedidos',   label: 'Pedidos',   icon: ClipboardList },
