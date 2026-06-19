@@ -3272,13 +3272,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
 
   const goTab = (t) => { setActiveTab(t); setSelectedId(null); setSearch(''); };
 
-  const mq = window.matchMedia('(min-width: 768px)');
-  const [isDesktop, setIsDesktop] = useState(() => mq.matches);
-  useEffect(() => {
-    const handler = (e) => setIsDesktop(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const isDesktop = false; // Taller siempre usa layout móvil con bottom nav
 
   const bottomNav = [
     { id: 'pedidos',   label: 'Pedidos',   icon: ClipboardList },
