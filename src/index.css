@@ -24,6 +24,14 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 .pp-scroll::-webkit-scrollbar { width: 0; height: 0; }
 
+/* Prevent iOS auto-zoom on inputs */
+input, textarea, select {
+  font-size: 16px !important;
+}
+
+/* Prevent horizontal overflow globally */
+body { overflow-x: hidden; }
+
 /* Animations */
 @keyframes ppFade  { from { opacity: 0; }                             to { opacity: 1; } }
 @keyframes ppSlide { from { transform: translateX(24px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }

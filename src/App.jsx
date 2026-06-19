@@ -260,8 +260,8 @@ function StatusBadge({ estado }) {
 function StatusStepper({ estado }) {
   const currentIndex = STATUS_ORDER.indexOf(estado);
   return (
-    <div className="overflow-x-auto -mx-1 px-1">
-      <div className="flex items-start min-w-max">
+    <div className="overflow-x-auto -mx-1 px-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="flex items-start" style={{ minWidth: 'max-content', width: '100%' }}>
         {STATUS_ORDER.map((status, i) => {
           const cfg = STATUS_CONFIG[status];
           const isDone = i < currentIndex;
@@ -451,7 +451,7 @@ function OrderSheet({ order, title, onClose, detailContent, chatProps }) {
   return (
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0" style={{ background: 'rgba(20,22,26,.45)', animation: 'ppFade .2s ease both' }} onClick={onClose} />
-      <div className="pp-scroll absolute bottom-0 left-0 right-0 max-h-[88%] overflow-y-auto rounded-t-[28px] flex flex-col" style={{ background: '#fff', animation: 'ppSheet .3s cubic-bezier(.2,.8,.2,1) both' }}>
+      <div className="pp-scroll absolute bottom-0 left-0 right-0 max-h-[88%] overflow-y-auto overflow-x-hidden rounded-t-[28px] flex flex-col" style={{ background: '#fff', animation: 'ppSheet .3s cubic-bezier(.2,.8,.2,1) both', WebkitOverflowScrolling: 'touch' }}>
         <div className="sticky top-0 bg-white z-10 px-5 pt-3 pb-4 border-b" style={{ borderColor: '#eef0f2' }}>
           <div className="w-10 h-1 rounded-full mx-auto mb-4" style={{ background: '#e3e6ea' }} />
           <div className="flex items-start justify-between gap-3">
@@ -630,7 +630,7 @@ function EmptyState({ text }) {
   );
 }
 
-const inputClass = "w-full px-3.5 py-[11px] rounded-[11px] border border-[#e3e5ea] text-sm outline-none transition-all focus:border-[#e8632f] focus:ring-2 focus:ring-[#e8632f]/10 bg-white text-[#181b21]";
+const inputClass = "w-full px-3.5 py-[11px] rounded-[11px] border border-[#e3e5ea] text-[16px] outline-none transition-all focus:border-[#e8632f] focus:ring-2 focus:ring-[#e8632f]/10 bg-white text-[#181b21]";
 
 /* ------------------------------------------------------------------ */
 /*  LOGIN                                                              */
