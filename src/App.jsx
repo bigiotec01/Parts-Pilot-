@@ -27,6 +27,47 @@ const STATUS_CONFIG = {
   entregado:        { label: 'Orden Completa',       short: 'Completa',   dot: '#14b8a6', bg: '#e9faf7', tx: '#0d9488', icon: CheckCircle2 },
 };
 
+/* ------------------------------------------------------------------ */
+/*  ACTIVIDAD — resaltado de tarjetas con cambios no vistos            */
+/* ------------------------------------------------------------------ */
+
+function lsActivityKey(role, orderId) { return `pp_act_${role}_${orderId}`; }
+
+function saveOrderSeen(role, order) {
+  try {
+    localStorage.setItem(lsActivityKey(role, order.id), JSON.stringify({
+      estado:     order.estado,
+      respuesta:  order.estimado?.respuesta || '',
+      estNotas:   order.estimado?.notas || '',
+      adminMsgs:  (order.mensajes || []).filter(m => m.from === 'admin').length,
+      tallerMsgs: (order.mensajes || []).filter(m => m.from === 'taller').length,
+    }));
+  } catch {}
+}
+
+function hasNewActivity(role, order) {
+  try {
+    const raw = localStorage.getItem(lsActivityKey(role, order.id));
+    if (!raw) {
+      // Primera vez visto: guardar estado actual como baseline y no resaltar
+      saveOrderSeen(role, order);
+      return false;
+    }
+    const seen = JSON.parse(raw);
+    if (role === 'taller') {
+      if (seen.estado   !== order.estado)                       return true;
+      if (seen.estNotas !== (order.estimado?.notas || ''))      return true;
+      const adminMsgs = (order.mensajes || []).filter(m => m.from === 'admin').length;
+      if (adminMsgs > seen.adminMsgs)                           return true;
+    } else {
+      if (seen.respuesta !== (order.estimado?.respuesta || '')) return true;
+      const tallerMsgs = (order.mensajes || []).filter(m => m.from === 'taller').length;
+      if (tallerMsgs > seen.tallerMsgs)                         return true;
+    }
+  } catch {}
+  return false;
+}
+
 const PEDIDOS_INICIAL = [
   { id: 'OP-2026-001', tallerId: 1, vehiculo: 'Toyota Corolla 2020', pieza: 'Fascia delantera', notas: '', fecha: '2026-05-20', estado: 'entregado',
     estimado: { notas: 'Pieza original, incluye soportes nuevos.', fecha: '2026-05-21', respuesta: 'aceptado' } },
@@ -312,7 +353,8 @@ function StatusStepper({ estado }) {
   );
 }
 
-function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0 }) {
+function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0, activityRole }) {
+  const hasActivity = activityRole ? hasNewActivity(activityRole, order) : false;
   const hasNewIds = order.numeroPO || order.numeroOrden;
   const cardTitle = !hasNewIds ? (order.referencia || order.vehiculo) : order.vehiculo;
   const cardSub = !hasNewIds && order.referencia ? order.vehiculo : null;
@@ -320,9 +362,15 @@ function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0 }) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left rounded-[15px] p-[17px] border transition-all hover:border-[#e8632f] hover:shadow-[0_8px_24px_-14px_rgba(24,27,33,.3)]"
-      style={{ background: '#fff', borderColor: '#e7e9ed' }}
+      className="w-full text-left rounded-[15px] p-[17px] border transition-all hover:border-[#e8632f] hover:shadow-[0_8px_24px_-14px_rgba(24,27,33,.3)] relative"
+      style={{ background: '#fff', borderColor: hasActivity ? '#e8632f' : '#e7e9ed', boxShadow: hasActivity ? '0 0 0 2px rgba(232,99,47,.12)' : 'none' }}
     >
+      {hasActivity && (
+        <span className="absolute top-3 right-3 flex h-2.5 w-2.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: '#e8632f' }} />
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ background: '#e8632f' }} />
+        </span>
+      )}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
@@ -874,7 +922,7 @@ function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFilterTal
         <EmptyState text="No hay pedidos que coincidan con los filtros." />
       ) : (
         <div className="grid sm:grid-cols-2 gap-3">
-          {pedidos.map(p => <OrderCard key={p.id} order={p} taller={getTaller(p.tallerId)} showTaller onClick={() => onSelect(p.id)} />)}
+          {pedidos.map(p => <OrderCard key={p.id} order={p} taller={getTaller(p.tallerId)} showTaller onClick={() => onSelect(p.id)} activityRole="admin" />)}
         </div>
       )}
     </div>
@@ -3123,6 +3171,12 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
 
   const goTo = (tab) => { setActiveTab(tab); setSelectedId(null); };
 
+  const selectOrder = (id) => {
+    const order = pedidos.find(p => p.id === id);
+    if (order) saveOrderSeen('admin', order);
+    setSelectedId(id);
+  };
+
   const mainContent = (
     <div className="flex-1 min-w-0 flex flex-col">
       {!isMobile && (
@@ -3135,15 +3189,15 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
       )}
       <main className="flex-1 overflow-y-auto px-4 py-5 pb-24" style={{ paddingLeft: isMobile ? 16 : 30, paddingRight: isMobile ? 16 : 30, paddingTop: isMobile ? 16 : 28 }}>
         <div className="max-w-[1180px] mx-auto">
-          {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres} getTaller={getTaller} onSelect={setSelectedId} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} />}
-          {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={setSelectedId} onExport={() => setShowReporte(true)} />}
-          {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={setSelectedId} />}
+          {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} />}
+          {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={selectOrder} onExport={() => setShowReporte(true)} />}
+          {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={selectOrder} />}
           {activeTab === 'talleres' && <AdminTalleres talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} onActualizarSubUsuario={onActualizarSubUsuario} />}
           {activeTab === 'nuevo' && <AdminNuevoPedido talleres={talleres} onCreate={(data) => { onCreateOrder(data); goTo('pedidos'); }} />}
           {activeTab === 'cotizacion' && <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />}
           {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} />}
           {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
-          {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={setSelectedId} />}
+          {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} />}
         </div>
       </main>
     </div>
@@ -3180,15 +3234,15 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
         {/* Contenido */}
         <main className="pb-24 px-4 py-4">
           <div className="max-w-2xl mx-auto">
-            {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres} getTaller={getTaller} onSelect={setSelectedId} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} />}
-            {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={setSelectedId} onExport={() => setShowReporte(true)} />}
-            {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={setSelectedId} />}
+            {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} />}
+            {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={selectOrder} onExport={() => setShowReporte(true)} />}
+            {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={selectOrder} />}
             {activeTab === 'talleres' && <AdminTalleres talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} onActualizarSubUsuario={onActualizarSubUsuario} />}
             {activeTab === 'nuevo' && <AdminNuevoPedido talleres={talleres} onCreate={(data) => { onCreateOrder(data); goTo('pedidos'); }} />}
             {activeTab === 'cotizacion' && <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />}
             {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} />}
             {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
-          {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={setSelectedId} />}
+          {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} />}
           </div>
         </main>
 
@@ -3693,7 +3747,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
 
   const handleSelect = (id) => {
     const order = pedidos.find(p => p.id === id);
-    if (order) markSeen(order);
+    if (order) { markSeen(order); saveOrderSeen('taller', order); }
     setSelectedId(id);
   };
 
@@ -3772,7 +3826,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
           <div className="grid sm:grid-cols-2 gap-3">
             {pedidosFiltrados.length === 0
               ? <div className="col-span-2"><EmptyState text={search ? 'Sin resultados.' : 'Aún no tienes pedidos activos.'} /></div>
-              : pedidosFiltrados.map(p => <OrderCard key={p.id} order={p} onClick={() => handleSelect(p.id)} unreadCount={getUnread(p)} />)
+              : pedidosFiltrados.map(p => <OrderCard key={p.id} order={p} onClick={() => handleSelect(p.id)} unreadCount={getUnread(p)} activityRole="taller" />)
             }
           </div>
         </div>
