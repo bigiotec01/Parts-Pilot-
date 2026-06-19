@@ -105,6 +105,7 @@ function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onL
     canView('pedidos')   && { id: 'pedidos',    label: 'Pedidos',    icon: ClipboardList, badge: pedidosCount },
     canView('estimados') && { id: 'estimados',  label: 'Estimados',  icon: FileText, badge: solicitudesCount, accent: true },
     canView('talleres')  && { id: 'talleres',   label: 'Talleres',   icon: Users },
+    canView('pedidos')   && { id: 'historial',  label: 'Historial',  icon: History },
   ].filter(Boolean);
   const secondaryItems = [
     canEdit('pedidos')   && { id: 'nuevo',      label: 'Nuevo pedido',    icon: Plus },
@@ -2971,6 +2972,57 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
   );
 }
 
+function AdminHistorial({ pedidos, talleres, getTaller, onSelect }) {
+  const completados = [...pedidos]
+    .filter(p => p.estado === 'entregado')
+    .sort((a, b) => {
+      const t = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime();
+      return t(b.fecha) - t(a.fecha);
+    });
+
+  if (completados.length === 0) return (
+    <div className="text-center py-16" style={{ color: '#9aa1ad' }}>
+      <CheckCircle2 className="w-10 h-10 mx-auto mb-2 opacity-40" />
+      <p className="text-sm">No hay órdenes completadas aún.</p>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      <p className="text-[13px]" style={{ color: '#767d8a' }}>
+        <strong style={{ color: '#181b21' }}>{completados.length}</strong> orden{completados.length !== 1 ? 'es' : ''} completada{completados.length !== 1 ? 's' : ''}
+      </p>
+      <div className="rounded-[16px] overflow-hidden border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+        <table className="w-full border-collapse">
+          <thead>
+            <tr style={{ borderBottom: '1px solid #eef0f2' }}>
+              {['Folio', 'Taller', 'Vehículo / Pieza', 'Fecha', 'Entrega'].map((h, i) => (
+                <th key={h} className={`text-left py-3 text-[10.5px] font-bold uppercase ${i === 0 ? 'pl-6' : 'px-3'} ${i === 4 ? 'pr-6' : ''}`} style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {completados.map(p => (
+              <tr key={p.id} onClick={() => onSelect(p.id)} className="cursor-pointer hover:bg-[#fafbfc] transition-colors" style={{ borderTop: '1px solid #f1f2f4' }}>
+                <td className="py-3.5 pl-6 pr-3 font-mono text-[12.5px] font-semibold whitespace-nowrap" style={{ color: '#181b21' }}>{p.folio || p.id.slice(0,8)}</td>
+                <td className="py-3.5 px-3 text-[13px] max-w-[150px] truncate" style={{ color: '#4a505c' }}>{getTaller(p.tallerId)?.nombre || '—'}</td>
+                <td className="py-3.5 px-3">
+                  <div className="text-[13px] font-semibold" style={{ color: '#181b21' }}>{p.vehiculo || '—'}</div>
+                  {p.pieza && <div className="text-[11.5px]" style={{ color: '#8a909c' }}>{p.pieza}</div>}
+                </td>
+                <td className="py-3.5 px-3 text-[12.5px] whitespace-nowrap" style={{ color: '#767d8a' }}>{formatDate(p.fecha)}</td>
+                <td className="py-3.5 pr-6 px-3 text-[12.5px] whitespace-nowrap" style={{ color: p.fechaEntrega ? '#059669' : '#aab0b9' }}>
+                  {p.fechaEntrega ? formatDate(p.fechaEntrega) : '—'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, currentUid, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onAgregarFactura, onActualizarFactura, onEliminarFactura, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
@@ -3014,6 +3066,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
     cotizacion: { title: 'Nueva cotización',   sub: 'Crea una cotización con estimado incluido' },
     facturas:   { title: 'Facturas',           sub: 'Cuentas corrientes por taller y marca' },
     equipo:     { title: 'Equipo',             sub: 'Usuarios y permisos de acceso' },
+    historial:  { title: 'Historial',          sub: 'Órdenes completadas' },
   };
   const meta = PAGE_META[activeTab] || PAGE_META.dashboard;
 
@@ -3039,6 +3092,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
           {activeTab === 'cotizacion' && <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />}
           {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} />}
           {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
+          {activeTab === 'historial' && <AdminHistorial pedidos={solosPedidos} talleres={talleres} getTaller={getTaller} onSelect={setSelectedId} />}
         </div>
       </main>
     </div>
@@ -3050,8 +3104,8 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
       { id: 'dashboard', label: 'Resumen',   icon: LayoutDashboard },
       canView('pedidos')   && { id: 'pedidos',  label: 'Pedidos',   icon: ClipboardList, badge: solosPedidos.length },
       canView('estimados') && { id: 'estimados',label: 'Estimados', icon: FileText, badge: solicitudes.length, accent: true },
-      canView('facturas')  && { id: 'facturas', label: 'Facturas',  icon: Receipt },
-      canView('talleres')  && { id: 'talleres', label: 'Talleres',  icon: Users },
+      canView('facturas')  && { id: 'facturas',  label: 'Facturas',  icon: Receipt },
+      canView('pedidos')   && { id: 'historial', label: 'Historial', icon: History },
     ].filter(Boolean);
 
     return (
@@ -3083,6 +3137,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
             {activeTab === 'cotizacion' && <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />}
             {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} />}
             {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
+          {activeTab === 'historial' && <AdminHistorial pedidos={solosPedidos} talleres={talleres} getTaller={getTaller} onSelect={setSelectedId} />}
           </div>
         </main>
 
