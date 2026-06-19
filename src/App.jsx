@@ -2910,7 +2910,9 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
               );
               return (
                 <a
-                  href={`mailto:${taller.email}?subject=${subject}&body=${body}`}
+                  href={`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(taller.email)}&su=${subject}&body=${body}`}
+                  target="_blank"
+                  rel="noreferrer"
                   className="flex items-center justify-center gap-2 w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:brightness-105 transition-all"
                   style={{ background: 'linear-gradient(160deg, #059669, #047857)', boxShadow: '0 8px 18px -8px rgba(5,150,105,.4)' }}
                 >
