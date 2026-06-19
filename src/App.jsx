@@ -259,9 +259,21 @@ function StatusBadge({ estado }) {
 
 function StatusStepper({ estado }) {
   const currentIndex = STATUS_ORDER.indexOf(estado);
+  const pct = Math.round((currentIndex / (STATUS_ORDER.length - 1)) * 100);
+  const cfg = STATUS_CONFIG[estado];
   return (
-    <div className="overflow-x-auto -mx-1 px-1" style={{ WebkitOverflowScrolling: 'touch' }}>
-      <div className="flex items-start" style={{ minWidth: 'max-content', width: '100%' }}>
+    <div>
+      {/* Barra de progreso compacta para móvil */}
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-[12px] font-semibold" style={{ color: cfg.tx }}>{cfg.short}</span>
+        <span className="text-[11px]" style={{ color: '#9aa1ad' }}>{pct}%</span>
+      </div>
+      <div className="h-2 rounded-full overflow-hidden mb-3" style={{ background: '#e8eaed' }}>
+        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: cfg.dot }} />
+      </div>
+      {/* Stepper scrollable */}
+      <div style={{ overflowX: 'auto', overflowY: 'hidden', WebkitOverflowScrolling: 'touch' }}>
+      <div className="flex items-start" style={{ minWidth: 'max-content' }}>
         {STATUS_ORDER.map((status, i) => {
           const cfg = STATUS_CONFIG[status];
           const isDone = i < currentIndex;
@@ -293,6 +305,7 @@ function StatusStepper({ estado }) {
             </div>
           );
         })}
+      </div>
       </div>
     </div>
   );
@@ -471,7 +484,7 @@ function OrderSheet({ order, title, onClose, detailContent, chatProps }) {
             ))}
           </div>
         </div>
-        <div className="p-5 pb-8">
+        <div className="p-5 pb-8" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
           {tab === 'detalle' ? detailContent : <OrderChat order={order} {...chatProps} />}
         </div>
       </div>
@@ -1479,11 +1492,11 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
         <StatusBadge estado={estado} />
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* ── Columna izquierda ── */}
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
-            <InfoItem label="Fecha de registro" value={formatDate(order.fecha)} />
+            <InfoItem label="Fecha" value={formatDate(order.fecha)} />
             <InfoItem label="Folio" value={order.folio || order.id.slice(0,8)} />
           </div>
 
@@ -1500,7 +1513,7 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
             </FormField>
           )}
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
             <FormField label="No. PO"><input value={numeroPO} onChange={e => setNumeroPO(e.target.value)} placeholder="ej. 48213" className={inputClass} /></FormField>
             <FormField label="No. Orden"><input value={numeroOrden} onChange={e => setNumeroOrden(e.target.value)} placeholder="ej. T-7890" className={inputClass} /></FormField>
           </div>
@@ -3238,10 +3251,10 @@ function ClientOrderDetail({ order, onRespond }) {
 
       <ClientProgressBar estado={order.estado} />
 
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        <InfoItem label="Fecha de registro" value={formatDate(order.fecha)} />
-        {order.referencia ? <InfoItem label="Referencia" value={order.referencia} /> : <InfoItem label="Folio" value={order.folio || order.id.slice(0, 8)} />}
-        {order.fechaEntrega && <InfoItem label="Fecha de entrega est." value={formatDate(order.fechaEntrega)} />}
+      <div className="grid grid-cols-2 gap-2 text-sm">
+        <InfoItem label="Fecha" value={formatDate(order.fecha)} />
+        <InfoItem label="Folio" value={order.folio || order.id.slice(0, 8)} />
+        {order.fechaEntrega && <InfoItem label="Entrega est." value={formatDate(order.fechaEntrega)} />}
       </div>
 
       {order.fechaEntrega && ['pedido_fabrica','en_transito','recibido'].includes(order.estado) && (
