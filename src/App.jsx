@@ -2893,6 +2893,33 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
 
             {saved && <div className="flex items-center gap-2 px-3 py-2.5 rounded-[11px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}><CheckCircle2 className="w-4 h-4" /> Cambios guardados.</div>}
 
+            {/* Notificación piezas listas — solo cuando estado = recibido y taller tiene email */}
+            {estado === 'recibido' && taller?.email && (() => {
+              const subject = encodeURIComponent(`✅ Piezas listas para entrega — ${order.vehiculo || ''}${order.pieza ? ` (${order.pieza})` : ''}`);
+              const body = encodeURIComponent(
+                `Hola ${taller.contacto || ''},\n\n` +
+                `Te informamos que las piezas de tu pedido están listas en nuestra tienda y esperando la fecha de entrega.\n\n` +
+                `📋 Detalles del pedido:\n` +
+                `• Folio: ${order.folio || order.id?.slice(0,8)}\n` +
+                `• Vehículo: ${order.vehiculo || '—'}\n` +
+                (order.pieza ? `• Pieza: ${order.pieza}\n` : '') +
+                (order.numeroPO ? `• No. PO: ${order.numeroPO}\n` : '') +
+                (order.numeroOrden ? `• No. Orden: ${order.numeroOrden}\n` : '') +
+                `\nPor favor contáctanos para coordinar la fecha y hora de entrega.\n\n` +
+                `Saludos,\nDepartamento de Piezas — Parts Pilot`
+              );
+              return (
+                <a
+                  href={`mailto:${taller.email}?subject=${subject}&body=${body}`}
+                  className="flex items-center justify-center gap-2 w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:brightness-105 transition-all"
+                  style={{ background: 'linear-gradient(160deg, #059669, #047857)', boxShadow: '0 8px 18px -8px rgba(5,150,105,.4)' }}
+                >
+                  <Mail className="w-4 h-4" />
+                  Notificar al taller — piezas listas
+                </a>
+              );
+            })()}
+
             <div className="flex gap-3">
               <button onClick={handleSave} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
                 {saving ? 'Guardando…' : 'Guardar cambios'}
