@@ -3672,9 +3672,9 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
 
   const solicitudes = pedidos.filter(p => p.tipo === 'solicitud');
   const misPedidos = pedidos.filter(p => p.tipo === 'pedido' || !p.tipo);
-  const pedidosActivos = misPedidos.filter(p => p.estado !== 'entregado');
+  const pedidosActivos = misPedidos.filter(p => p.estado !== 'entregado' && p.estado !== 'cotizando');
   const pedidosHistorial = misPedidos.filter(p => p.estado === 'entregado');
-  const cotizacionesPendientes = misPedidos.filter(p => p.estado === 'cotizando' && p.estimado?.respuesta === 'pendiente');
+  const cotizacionesPendientes = misPedidos.filter(p => p.estado === 'cotizando');
   const toMs = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime();
   const pedidosOrdenados = [...pedidosActivos].sort((a, b) => toMs(b.fecha) - toMs(a.fecha));
   const pedidosFiltrados = search
