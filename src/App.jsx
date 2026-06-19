@@ -3272,6 +3272,13 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
 
   const goTab = (t) => { setActiveTab(t); setSelectedId(null); setSearch(''); };
 
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768);
+  useEffect(() => {
+    const handler = () => setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
   const bottomNav = [
     { id: 'pedidos',   label: 'Pedidos',   icon: ClipboardList },
     { id: 'estimados', label: 'Estimados', icon: FileText, badge: totalEstimados },
@@ -3373,7 +3380,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
     },
   };
   const orderModal = selectedOrder && (
-    window.innerWidth >= 768
+    isDesktop
       ? <OrderDrawer {...orderDetailProps} />
       : <OrderSheet {...orderDetailProps} />
   );
@@ -3382,7 +3389,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
   return (
     <>
       {/* ── DESKTOP ── */}
-      <div className="hidden md:flex min-h-screen" style={{ background: '#f4f5f7' }}>
+      <div style={{ display: isDesktop ? 'flex' : 'none', minHeight: '100vh', background: '#f4f5f7' }}>
         {/* Sidebar */}
         <aside className="w-[230px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: '#141619' }}>
           <div className="px-5 py-[22px] flex items-center gap-2.5">
@@ -3460,7 +3467,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
       </div>
 
       {/* ── MÓVIL ── */}
-      <div className="md:hidden min-h-screen" style={{ background: '#f4f5f7' }}>
+      <div style={{ display: isDesktop ? 'none' : 'block', minHeight: '100vh', background: '#f4f5f7' }}>
         <div className="safe-top" style={{ background: '#141619' }}>
           <div className="px-5 py-[18px] pb-4 flex items-center gap-2.5">
             <div className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #e8632f, #c9491c)', boxShadow: '0 6px 16px -6px rgba(201,73,28,.6)' }}>
