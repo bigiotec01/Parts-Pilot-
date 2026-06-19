@@ -19,7 +19,7 @@ const STATUS_ORDER = ['pendiente', 'cotizando', 'pedido_fabrica', 'ordenadas', '
 const STATUS_CONFIG = {
   pendiente:        { label: 'Pendiente de cotizar', short: 'Pendiente',  dot: '#94a3b8', bg: '#f1f3f5', tx: '#5b626e', icon: Clock },
   cotizando:        { label: 'Cotización enviada',   short: 'Cotizando',  dot: '#3b82f6', bg: '#eef4ff', tx: '#2563eb', icon: FileText },
-  pedido_fabrica:   { label: 'Pedido a fábrica',     short: 'Fábrica',    dot: '#8b5cf6', bg: '#f4effe', tx: '#7c3aed', icon: Package },
+  pedido_fabrica:   { label: 'Por ordenar',           short: 'Por ordenar', dot: '#8b5cf6', bg: '#f4effe', tx: '#7c3aed', icon: Package },
   ordenadas:        { label: 'Piezas ordenadas',     short: 'Ordenadas',  dot: '#6366f1', bg: '#eef0fe', tx: '#4f46e5', icon: PackageCheck },
   esperando_piezas: { label: 'Esperando piezas',     short: 'Esperando',  dot: '#f59e0b', bg: '#fef6e9', tx: '#b7791f', icon: Hourglass },
   en_transito:      { label: 'En tránsito',          short: 'En camino',  dot: '#eab308', bg: '#fdfae8', tx: '#a16207', icon: Truck },
