@@ -1748,41 +1748,61 @@ function AdminEstimados({ solicitudes, getTaller, onSelect }) {
   if (solicitudes.length === 0) return (
     <div className="text-center py-14" style={{ color: '#9aa1ad' }}>
       <FileText className="w-10 h-10 mx-auto mb-2 opacity-40" />
-      <p className="text-sm">No hay solicitudes de estimado pendientes.</p>
+      <p className="text-sm">No hay estimados pendientes.</p>
     </div>
   );
+
+  const sinEstimado = solicitudes.filter(p => p.estado === 'pendiente' || p.tipo === 'solicitud');
+  const cotizando   = solicitudes.filter(p => p.estado === 'cotizando');
+
+  const Card = ({ p }) => {
+    const taller = getTaller(p.tallerId);
+    const isCotizando = p.estado === 'cotizando';
+    return (
+      <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[15px] p-[17px] border transition-all hover:border-[#e8632f] hover:shadow-[0_8px_24px_-14px_rgba(201,73,28,.4)]" style={{ background: '#fff', borderColor: isCotizando ? '#dbe7fe' : '#f3d9cb' }}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[11.5px] flex items-center gap-1 mb-1 truncate" style={{ color: '#8a909c' }}>
+              <Building2 className="w-3 h-3 flex-shrink-0" />{taller?.nombre || '—'}
+            </p>
+            <h3 className="text-[14.5px] font-bold truncate" style={{ color: '#181b21' }}>{p.vehiculo}</h3>
+            {p.pieza && <p className="text-[12.5px] mt-0.5" style={{ color: '#767d8a' }}>{p.pieza}</p>}
+          </div>
+          {isCotizando ? (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0" style={{ background: '#eef4ff', color: '#2563eb' }}>
+              <FileText className="w-3 h-3" /> Cotizando
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0" style={{ background: '#fdeee7', color: '#c9491c' }}>
+              <Clock className="w-3 h-3" /> Sin estimado
+            </span>
+          )}
+        </div>
+        {p.notas && <p className="text-[13px] line-clamp-2 mt-2" style={{ color: '#767d8a' }}>{p.notas}</p>}
+        {p.archivo && <p className="text-[11.5px] flex items-center gap-1 mt-1.5" style={{ color: '#9aa1ad' }}><Paperclip className="w-3 h-3" />{p.archivo.name}</p>}
+        <p className="font-mono text-[11.5px] mt-2.5" style={{ color: '#9aa1ad' }}>{p.folio || p.id?.slice(0,8)} · {formatDate(p.fecha)}</p>
+      </button>
+    );
+  };
+
   return (
-    <div className="space-y-4">
-      <p className="text-[13px]" style={{ color: '#767d8a' }}>
-        <strong style={{ color: '#181b21' }}>{solicitudes.length}</strong> solicitud{solicitudes.length !== 1 ? 'es' : ''} esperando estimado.
-      </p>
-      <div className="grid sm:grid-cols-2 gap-3.5">
-        {[...solicitudes].sort((a, b) => {
-          const t = f => f?.toDate ? f.toDate().getTime() : new Date(f + 'T00:00:00').getTime();
-          return t(a.fecha) - t(b.fecha);
-        }).map(p => {
-          const taller = getTaller(p.tallerId);
-          return (
-            <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[15px] p-[17px] border transition-all hover:border-[#e8632f] hover:shadow-[0_8px_24px_-14px_rgba(201,73,28,.4)]" style={{ background: '#fff', borderColor: '#f3d9cb' }}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[11.5px] flex items-center gap-1 mb-1 truncate" style={{ color: '#8a909c' }}>
-                    <Building2 className="w-3 h-3 flex-shrink-0" />{taller?.nombre || '—'}
-                  </p>
-                  <h3 className="text-[14.5px] font-bold truncate" style={{ color: '#181b21' }}>{p.vehiculo}</h3>
-                  {p.pieza && <p className="text-[12.5px] mt-0.5" style={{ color: '#767d8a' }}>{p.pieza}</p>}
-                </div>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0" style={{ background: '#fdeee7', color: '#c9491c' }}>
-                  <Clock className="w-3 h-3" /> Sin estimado
-                </span>
-              </div>
-              {p.notas && <p className="text-[13px] line-clamp-2 mt-2" style={{ color: '#767d8a' }}>{p.notas}</p>}
-              {p.archivo && <p className="text-[11.5px] flex items-center gap-1 mt-1.5" style={{ color: '#9aa1ad' }}><Paperclip className="w-3 h-3" />{p.archivo.name}</p>}
-              <p className="font-mono text-[11.5px] mt-2.5" style={{ color: '#9aa1ad' }}>{p.folio || p.id?.slice(0,8)} · {formatDate(p.fecha)}</p>
-            </button>
-          );
-        })}
-      </div>
+    <div className="space-y-6">
+      {sinEstimado.length > 0 && (
+        <div>
+          <p className="text-[11px] font-bold uppercase mb-3" style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>Sin estimado · {sinEstimado.length}</p>
+          <div className="grid sm:grid-cols-2 gap-3.5">
+            {[...sinEstimado].sort((a,b) => { const t=f=>f?.toDate?f.toDate().getTime():new Date(f+'T00:00:00').getTime(); return t(a.fecha)-t(b.fecha); }).map(p => <Card key={p.id} p={p} />)}
+          </div>
+        </div>
+      )}
+      {cotizando.length > 0 && (
+        <div>
+          <p className="text-[11px] font-bold uppercase mb-3" style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>Cotizando — esperando respuesta · {cotizando.length}</p>
+          <div className="grid sm:grid-cols-2 gap-3.5">
+            {[...cotizando].sort((a,b) => { const t=f=>f?.toDate?f.toDate().getTime():new Date(f+'T00:00:00').getTime(); return t(a.fecha)-t(b.fecha); }).map(p => <Card key={p.id} p={p} />)}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -3075,9 +3095,11 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
   const getTaller = (id) => talleres.find(t => t.uid === id);
   const selectedOrder = pedidos.find(p => p.id === selectedId);
 
-  const solicitudes = pedidos.filter(p => p.tipo === 'solicitud');
+  const solicitudes  = pedidos.filter(p => p.tipo === 'solicitud');
+  const cotizando    = pedidos.filter(p => (p.tipo === 'pedido' || !p.tipo) && p.estado === 'cotizando');
+  const enEstimados  = [...solicitudes, ...cotizando];
   const todosPedidos = pedidos.filter(p => p.tipo === 'pedido' || !p.tipo);
-  const solosPedidos = todosPedidos.filter(p => p.estado !== 'entregado');
+  const solosPedidos = todosPedidos.filter(p => p.estado !== 'entregado' && p.estado !== 'cotizando');
 
   const filteredPedidos = solosPedidos.filter(p => {
     if (filterTaller !== 'todos' && String(p.tallerId) !== filterTaller) return false;
@@ -3107,7 +3129,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
         <AdminTopbar
           pageTitle={PAGE_META[activeTab]?.title || 'Resumen'}
           pageSub={PAGE_META[activeTab]?.sub || ''}
-          solicitudesCount={solicitudes.length}
+          solicitudesCount={enEstimados.length}
           onGoToNuevo={() => goTo('nuevo')}
         />
       )}
@@ -3115,7 +3137,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
         <div className="max-w-[1180px] mx-auto">
           {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres} getTaller={getTaller} onSelect={setSelectedId} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} />}
           {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={setSelectedId} onExport={() => setShowReporte(true)} />}
-          {activeTab === 'estimados' && <AdminEstimados solicitudes={solicitudes} getTaller={getTaller} onSelect={setSelectedId} />}
+          {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={setSelectedId} />}
           {activeTab === 'talleres' && <AdminTalleres talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} onActualizarSubUsuario={onActualizarSubUsuario} />}
           {activeTab === 'nuevo' && <AdminNuevoPedido talleres={talleres} onCreate={(data) => { onCreateOrder(data); goTo('pedidos'); }} />}
           {activeTab === 'cotizacion' && <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />}
@@ -3160,7 +3182,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
           <div className="max-w-2xl mx-auto">
             {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres} getTaller={getTaller} onSelect={setSelectedId} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} />}
             {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={setSelectedId} onExport={() => setShowReporte(true)} />}
-            {activeTab === 'estimados' && <AdminEstimados solicitudes={solicitudes} getTaller={getTaller} onSelect={setSelectedId} />}
+            {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={setSelectedId} />}
             {activeTab === 'talleres' && <AdminTalleres talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} onActualizarSubUsuario={onActualizarSubUsuario} />}
             {activeTab === 'nuevo' && <AdminNuevoPedido talleres={talleres} onCreate={(data) => { onCreateOrder(data); goTo('pedidos'); }} />}
             {activeTab === 'cotizacion' && <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />}
@@ -3211,7 +3233,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
       <AdminSidebar
         activeTab={activeTab}
         onChange={goTo}
-        solicitudesCount={solicitudes.length}
+        solicitudesCount={enEstimados.length}
         pedidosCount={solosPedidos.length}
         onLogout={onLogout}
         canView={canView}
