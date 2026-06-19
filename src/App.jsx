@@ -2722,6 +2722,13 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
   const canEdit = (mod) => isSuperadmin || perfil?.permisos?.[mod] === 'edit';
   const canManageEquipo = isSuperadmin || perfil?.permisos?.equipo === true;
 
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
   const getTaller = (id) => talleres.find(t => t.uid === id);
   const selectedOrder = pedidos.find(p => p.id === selectedId);
 
@@ -2749,6 +2756,105 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
 
   const goTo = (tab) => { setActiveTab(tab); setSelectedId(null); };
 
+  const mainContent = (
+    <div className="flex-1 min-w-0 flex flex-col">
+      {!isMobile && (
+        <AdminTopbar
+          pageTitle={PAGE_META[activeTab]?.title || 'Resumen'}
+          pageSub={PAGE_META[activeTab]?.sub || ''}
+          solicitudesCount={solicitudes.length}
+          onGoToNuevo={() => goTo('nuevo')}
+        />
+      )}
+      <main className="flex-1 overflow-y-auto px-4 py-5 pb-24" style={{ paddingLeft: isMobile ? 16 : 30, paddingRight: isMobile ? 16 : 30, paddingTop: isMobile ? 16 : 28 }}>
+        <div className="max-w-[1180px] mx-auto">
+          {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres} getTaller={getTaller} onSelect={setSelectedId} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} />}
+          {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={setSelectedId} onExport={() => setShowReporte(true)} />}
+          {activeTab === 'estimados' && <AdminEstimados solicitudes={solicitudes} getTaller={getTaller} onSelect={setSelectedId} />}
+          {activeTab === 'talleres' && <AdminTalleres talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} onActualizarSubUsuario={onActualizarSubUsuario} />}
+          {activeTab === 'nuevo' && <AdminNuevoPedido talleres={talleres} onCreate={(data) => { onCreateOrder(data); goTo('pedidos'); }} />}
+          {activeTab === 'cotizacion' && <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />}
+          {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} />}
+          {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
+        </div>
+      </main>
+    </div>
+  );
+
+  /* Layout móvil admin */
+  if (isMobile) {
+    const mobileNav = [
+      { id: 'dashboard', label: 'Resumen',   icon: LayoutDashboard },
+      canView('pedidos')   && { id: 'pedidos',  label: 'Pedidos',   icon: ClipboardList, badge: solosPedidos.length },
+      canView('estimados') && { id: 'estimados',label: 'Estimados', icon: FileText, badge: solicitudes.length, accent: true },
+      canView('facturas')  && { id: 'facturas', label: 'Facturas',  icon: Receipt },
+      canView('talleres')  && { id: 'talleres', label: 'Talleres',  icon: Users },
+    ].filter(Boolean);
+
+    return (
+      <div style={{ minHeight: '100vh', background: '#f4f5f7' }}>
+        {/* Header móvil admin */}
+        <div className="safe-top" style={{ background: '#141619' }}>
+          <div className="px-4 py-3 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #e8632f, #c9491c)' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-extrabold leading-none" style={{ color: '#fff' }}>Parts Pilot</div>
+              <div className="text-[10px] font-bold uppercase mt-0.5" style={{ color: '#6a7180', letterSpacing: '.04em' }}>Admin</div>
+            </div>
+            <button onClick={onLogout} className="w-8 h-8 rounded-[9px] flex items-center justify-center" style={{ background: '#262a31', color: '#9aa1ad' }}>
+              <LogOut className="w-3.5 h-3.5" strokeWidth={1.9} />
+            </button>
+          </div>
+        </div>
+
+        {/* Contenido */}
+        <main className="pb-24 px-4 py-4">
+          <div className="max-w-2xl mx-auto">
+            {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres} getTaller={getTaller} onSelect={setSelectedId} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} />}
+            {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={setSelectedId} onExport={() => setShowReporte(true)} />}
+            {activeTab === 'estimados' && <AdminEstimados solicitudes={solicitudes} getTaller={getTaller} onSelect={setSelectedId} />}
+            {activeTab === 'talleres' && <AdminTalleres talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} onActualizarSubUsuario={onActualizarSubUsuario} />}
+            {activeTab === 'nuevo' && <AdminNuevoPedido talleres={talleres} onCreate={(data) => { onCreateOrder(data); goTo('pedidos'); }} />}
+            {activeTab === 'cotizacion' && <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />}
+            {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} />}
+            {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
+          </div>
+        </main>
+
+        {/* Bottom nav móvil admin */}
+        <div className="fixed bottom-0 left-0 right-0 z-20 safe-bottom" style={{ background: 'rgba(255,255,255,.97)', backdropFilter: 'blur(12px)', borderTop: '1px solid #e7e9ed' }}>
+          <div className="flex items-end justify-between px-2 pt-2 pb-2">
+            {mobileNav.map(({ id, label, icon: Icon, badge, accent }) => {
+              const active = activeTab === id;
+              return (
+                <button key={id} onClick={() => goTo(id)} className="flex flex-col items-center gap-1 flex-1 relative pt-1">
+                  <div className="relative">
+                    <Icon className="w-[22px] h-[22px]" strokeWidth={1.9} style={{ color: active ? '#e8632f' : '#9aa1ad' }} />
+                    {badge > 0 && <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: accent ? '#e8632f' : '#6b7280' }}>{badge}</span>}
+                  </div>
+                  <span className="text-[9.5px] font-semibold" style={{ color: active ? '#e8632f' : '#9aa1ad' }}>{label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {selectedOrder && (
+          <OrderSheet
+            order={selectedOrder}
+            title={selectedOrder.referencia || selectedOrder.vehiculo}
+            onClose={() => setSelectedId(null)}
+            detailContent={<AdminOrderDetail order={selectedOrder} taller={getTaller(selectedOrder.tallerId)} onChangeStatus={onChangeStatus} onSendEstimate={onSendEstimate} onDeleteOrder={async (id) => { await onDeleteOrder(id); setSelectedId(null); }} onUpdateNotes={onUpdateNotes} onUpdateReferencias={onUpdateReferencias} />}
+            chatProps={{ role: 'admin', otherPartyName: getTaller(selectedOrder.tallerId)?.nombre, onSendMessage: (orderId, texto, attachment) => onSendMessage(orderId, texto, 'admin', attachment) }}
+          />
+        )}
+        {showReporte && <ReporteModal pedidos={pedidos} talleres={talleres} onClose={() => setShowReporte(false)} />}
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen" style={{ background: '#f4f5f7' }}>
       <AdminSidebar
@@ -2761,68 +2867,14 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
         canEdit={canEdit}
         canManageEquipo={canManageEquipo}
       />
-      <div className="flex-1 min-w-0 flex flex-col">
-        <AdminTopbar
-          pageTitle={meta.title}
-          pageSub={meta.sub}
-          solicitudesCount={solicitudes.length}
-          onGoToNuevo={() => goTo('nuevo')}
-        />
-        <main className="flex-1 overflow-y-auto px-[30px] py-7 pb-14">
-          <div className="max-w-[1180px] mx-auto">
-            {activeTab === 'dashboard' && (
-              <AdminDashboard
-                pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres}
-                getTaller={getTaller} onSelect={setSelectedId}
-                onGoToPedidos={() => goTo('pedidos')}
-                onGoToEstimados={() => goTo('estimados')}
-                onGoToNuevo={() => goTo('nuevo')}
-                onShowReporte={() => setShowReporte(true)}
-              />
-            )}
-            {activeTab === 'pedidos' && (
-              <AdminPedidos
-                pedidos={filteredPedidos} talleres={talleres} getTaller={getTaller}
-                filterTaller={filterTaller} setFilterTaller={setFilterTaller}
-                filterEstado={filterEstado} setFilterEstado={setFilterEstado}
-                search={search} setSearch={setSearch}
-                onSelect={setSelectedId}
-                onExport={() => setShowReporte(true)}
-              />
-            )}
-            {activeTab === 'estimados' && (
-              <AdminEstimados solicitudes={solicitudes} getTaller={getTaller} onSelect={setSelectedId} />
-            )}
-            {activeTab === 'talleres' && (
-              <AdminTalleres talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} onActualizarSubUsuario={onActualizarSubUsuario} />
-            )}
-            {activeTab === 'nuevo' && (
-              <AdminNuevoPedido talleres={talleres} onCreate={(data) => { onCreateOrder(data); goTo('pedidos'); }} />
-            )}
-            {activeTab === 'cotizacion' && (
-              <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />
-            )}
-            {activeTab === 'facturas' && (
-              <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} />
-            )}
-            {activeTab === 'equipo' && canManageEquipo && (
-              <AdminEquipo equipo={equipo} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />
-            )}
-          </div>
-        </main>
-      </div>
-
+      {mainContent}
       {selectedOrder && (
         <OrderDrawer
           order={selectedOrder}
           title={selectedOrder.referencia || selectedOrder.vehiculo}
           onClose={() => setSelectedId(null)}
           detailContent={<AdminOrderDetail order={selectedOrder} taller={getTaller(selectedOrder.tallerId)} onChangeStatus={onChangeStatus} onSendEstimate={onSendEstimate} onDeleteOrder={async (id) => { await onDeleteOrder(id); setSelectedId(null); }} onUpdateNotes={onUpdateNotes} onUpdateReferencias={onUpdateReferencias} />}
-          chatProps={{
-            role: 'admin',
-            otherPartyName: getTaller(selectedOrder.tallerId)?.nombre,
-            onSendMessage: (orderId, texto, attachment) => onSendMessage(orderId, texto, 'admin', attachment),
-          }}
+          chatProps={{ role: 'admin', otherPartyName: getTaller(selectedOrder.tallerId)?.nombre, onSendMessage: (orderId, texto, attachment) => onSendMessage(orderId, texto, 'admin', attachment) }}
         />
       )}
       {showReporte && <ReporteModal pedidos={pedidos} talleres={talleres} onClose={() => setShowReporte(false)} />}
