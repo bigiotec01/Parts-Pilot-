@@ -166,14 +166,21 @@ function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onL
     return (
       <button
         onClick={() => onChange(id)}
-        className={`w-full flex items-center gap-2.5 px-2.5 py-[9px] rounded-[10px] text-[13.5px] font-semibold mb-0.5 transition-colors ${!active ? 'hover:bg-[#1f2228]' : ''}`}
-        style={{ background: active ? '#e8632f' : 'transparent', color: active ? '#fff' : '#9aa1ad' }}
+        className={`w-full flex items-center gap-2.5 px-2.5 py-[9px] rounded-[10px] text-[13.5px] font-semibold mb-0.5 transition-all ${!active ? 'hover:bg-[#1f2228]' : ''}`}
+        style={active ? {
+          background: 'rgba(74,125,232,0.15)',
+          border: '1px solid rgba(74,125,232,0.25)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          color: '#e8eaee',
+        } : { background: 'transparent', border: '1px solid transparent', color: '#8a90a8' }}
       >
         <Icon className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={1.8} />
         {label}
         {badge > 0 && (
           <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-[7px] leading-tight"
-            style={{ background: active ? 'rgba(255,255,255,.2)' : (accent ? '#e8632f' : '#2a2e36'), color: active ? '#fff' : (accent ? '#fff' : '#9aa1ad') }}>
+            style={{ background: active ? 'rgba(255,255,255,.18)' : '#2a2e36', color: active ? '#fff' : '#8a90a8' }}>
             {badge}
           </span>
         )}
@@ -182,9 +189,9 @@ function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onL
   };
 
   return (
-    <aside className="w-[252px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: '#141619' }}>
+    <aside className="w-[252px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: '#12141f' }}>
       <div className="px-5 py-[22px] flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #e8632f, #c9491c)', boxShadow: '0 6px 16px -6px rgba(201,73,28,.6)' }}>
+        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.07) 100%)', border: '1px solid rgba(255,255,255,0.17)', boxShadow: '0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.14)' }}>
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
         </div>
         <div>
@@ -194,20 +201,20 @@ function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onL
       </div>
 
       <div className="px-3 flex-1 overflow-y-auto">
-        <div className="text-[10.5px] font-bold uppercase px-2.5 py-2 mb-1" style={{ color: '#565d6b', letterSpacing: '.08em' }}>Operación</div>
+        <div className="text-[10.5px] font-bold uppercase px-2.5 py-2 mb-1" style={{ color: '#3d4260', letterSpacing: '.08em' }}>Operación</div>
         {primaryItems.map(item => <NavBtn key={item.id} {...item} />)}
-        <div className="my-3" style={{ borderTop: '1px solid #1e2127' }} />
+        <div className="my-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }} />
         {secondaryItems.map(item => <NavBtn key={item.id} {...item} />)}
       </div>
 
       <div className="p-3.5">
-        <div className="rounded-[13px] p-3 flex items-center gap-2.5" style={{ background: '#1c1f25' }}>
-          <div className="w-9 h-9 rounded-[9px] flex items-center justify-center text-[13px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #3a3f49, #272b32)', color: '#d6dae0' }}>AD</div>
+        <div className="rounded-[13px] p-3 flex items-center gap-2.5" style={{ background: '#1e2235' }}>
+          <div className="w-9 h-9 rounded-[9px] flex items-center justify-center text-[13px] font-bold flex-shrink-0" style={{ background: '#2a2f46', color: '#d6dae0' }}>AD</div>
           <div className="min-w-0 flex-1">
             <div className="text-[12.5px] font-bold truncate" style={{ color: '#e8eaee' }}>Administrador</div>
             <div className="text-[11px] truncate" style={{ color: '#6a7180' }}>admin</div>
           </div>
-          <button onClick={onLogout} className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: '#262a31', color: '#8a909c' }} title="Cerrar sesión">
+          <button onClick={onLogout} className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: '#1e2235', color: '#5a6078' }} title="Cerrar sesión">
             <LogOut className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -218,23 +225,23 @@ function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onL
 
 function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo }) {
   return (
-    <header className="h-[70px] flex-shrink-0 flex items-center gap-[18px] px-[30px] sticky top-0 z-20 border-b" style={{ background: 'rgba(244,245,247,.88)', backdropFilter: 'blur(8px)', borderColor: '#e7e9ed' }}>
+    <header className="h-[70px] flex-shrink-0 flex items-center gap-[18px] px-[30px] sticky top-0 z-20 border-b" style={{ background: 'rgba(18,20,31,0.94)', backdropFilter: 'blur(8px)', borderColor: 'rgba(255,255,255,0.07)' }}>
       <div className="min-w-0">
-        <h1 className="text-[19px] font-bold leading-tight" style={{ color: '#181b21', letterSpacing: '-.02em' }}>{pageTitle}</h1>
-        <p className="text-[12.5px] font-medium" style={{ color: '#767d8a' }}>{pageSub}</p>
+        <h1 className="text-[19px] font-bold leading-tight" style={{ color: '#e8eaee', letterSpacing: '-.02em' }}>{pageTitle}</h1>
+        <p className="text-[12.5px] font-medium" style={{ color: '#8a90a8' }}>{pageSub}</p>
       </div>
       <div className="ml-auto flex items-center gap-3">
         <div className="relative flex items-center">
-          <Search className="w-4 h-4 absolute left-3 pointer-events-none" style={{ color: '#9aa1ad' }} />
-          <input placeholder="Buscar pedido, vehículo, folio…" className="pl-9 pr-3 py-[9px] rounded-[10px] text-[13px] border outline-none transition-[width] focus:w-[280px] focus:border-[#e8632f] focus:ring-2 focus:ring-[#e8632f]/10" style={{ width: 240, background: '#fff', borderColor: '#e3e5ea', color: '#181b21' }} />
+          <Search className="w-4 h-4 absolute left-3 pointer-events-none" style={{ color: '#5a6078' }} />
+          <input placeholder="Buscar pedido, vehículo, folio…" className="pl-9 pr-3 py-[9px] rounded-[10px] text-[13px] border outline-none transition-[width] focus:w-[280px] focus:border-[#4a7de8] focus:ring-2 focus:ring-[#4a7de8]/10" style={{ width: 240, background: '#1e2235', borderColor: '#2a2f46', color: '#e8eaee' }} />
         </div>
         <div className="relative">
-          <button className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center border hover:bg-stone-50 transition-colors" style={{ background: '#fff', borderColor: '#e3e5ea', color: '#5b626e' }} title="Notificaciones">
+          <button className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center border transition-colors hover:bg-[#1e2235]" style={{ background: '#1e2235', borderColor: '#2a2f46', color: '#8a90a8' }} title="Notificaciones">
             <Bell className="w-[18px] h-[18px]" strokeWidth={1.8} />
           </button>
-          {solicitudesCount > 0 && <span className="absolute top-2 right-2.5 w-[7px] h-[7px] rounded-full border-2 border-white" style={{ background: '#e8632f' }} />}
+          {solicitudesCount > 0 && <span className="absolute top-2 right-2.5 w-[7px] h-[7px] rounded-full border-2" style={{ background: '#4a7de8', borderColor: '#12141f' }} />}
         </div>
-        <button onClick={onGoToNuevo} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#2a2e36]" style={{ background: '#181b21' }}>
+        <button onClick={onGoToNuevo} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#3d6fd4]" style={{ background: '#4a7de8' }}>
           <Plus className="w-4 h-4" strokeWidth={2.2} /> Nuevo pedido
         </button>
       </div>
@@ -244,20 +251,20 @@ function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo }) {
 
 function Header({ title, subtitle, userLabel, onLogout, maxWidth = 'max-w-6xl' }) {
   return (
-    <header className="bg-stone-900 text-white safe-top">
+    <header className="text-white safe-top" style={{ background: '#12141f' }}>
       <div className={`${maxWidth} mx-auto px-4 sm:px-6 py-4 flex items-center justify-between`}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#4a7de8' }}>
             <CarFront className="w-5 h-5 text-white" />
           </div>
           <div className="min-w-0">
             <h1 className="font-bold text-base sm:text-lg leading-tight truncate">{title}</h1>
-            <p className="text-xs text-stone-400 truncate">{subtitle}</p>
+            <p className="text-xs truncate" style={{ color: '#5a6078' }}>{subtitle}</p>
           </div>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
-          <span className="hidden sm:inline text-sm text-stone-300">{userLabel}</span>
-          <button onClick={onLogout} className="p-2 rounded-lg bg-stone-800 hover:bg-stone-700 transition-colors" title="Cerrar sesión">
+          <span className="hidden sm:inline text-sm" style={{ color: '#8a90a8' }}>{userLabel}</span>
+          <button onClick={onLogout} className="p-2 rounded-lg transition-colors hover:bg-[#1e2235]" style={{ background: '#1e2235' }} title="Cerrar sesión">
             <LogOut className="w-4 h-4" />
           </button>
         </div>
@@ -268,7 +275,7 @@ function Header({ title, subtitle, userLabel, onLogout, maxWidth = 'max-w-6xl' }
 
 function NavTabs({ tabs, active, onChange, maxWidth = 'max-w-6xl' }) {
   return (
-    <nav className="bg-white border-b border-stone-200 sticky top-0 z-10">
+    <nav className="sticky top-0 z-10 border-b" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
       <div className={`${maxWidth} mx-auto px-2 sm:px-4 flex gap-0 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]`}>
         {tabs.map(tab => {
           const Icon = tab.icon;
@@ -277,12 +284,13 @@ function NavTabs({ tabs, active, onChange, maxWidth = 'max-w-6xl' }) {
             <button
               key={tab.id}
               onClick={() => onChange(tab.id)}
-              className={`relative flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${isActive ? 'border-orange-500 text-stone-900' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
+              className={`relative flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors`}
+              style={{ borderBottomColor: isActive ? '#4a7de8' : 'transparent', color: isActive ? '#e8eaee' : '#8a90a8' }}
             >
               <Icon className="w-4 h-4" />
               {tab.label}
               {tab.badge > 0 && (
-                <span className="bg-orange-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">{tab.badge}</span>
+                <span className="text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none" style={{ background: '#4a7de8' }}>{tab.badge}</span>
               )}
             </button>
           );
@@ -314,9 +322,9 @@ function StatusStepper({ estado }) {
       {/* Barra de progreso compacta para móvil */}
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-[12px] font-semibold" style={{ color: cfg.tx }}>{cfg.short}</span>
-        <span className="text-[11px]" style={{ color: '#9aa1ad' }}>{pct}%</span>
+        <span className="text-[11px]" style={{ color: '#5a6078' }}>{pct}%</span>
       </div>
-      <div className="h-2 rounded-full overflow-hidden mb-3" style={{ background: '#e8eaed' }}>
+      <div className="h-2 rounded-full overflow-hidden mb-3" style={{ background: '#1e2235' }}>
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: cfg.dot }} />
       </div>
       {/* Stepper scrollable */}
@@ -333,13 +341,13 @@ function StatusStepper({ estado }) {
                 <div
                   className="w-3.5 h-3.5 rounded-full"
                   style={{
-                    background: active ? cfg.dot : '#e3e6ea',
+                    background: active ? cfg.dot : '#2a2f46',
                     boxShadow: isCurrent ? `0 0 0 4px ${cfg.bg}` : 'none',
                   }}
                 />
                 <span
                   className="text-[9.5px] text-center leading-tight"
-                  style={{ color: isCurrent ? '#181b21' : '#aab0b9', fontWeight: isCurrent ? 700 : 500 }}
+                  style={{ color: isCurrent ? '#e8eaee' : '#5a6078', fontWeight: isCurrent ? 700 : 500 }}
                 >
                   {cfg.short}
                 </span>
@@ -347,7 +355,7 @@ function StatusStepper({ estado }) {
               {i < STATUS_ORDER.length - 1 && (
                 <div
                   className="h-0.5 w-6 sm:w-10 -mt-4"
-                  style={{ background: isDone ? cfg.dot : '#e8eaed' }}
+                  style={{ background: isDone ? cfg.dot : '#2a2f46' }}
                 />
               )}
             </div>
@@ -368,28 +376,28 @@ function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0, activi
   return (
     <button
       onClick={onClick}
-      className="w-full text-left rounded-[15px] p-[17px] border transition-all hover:border-[#e8632f] hover:shadow-[0_8px_24px_-14px_rgba(24,27,33,.3)] relative"
-      style={{ background: '#fff', borderColor: hasActivity ? '#e8632f' : '#e7e9ed', boxShadow: hasActivity ? '0 0 0 2px rgba(232,99,47,.12)' : 'none' }}
+      className="w-full text-left rounded-[15px] p-[17px] border transition-all hover:border-[#4a7de8] hover:shadow-[0_8px_24px_-14px_rgba(74,125,232,.2)] relative"
+      style={{ background: '#1a1d2e', borderColor: hasActivity ? '#4a7de8' : 'rgba(255,255,255,0.07)', boxShadow: hasActivity ? '0 0 0 2px rgba(74,125,232,.12)' : 'none' }}
     >
       {hasActivity && (
         <span className="absolute top-3 right-3 flex h-2.5 w-2.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: '#e8632f' }} />
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ background: '#e8632f' }} />
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: '#4a7de8' }} />
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ background: '#4a7de8' }} />
         </span>
       )}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-bold text-[14.5px] truncate" style={{ color: '#181b21' }}>{cardTitle}</h3>
+            <h3 className="font-bold text-[14.5px] truncate" style={{ color: '#e8eaee' }}>{cardTitle}</h3>
             {unreadCount > 0 && (
-              <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold flex-shrink-0" style={{ background: '#fdeee7', color: '#c9491c' }}>
-                <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: '#e8632f' }} />
+              <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold flex-shrink-0" style={{ background: 'rgba(74,125,232,0.15)', color: '#4a7de8' }}>
+                <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: '#4a7de8' }} />
                 {unreadCount} nuevo{unreadCount !== 1 ? 's' : ''}
               </span>
             )}
           </div>
-          {cardSub && <p className="text-[12.5px] mt-0.5 truncate" style={{ color: '#767d8a' }}>{cardSub}</p>}
-          {order.pieza && !cardSub && <p className="text-[12.5px] mt-0.5 truncate" style={{ color: '#767d8a' }}>{order.pieza}</p>}
+          {cardSub && <p className="text-[12.5px] mt-0.5 truncate" style={{ color: '#8a90a8' }}>{cardSub}</p>}
+          {order.pieza && !cardSub && <p className="text-[12.5px] mt-0.5 truncate" style={{ color: '#8a90a8' }}>{order.pieza}</p>}
           {hasNewIds && (
             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
               {order.numeroPO && <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: '#eef4ff', color: '#2563eb', border: '1px solid #dbe7fe' }}>PO# {order.numeroPO}</span>}
@@ -399,18 +407,18 @@ function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0, activi
         </div>
         <StatusBadge estado={order.estado} />
       </div>
-      <div className="flex items-center justify-between gap-2 pt-3" style={{ borderTop: '1px dashed #e7e9ed' }}>
-        <div className="flex items-center gap-3 text-[11.5px] min-w-0" style={{ color: '#8a909c' }}>
-          <span className="font-mono font-semibold" style={{ color: '#5b626e' }}>{order.folio || order.id?.slice(0, 8)}</span>
+      <div className="flex items-center justify-between gap-2 pt-3" style={{ borderTop: '1px dashed rgba(255,255,255,0.07)' }}>
+        <div className="flex items-center gap-3 text-[11.5px] min-w-0" style={{ color: '#8a90a8' }}>
+          <span className="font-mono font-semibold" style={{ color: '#8a90a8' }}>{order.folio || order.id?.slice(0, 8)}</span>
           {showTaller && taller && (
             <span className="flex items-center gap-1 truncate"><Building2 className="w-3.5 h-3.5 flex-shrink-0" />{taller.nombre}</span>
           )}
           <span className="flex items-center gap-1 flex-shrink-0"><Calendar className="w-3 h-3 flex-shrink-0" />{formatDate(order.fecha)}</span>
         </div>
-        <div className="flex items-center gap-2.5 flex-shrink-0 text-[11.5px]" style={{ color: '#8a909c' }}>
+        <div className="flex items-center gap-2.5 flex-shrink-0 text-[11.5px]" style={{ color: '#8a90a8' }}>
           {order.mensajes?.length > 0 && <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" />{order.mensajes.length}</span>}
           {order.estado === 'cotizando' && order.estimado?.respuesta === 'pendiente' && <span className="flex items-center gap-1 font-semibold" style={{ color: '#b7791f' }}><Clock className="w-3.5 h-3.5" />Esperando</span>}
-          {showTaller && order.notasInternas && <StickyNote className="w-3.5 h-3.5" style={{ color: '#aab0b9' }} />}
+          {showTaller && order.notasInternas && <StickyNote className="w-3.5 h-3.5" style={{ color: '#5a6078' }} />}
         </div>
       </div>
       {order.fechaEntrega && (
@@ -425,11 +433,11 @@ function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0, activi
 function Modal({ title, onClose, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" style={{ background: 'rgba(20,22,26,.5)' }} onClick={onClose}>
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-3xl h-[92vh] sm:h-auto sm:max-h-[90vh] overflow-y-auto flex flex-col" onClick={e => e.stopPropagation()}>
-        <div className="flex justify-center pt-3 pb-1 sm:hidden"><div className="w-10 h-1 rounded-full bg-stone-200" /></div>
-        <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 bg-white z-10" style={{ borderColor: '#eef0f2' }}>
-          <h2 className="font-mono tracking-wider text-sm truncate pr-4" style={{ color: '#767d8a' }}>{title}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-stone-100 flex-shrink-0"><X className="w-5 h-5" style={{ color: '#767d8a' }} /></button>
+      <div className="rounded-t-2xl sm:rounded-2xl w-full sm:max-w-3xl h-[92vh] sm:h-auto sm:max-h-[90vh] overflow-y-auto flex flex-col" style={{ background: '#1a1d2e' }} onClick={e => e.stopPropagation()}>
+        <div className="flex justify-center pt-3 pb-1 sm:hidden"><div className="w-10 h-1 rounded-full" style={{ background: '#2a2f46' }} /></div>
+        <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 z-10" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.06)' }}>
+          <h2 className="font-mono tracking-wider text-sm truncate pr-4" style={{ color: '#8a90a8' }}>{title}</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg flex-shrink-0 hover:bg-[#1e2235]"><X className="w-5 h-5" style={{ color: '#8a90a8' }} /></button>
         </div>
         <div className="p-6 flex-1">{children}</div>
       </div>
@@ -452,32 +460,32 @@ function OrderDrawer({ order, title, onClose, detailContent, chatProps }) {
         style={{
           maxWidth: 980,
           maxHeight: '90vh',
-          background: '#fff',
+          background: '#1a1d2e',
           borderRadius: 20,
           boxShadow: '0 40px 80px -20px rgba(0,0,0,.35)',
           animation: 'ppRise .28s cubic-bezier(.2,.8,.2,1) both',
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between gap-4 px-7 py-5 flex-shrink-0" style={{ borderBottom: '1px solid #eef0f2' }}>
+        <div className="flex items-center justify-between gap-4 px-7 py-5 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="flex items-center gap-4 min-w-0">
             <div>
-              <div className="font-mono text-[12px] font-semibold mb-0.5" style={{ color: '#9aa1ad' }}>
+              <div className="font-mono text-[12px] font-semibold mb-0.5" style={{ color: '#5a6078' }}>
                 {order.folio || order.id?.slice(0, 8)}
               </div>
-              <h2 className="text-[20px] font-bold leading-tight" style={{ color: '#181b21', letterSpacing: '-.02em' }}>
+              <h2 className="text-[20px] font-bold leading-tight" style={{ color: '#e8eaee', letterSpacing: '-.02em' }}>
                 {title}
               </h2>
               {order.pieza && (
-                <p className="text-[13px] mt-0.5" style={{ color: '#767d8a' }}>{order.pieza}</p>
+                <p className="text-[13px] mt-0.5" style={{ color: '#8a90a8' }}>{order.pieza}</p>
               )}
             </div>
             <StatusBadge estado={order.estado} />
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-[10px] border flex items-center justify-center flex-shrink-0 hover:bg-stone-50 transition-colors"
-            style={{ borderColor: '#e7e9ed', color: '#767d8a' }}
+            className="w-9 h-9 rounded-[10px] border flex items-center justify-center flex-shrink-0 hover:bg-[#1e2235] transition-colors"
+            style={{ borderColor: 'rgba(255,255,255,0.07)', color: '#8a90a8' }}
           >
             <X className="w-[18px] h-[18px]" />
           </button>
@@ -486,18 +494,18 @@ function OrderDrawer({ order, title, onClose, detailContent, chatProps }) {
         {/* Body: 2 columnas */}
         <div className="flex-1 overflow-hidden flex min-h-0">
           {/* Columna izquierda — detalle */}
-          <div className="flex-1 overflow-y-auto p-7" style={{ borderRight: '1px solid #eef0f2' }}>
+          <div className="flex-1 overflow-y-auto p-7" style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
             {detailContent}
           </div>
 
           {/* Columna derecha — mensajes */}
           <div className="flex flex-col" style={{ width: 360, flexShrink: 0 }}>
-            <div className="px-6 py-4 flex-shrink-0" style={{ borderBottom: '1px solid #eef0f2' }}>
-              <p className="text-[13px] font-bold flex items-center gap-2" style={{ color: '#181b21' }}>
+            <div className="px-6 py-4 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <p className="text-[13px] font-bold flex items-center gap-2" style={{ color: '#e8eaee' }}>
                 <MessageSquare className="w-4 h-4" strokeWidth={1.8} />
                 Mensajes
                 {messageCount > 0 && (
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#f1f3f5', color: '#5b626e' }}>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#1e2235', color: '#8a90a8' }}>
                     {messageCount}
                   </span>
                 )}
@@ -519,22 +527,22 @@ function OrderSheet({ order, title, onClose, detailContent, chatProps }) {
   return (
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0" style={{ background: 'rgba(20,22,26,.45)', animation: 'ppFade .2s ease both' }} onClick={onClose} />
-      <div className="pp-scroll absolute bottom-0 left-0 right-0 max-h-[88%] overflow-y-auto overflow-x-hidden rounded-t-[28px] flex flex-col" style={{ background: '#fff', animation: 'ppSheet .3s cubic-bezier(.2,.8,.2,1) both', WebkitOverflowScrolling: 'touch' }}>
-        <div className="sticky top-0 bg-white z-10 px-5 pt-3 pb-4 border-b" style={{ borderColor: '#eef0f2' }}>
-          <div className="w-10 h-1 rounded-full mx-auto mb-4" style={{ background: '#e3e6ea' }} />
+      <div className="pp-scroll absolute bottom-0 left-0 right-0 max-h-[88%] overflow-y-auto overflow-x-hidden rounded-t-[28px] flex flex-col" style={{ background: '#1a1d2e', animation: 'ppSheet .3s cubic-bezier(.2,.8,.2,1) both', WebkitOverflowScrolling: 'touch' }}>
+        <div className="sticky top-0 z-10 px-5 pt-3 pb-4 border-b" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.06)' }}>
+          <div className="w-10 h-1 rounded-full mx-auto mb-4" style={{ background: '#2a2f46' }} />
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="font-mono text-[11.5px] font-semibold" style={{ color: '#9aa1ad' }}>{order.folio || order.id?.slice(0,8)}</div>
-              <h2 className="text-[17px] font-bold mt-0.5" style={{ color: '#181b21', letterSpacing: '-.01em' }}>{title}</h2>
-              {order.pieza && <p className="text-[12.5px]" style={{ color: '#767d8a' }}>{order.pieza}</p>}
+              <div className="font-mono text-[11.5px] font-semibold" style={{ color: '#5a6078' }}>{order.folio || order.id?.slice(0,8)}</div>
+              <h2 className="text-[17px] font-bold mt-0.5" style={{ color: '#e8eaee', letterSpacing: '-.01em' }}>{title}</h2>
+              {order.pieza && <p className="text-[12.5px]" style={{ color: '#8a90a8' }}>{order.pieza}</p>}
             </div>
-            <button onClick={onClose} className="w-8 h-8 rounded-[9px] border flex items-center justify-center flex-shrink-0" style={{ borderColor: '#e7e9ed', color: '#767d8a' }}><X className="w-4 h-4" /></button>
+            <button onClick={onClose} className="w-8 h-8 rounded-[9px] border flex items-center justify-center flex-shrink-0" style={{ borderColor: 'rgba(255,255,255,0.07)', color: '#8a90a8' }}><X className="w-4 h-4" /></button>
           </div>
           <div className="flex gap-4 mt-3">
             {[['detalle','Detalle'], ['chat','Mensajes']].map(([id, lbl]) => (
-              <button key={id} onClick={() => setTab(id)} className={`py-2 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${tab === id ? 'border-[#e8632f] text-[#181b21]' : 'border-transparent text-[#9aa1ad]'}`}>
+              <button key={id} onClick={() => setTab(id)} className={`py-2 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5`} style={{ borderBottomColor: tab === id ? '#4a7de8' : 'transparent', color: tab === id ? '#e8eaee' : '#5a6078' }}>
                 {id === 'chat' && <MessageSquare className="w-4 h-4" />}{lbl}
-                {id === 'chat' && messageCount > 0 && <span className="text-[10px] rounded-full px-1.5 py-0.5" style={{ background: '#f1f3f5', color: '#5b626e' }}>{messageCount}</span>}
+                {id === 'chat' && messageCount > 0 && <span className="text-[10px] rounded-full px-1.5 py-0.5" style={{ background: '#1e2235', color: '#8a90a8' }}>{messageCount}</span>}
               </button>
             ))}
           </div>
@@ -555,7 +563,8 @@ function ChatAttachment({ attachment, isMine }) {
   return (
     <a
       href={attachment.url} target="_blank" rel="noreferrer"
-      className={`flex items-center gap-2 rounded-lg px-2.5 py-2 transition-colors ${isMine ? 'bg-white/15 hover:bg-white/25 text-white' : 'bg-white hover:bg-stone-50 text-stone-700 border border-stone-200'}`}
+      className={`flex items-center gap-2 rounded-lg px-2.5 py-2 transition-colors ${isMine ? 'bg-white/15 hover:bg-white/25 text-white' : 'border hover:border-[#4a7de8]'}`}
+      style={!isMine ? { background: '#1e2235', borderColor: '#2a2f46', color: '#8a90a8' } : {}}
     >
       <FileText className="w-5 h-5 flex-shrink-0" />
       <span className="text-sm truncate">{attachment.name}</span>
@@ -600,7 +609,7 @@ function OrderChat({ order, role, otherPartyName, onSendMessage }) {
     <div className="flex flex-col h-full min-h-[320px]">
       <div className="flex-1 overflow-y-auto pr-1 space-y-3">
         {mensajes.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center text-stone-400 text-sm px-6">
+          <div className="h-full flex flex-col items-center justify-center text-center text-sm px-6" style={{ color: '#5a6078' }}>
             <MessageSquare className="w-8 h-8 mb-2 opacity-40" />
             Aún no hay mensajes en este pedido.<br />Escribe el primero o adjunta una foto / PDF.
           </div>
@@ -608,12 +617,12 @@ function OrderChat({ order, role, otherPartyName, onSendMessage }) {
           const isMine = m.from === role;
           return (
             <div key={i} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-              {!isMine && <span className="text-[11px] mb-0.5 px-1" style={{ color: '#aab0b9' }}>{otherPartyName}</span>}
+              {!isMine && <span className="text-[11px] mb-0.5 px-1" style={{ color: '#5a6078' }}>{otherPartyName}</span>}
               <div
                 className="max-w-[82%] rounded-[14px] px-3.5 py-2.5 text-[13px] leading-snug space-y-1.5"
                 style={{
-                  background: isMine ? '#181b21' : '#f1f3f5',
-                  color: isMine ? '#fff' : '#181b21',
+                  background: isMine ? '#2a2f46' : '#1e2235',
+                  color: isMine ? '#e8eaee' : '#e8eaee',
                   borderBottomRightRadius: isMine ? 5 : 14,
                   borderBottomLeftRadius: isMine ? 14 : 5,
                 }}
@@ -621,7 +630,7 @@ function OrderChat({ order, role, otherPartyName, onSendMessage }) {
                 {m.attachment && <ChatAttachment attachment={m.attachment} isMine={isMine} />}
                 {m.texto && <p>{m.texto}</p>}
               </div>
-              <span className="text-[10.5px] mt-1 px-1" style={{ color: '#aab0b9' }}>{m.hora}</span>
+              <span className="text-[10.5px] mt-1 px-1" style={{ color: '#5a6078' }}>{m.hora}</span>
             </div>
           );
         })}
@@ -631,13 +640,13 @@ function OrderChat({ order, role, otherPartyName, onSendMessage }) {
           <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {chatError}
         </div>
       )}
-      <form onSubmit={handleSend} className="flex items-center gap-2 pt-3 mt-2 border-t border-stone-100">
-        <label className="bg-stone-100 hover:bg-stone-200 text-stone-500 p-2.5 rounded-lg transition-colors flex-shrink-0 cursor-pointer" title="Adjuntar foto o PDF">
+      <form onSubmit={handleSend} className="flex items-center gap-2 pt-3 mt-2 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <label className="p-2.5 rounded-lg transition-colors flex-shrink-0 cursor-pointer hover:bg-[#1e2235]" style={{ background: '#1e2235', color: '#8a90a8' }} title="Adjuntar foto o PDF">
           <Paperclip className="w-4 h-4" />
           <input type="file" accept="image/*,application/pdf" onChange={handleFile} className="hidden" />
         </label>
         <input value={text} onChange={e => setText(e.target.value)} placeholder="Escribe un mensaje..." className={`${inputClass} flex-1`} disabled={sending} />
-        <button type="submit" disabled={sending} className="bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white p-2.5 rounded-lg transition-colors flex-shrink-0">
+        <button type="submit" disabled={sending} className="disabled:opacity-60 text-white p-2.5 rounded-lg transition-colors flex-shrink-0 hover:bg-[#3d6fd4]" style={{ background: '#4a7de8' }}>
           <Send className="w-4 h-4" />
         </button>
       </form>
@@ -651,19 +660,21 @@ function OrderModal({ order, title, onClose, detailContent, chatProps }) {
 
   return (
     <Modal title={title} onClose={onClose}>
-      <div className="flex gap-1 mb-4 border-b border-stone-100 -mt-1">
+      <div className="flex gap-1 mb-4 -mt-1 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
         <button
           onClick={() => setTab('detalle')}
-          className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${tab === 'detalle' ? 'border-orange-500 text-stone-900' : 'border-transparent text-stone-400 hover:text-stone-600'}`}
+          className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors`}
+          style={{ borderBottomColor: tab === 'detalle' ? '#4a7de8' : 'transparent', color: tab === 'detalle' ? '#e8eaee' : '#5a6078' }}
         >
           Detalle
         </button>
         <button
           onClick={() => setTab('chat')}
-          className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${tab === 'chat' ? 'border-orange-500 text-stone-900' : 'border-transparent text-stone-400 hover:text-stone-600'}`}
+          className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5`}
+          style={{ borderBottomColor: tab === 'chat' ? '#4a7de8' : 'transparent', color: tab === 'chat' ? '#e8eaee' : '#5a6078' }}
         >
           <MessageSquare className="w-4 h-4" /> Mensajes
-          {messageCount > 0 && <span className="bg-stone-200 text-stone-600 text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">{messageCount}</span>}
+          {messageCount > 0 && <span className="text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none" style={{ background: '#1e2235', color: '#8a90a8' }}>{messageCount}</span>}
         </button>
       </div>
       {tab === 'detalle' ? detailContent : <OrderChat order={order} {...chatProps} />}
@@ -674,7 +685,7 @@ function OrderModal({ order, title, onClose, detailContent, chatProps }) {
 function FormField({ label, children }) {
   return (
     <div>
-      <label className="text-[12.5px] font-semibold block mb-1.5" style={{ color: '#4a505c' }}>{label}</label>
+      <label className="text-[12.5px] font-semibold block mb-1.5" style={{ color: '#8a90a8' }}>{label}</label>
       {children}
     </div>
   );
@@ -682,23 +693,23 @@ function FormField({ label, children }) {
 
 function InfoItem({ label, value }) {
   return (
-    <div className="rounded-[11px] p-3" style={{ background: '#f8f9fa' }}>
-      <p className="text-[11px] mb-0.5" style={{ color: '#9aa1ad' }}>{label}</p>
-      <p className="text-[13.5px] font-semibold truncate" style={{ color: '#181b21' }}>{value}</p>
+    <div className="rounded-[11px] p-3" style={{ background: '#1e2235' }}>
+      <p className="text-[11px] mb-0.5" style={{ color: '#5a6078' }}>{label}</p>
+      <p className="text-[13.5px] font-semibold truncate" style={{ color: '#e8eaee' }}>{value}</p>
     </div>
   );
 }
 
 function EmptyState({ text }) {
   return (
-    <div className="text-center py-14" style={{ color: '#9aa1ad' }}>
+    <div className="text-center py-14" style={{ color: '#5a6078' }}>
       <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
       <p className="text-sm">{text}</p>
     </div>
   );
 }
 
-const inputClass = "w-full px-3.5 py-[11px] rounded-[11px] border border-[#e3e5ea] text-[16px] outline-none transition-all focus:border-[#e8632f] focus:ring-2 focus:ring-[#e8632f]/10 bg-white text-[#181b21]";
+const inputClass = "w-full px-3.5 py-[11px] rounded-[11px] border border-[#2a2f46] text-[16px] outline-none transition-all focus:border-[#4a7de8] focus:ring-2 focus:ring-[#4a7de8]/10 bg-[#13162a] text-[#e8eaee]";
 
 /* ------------------------------------------------------------------ */
 /*  LOGIN                                                              */
@@ -718,21 +729,21 @@ function LoginScreen({ onLogin, error }) {
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'radial-gradient(900px 600px at 70% -10%, #23262e 0%, #14161a 55%, #101115 100%)' }}>
       <div className="w-full max-w-[400px]" style={{ animation: 'ppRise .5s ease both' }}>
         <div className="text-center mb-7">
-          <div className="inline-flex items-center justify-center rounded-[16px] mb-[18px]" style={{ width: 60, height: 60, background: 'linear-gradient(160deg, #e8632f, #c9491c)', boxShadow: '0 12px 30px -8px rgba(201,73,28,.55)' }}>
+          <div className="inline-flex items-center justify-center rounded-[16px] mb-[18px]" style={{ width: 60, height: 60, background: 'linear-gradient(160deg, #4a7de8, #3d6fd4)', boxShadow: '0 12px 30px -8px rgba(74,125,232,.55)' }}>
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
           </div>
           <h1 className="font-extrabold text-[26px] tracking-tight" style={{ color: '#fff', letterSpacing: '-.02em' }}>Parts Pilot</h1>
-          <p className="mt-1.5 text-[13.5px] font-medium" style={{ color: '#8a909c' }}>Portal de pedidos · Departamento de Piezas</p>
+          <p className="mt-1.5 text-[13.5px] font-medium" style={{ color: '#8a90a8' }}>Portal de pedidos · Departamento de Piezas</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="rounded-[18px] p-7 space-y-4" style={{ background: '#fff', boxShadow: '0 30px 60px -20px rgba(0,0,0,.5)' }}>
+        <form onSubmit={handleSubmit} className="rounded-[18px] p-7 space-y-4" style={{ background: '#1a1d2e', boxShadow: '0 30px 60px -20px rgba(0,0,0,.5)' }}>
           <FormField label="Correo electrónico">
             <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="tu@correo.com" className={inputClass} required />
           </FormField>
           <FormField label="Contraseña">
             <div className="relative">
               <input value={password} onChange={e => setPassword(e.target.value)} type={showPassword ? 'text' : 'password'} placeholder="••••••" className={`${inputClass} pr-10`} required />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: '#9aa1ad' }}>
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: '#5a6078' }}>
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
@@ -742,7 +753,7 @@ function LoginScreen({ onLogin, error }) {
               <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
             </div>
           )}
-          <button type="submit" className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14.5px] transition-all hover:brightness-105" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)', boxShadow: '0 10px 22px -10px rgba(201,73,28,.7)' }}>
+          <button type="submit" className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14.5px] transition-all hover:brightness-105" style={{ background: 'linear-gradient(160deg, #4a7de8, #3d6fd4)', boxShadow: '0 10px 22px -10px rgba(74,125,232,.7)' }}>
             Iniciar sesión
           </button>
         </form>
@@ -762,15 +773,15 @@ function LoginScreen({ onLogin, error }) {
 
 function StatCard({ label, value, icon: Icon, iconBg, iconColor, chipLabel, chipBg, chipColor, highlight }) {
   return (
-    <div className="rounded-[15px] p-[18px]" style={{ background: '#fff', border: `1px solid ${highlight ? '#f3d9cb' : '#e7e9ed'}` }}>
+    <div className="rounded-[15px] p-[18px]" style={{ background: '#1a1d2e', border: `1px solid ${highlight ? 'rgba(74,125,232,0.3)' : 'rgba(255,255,255,0.07)'}` }}>
       <div className="flex items-center justify-between mb-3.5">
         <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center" style={{ background: iconBg, color: iconColor }}>
           <Icon className="w-[19px] h-[19px]" strokeWidth={1.8} />
         </div>
         {chipLabel && <span className="text-[11px] font-bold px-2 py-0.5 rounded-[7px]" style={{ background: chipBg, color: chipColor }}>{chipLabel}</span>}
       </div>
-      <p className="text-[30px] font-extrabold leading-none" style={{ color: '#181b21', fontVariantNumeric: 'tabular-nums', letterSpacing: '-.02em' }}>{value}</p>
-      <p className="text-[12.5px] font-medium mt-1.5" style={{ color: '#767d8a' }}>{label}</p>
+      <p className="text-[30px] font-extrabold leading-none" style={{ color: '#e8eaee', fontVariantNumeric: 'tabular-nums', letterSpacing: '-.02em' }}>{value}</p>
+      <p className="text-[12.5px] font-medium mt-1.5" style={{ color: '#8a90a8' }}>{label}</p>
     </div>
   );
 }
@@ -797,9 +808,9 @@ function DashboardChart({ pedidos }) {
           const procPx = totalPx - donePx;
           return (
             <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-              {m.total > 0 && <span className="text-[11.5px] font-bold" style={{ color: '#9aa1ad' }}>{m.total}</span>}
+              {m.total > 0 && <span className="text-[11.5px] font-bold" style={{ color: '#5a6078' }}>{m.total}</span>}
               <div className="w-full max-w-[46px] rounded-[7px] overflow-hidden flex flex-col justify-end" style={{ height: totalPx || 0 }}>
-                {procPx > 0 && <div style={{ background: '#e8632f', height: procPx }} />}
+                {procPx > 0 && <div style={{ background: '#4a7de8', height: procPx }} />}
                 {donePx > 0 && <div style={{ background: '#14b8a6', height: donePx }} />}
               </div>
             </div>
@@ -810,8 +821,8 @@ function DashboardChart({ pedidos }) {
         {months.map((m, i) => <div key={i} className="flex-1 text-center text-[11.5px] font-semibold capitalize" style={{ color: '#767d8a' }}>{m.label}</div>)}
       </div>
       <div className="flex items-center gap-4 mt-3">
-        <span className="flex items-center gap-1.5 text-[11.5px] font-medium" style={{ color: '#5b626e' }}><span className="w-2.5 h-2.5 rounded-[3px] inline-block" style={{ background: '#e8632f' }} />En proceso</span>
-        <span className="flex items-center gap-1.5 text-[11.5px] font-medium" style={{ color: '#5b626e' }}><span className="w-2.5 h-2.5 rounded-[3px] inline-block" style={{ background: '#14b8a6' }} />Completados</span>
+        <span className="flex items-center gap-1.5 text-[11.5px] font-medium" style={{ color: '#8a90a8' }}><span className="w-2.5 h-2.5 rounded-[3px] inline-block" style={{ background: '#4a7de8' }} />En proceso</span>
+        <span className="flex items-center gap-1.5 text-[11.5px] font-medium" style={{ color: '#8a90a8' }}><span className="w-2.5 h-2.5 rounded-[3px] inline-block" style={{ background: '#14b8a6' }} />Completados</span>
       </div>
     </div>
   );
@@ -835,66 +846,66 @@ function AdminDashboard({ pedidos, solicitudes, talleres, getTaller, onSelect, o
 
       {/* Chart + atención */}
       <div className="grid xl:grid-cols-[1.7fr_1fr] gap-4">
-        <div className="rounded-[16px] p-6 border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+        <div className="rounded-[16px] p-6 border" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
           <div className="flex items-start justify-between mb-1">
             <div>
-              <h2 className="text-[15px] font-bold" style={{ color: '#181b21' }}>Volumen de pedidos</h2>
-              <p className="text-[12.5px]" style={{ color: '#767d8a' }}>Últimos 6 meses</p>
+              <h2 className="text-[15px] font-bold" style={{ color: '#e8eaee' }}>Volumen de pedidos</h2>
+              <p className="text-[12.5px]" style={{ color: '#8a90a8' }}>Últimos 6 meses</p>
             </div>
           </div>
           <DashboardChart pedidos={[...pedidos, ...solicitudes]} />
         </div>
 
-        <div className="rounded-[16px] p-6 border flex flex-col" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+        <div className="rounded-[16px] p-6 border flex flex-col" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
           <div className="flex items-center justify-between mb-1">
-            <h2 className="text-[15px] font-bold" style={{ color: '#181b21' }}>Requiere atención</h2>
-            {solicitudes.length > 0 && <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-[7px]" style={{ background: '#fdeee7', color: '#c9491c' }}>{solicitudes.length}</span>}
+            <h2 className="text-[15px] font-bold" style={{ color: '#e8eaee' }}>Requiere atención</h2>
+            {solicitudes.length > 0 && <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-[7px]" style={{ background: 'rgba(74,125,232,0.15)', color: '#4a7de8' }}>{solicitudes.length}</span>}
           </div>
-          <p className="text-[12.5px] mb-3" style={{ color: '#767d8a' }}>Solicitudes esperando estimado</p>
+          <p className="text-[12.5px] mb-3" style={{ color: '#8a90a8' }}>Solicitudes esperando estimado</p>
           <div className="flex flex-col gap-2.5 flex-1">
             {solicitudes.slice(0, 3).map(p => (
-              <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[12px] p-3 flex gap-2.5 items-center border transition-colors hover:border-[#e8632f] hover:bg-white" style={{ background: '#fbfbfc', borderColor: '#ebedf0' }}>
-                <span className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5" style={{ background: '#e8632f' }} />
+              <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[12px] p-3 flex gap-2.5 items-center border transition-colors hover:border-[#4a7de8]" style={{ background: '#1e2235', borderColor: 'rgba(255,255,255,0.07)' }}>
+                <span className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5" style={{ background: '#4a7de8' }} />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[13px] font-bold truncate" style={{ color: '#181b21' }}>{p.vehiculo}</div>
-                  <div className="text-[11.5px] truncate" style={{ color: '#767d8a' }}>{getTaller(p.tallerId)?.nombre} · {p.pieza || p.notas?.slice(0,30)}</div>
+                  <div className="text-[13px] font-bold truncate" style={{ color: '#e8eaee' }}>{p.vehiculo}</div>
+                  <div className="text-[11.5px] truncate" style={{ color: '#8a90a8' }}>{getTaller(p.tallerId)?.nombre} · {p.pieza || p.notas?.slice(0,30)}</div>
                 </div>
-                <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: '#b6bcc5' }} />
+                <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: '#5a6078' }} />
               </button>
             ))}
-            {solicitudes.length === 0 && <p className="text-[13px] py-4 text-center" style={{ color: '#9aa1ad' }}>Sin solicitudes pendientes</p>}
+            {solicitudes.length === 0 && <p className="text-[13px] py-4 text-center" style={{ color: '#5a6078' }}>Sin solicitudes pendientes</p>}
           </div>
-          <button onClick={onGoToEstimados} className="mt-3 w-full py-[9px] rounded-[10px] text-[12.5px] font-semibold border transition-colors hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#4a505c' }}>Ver todos los estimados</button>
+          <button onClick={onGoToEstimados} className="mt-3 w-full py-[9px] rounded-[10px] text-[12.5px] font-semibold border transition-colors hover:bg-[#1e2235]" style={{ borderColor: 'rgba(255,255,255,0.07)', color: '#8a90a8' }}>Ver todos los estimados</button>
         </div>
       </div>
 
       {/* Tabla recientes */}
-      <div className="rounded-[16px] overflow-hidden border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+      <div className="rounded-[16px] overflow-hidden border" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
         <div className="flex items-center justify-between px-6 py-[18px]">
-          <h2 className="text-[15px] font-bold" style={{ color: '#181b21' }}>Pedidos recientes</h2>
-          <button onClick={onGoToPedidos} className="flex items-center gap-1 text-[13px] font-bold transition-colors hover:opacity-80" style={{ color: '#c9491c' }}>Ver todos <ChevronRight className="w-4 h-4" /></button>
+          <h2 className="text-[15px] font-bold" style={{ color: '#e8eaee' }}>Pedidos recientes</h2>
+          <button onClick={onGoToPedidos} className="flex items-center gap-1 text-[13px] font-bold transition-colors hover:opacity-70" style={{ color: '#4a7de8' }}>Ver todos <ChevronRight className="w-4 h-4" /></button>
         </div>
         <table className="w-full border-collapse">
           <thead>
-            <tr style={{ borderTop: '1px solid #eef0f2' }}>
+            <tr style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
               {['Folio','Taller','Vehículo / Pieza','Estado','Fecha'].map((h, i) => (
-                <th key={h} className={`text-left py-3 text-[10.5px] font-bold uppercase ${i === 0 ? 'px-6' : 'px-3'} ${i === 4 ? 'text-right pr-6' : ''} ${i >= 2 && i <= 2 ? 'hidden sm:table-cell' : ''}`} style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>{h}</th>
+                <th key={h} className={`text-left py-3 text-[10.5px] font-bold uppercase ${i === 0 ? 'px-6' : 'px-3'} ${i === 4 ? 'text-right pr-6' : ''} ${i >= 2 && i <= 2 ? 'hidden sm:table-cell' : ''}`} style={{ color: '#5a6078', letterSpacing: '.06em' }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {recientes.length === 0 && <tr><td colSpan={5} className="py-10 text-center text-sm" style={{ color: '#9aa1ad' }}>Sin pedidos aún.</td></tr>}
+            {recientes.length === 0 && <tr><td colSpan={5} className="py-10 text-center text-sm" style={{ color: '#5a6078' }}>Sin pedidos aún.</td></tr>}
             {recientes.map(p => (
-              <tr key={p.id} onClick={() => onSelect(p.id)} className="cursor-pointer transition-colors hover:bg-[#fafbfc]" style={{ borderTop: '1px solid #f1f2f4', background: hasNewActivity('admin', p) ? '#fff8f5' : undefined }}>
+              <tr key={p.id} onClick={() => onSelect(p.id)} className="cursor-pointer transition-colors hover:bg-[#1e2235]" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: hasNewActivity('admin', p) ? 'rgba(74,125,232,0.07)' : undefined }}>
 
-                <td className="py-3.5 px-6 font-mono text-[12.5px] font-semibold whitespace-nowrap" style={{ color: '#181b21' }}>{p.folio || p.id.slice(0,8)}</td>
-                <td className="py-3.5 px-3 text-[13px] max-w-[150px] truncate" style={{ color: '#4a505c' }}>{getTaller(p.tallerId)?.nombre || '—'}</td>
+                <td className="py-3.5 px-6 font-mono text-[12.5px] font-semibold whitespace-nowrap" style={{ color: '#e8eaee' }}>{p.folio || p.id.slice(0,8)}</td>
+                <td className="py-3.5 px-3 text-[13px] max-w-[150px] truncate" style={{ color: '#8a90a8' }}>{getTaller(p.tallerId)?.nombre || '—'}</td>
                 <td className="py-3.5 px-3 hidden sm:table-cell">
-                  <div className="text-[13px] font-semibold" style={{ color: '#181b21' }}>{p.vehiculo || '—'}</div>
-                  {p.pieza && <div className="text-[11.5px]" style={{ color: '#8a909c' }}>{p.pieza}</div>}
+                  <div className="text-[13px] font-semibold" style={{ color: '#e8eaee' }}>{p.vehiculo || '—'}</div>
+                  {p.pieza && <div className="text-[11.5px]" style={{ color: '#8a90a8' }}>{p.pieza}</div>}
                 </td>
                 <td className="py-3.5 px-3"><StatusBadge estado={p.estado} /></td>
-                <td className="py-3.5 pr-6 text-right text-[12.5px] whitespace-nowrap" style={{ color: '#8a909c' }}>{formatDate(p.fecha)}</td>
+                <td className="py-3.5 pr-6 text-right text-[12.5px] whitespace-nowrap" style={{ color: '#8a90a8' }}>{formatDate(p.fecha)}</td>
               </tr>
             ))}
           </tbody>
@@ -909,18 +920,18 @@ function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFilterTal
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#5a6078' }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio..." className={`${inputClass} pl-9`} />
         </div>
-        <select value={filterTaller} onChange={e => setFilterTaller(e.target.value)} className={`${inputClass} bg-white sm:w-56`}>
+        <select value={filterTaller} onChange={e => setFilterTaller(e.target.value)} className={`${inputClass} sm:w-56`}>
           <option value="todos">Todos los talleres</option>
           {talleres.map(t => <option key={t.uid} value={t.uid}>{t.nombre}</option>)}
         </select>
-        <select value={filterEstado} onChange={e => setFilterEstado(e.target.value)} className={`${inputClass} bg-white sm:w-52`}>
+        <select value={filterEstado} onChange={e => setFilterEstado(e.target.value)} className={`${inputClass} sm:w-52`}>
           <option value="todos">Todos los estados</option>
           {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
         </select>
-        <button onClick={onExport} className="flex items-center justify-center gap-2 bg-stone-800 hover:bg-stone-900 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex-shrink-0">
+        <button onClick={onExport} className="flex items-center justify-center gap-2 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex-shrink-0 hover:bg-[#3d6fd4]" style={{ background: '#4a7de8' }}>
           <Printer className="w-4 h-4" /> Reporte
         </button>
       </div>
@@ -968,23 +979,23 @@ function TallerSubUsuarios({ tallerId, usuarios, onCrear, onEliminar, onActualiz
   };
 
   return (
-    <div className="mt-3 pt-3" style={{ borderTop: '1px dashed #e7e9ed' }}>
+    <div className="mt-3 pt-3" style={{ borderTop: '1px dashed rgba(255,255,255,0.07)' }}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[11px] font-bold uppercase" style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>
+        <span className="text-[11px] font-bold uppercase" style={{ color: '#5a6078', letterSpacing: '.06em' }}>
           Usuarios ({miembros.length + 1})
         </span>
         <button onClick={() => { setShowForm(s => !s); setError(''); setEditId(null); }}
           className="flex items-center gap-1 text-[11.5px] font-semibold hover:opacity-80 transition-opacity"
-          style={{ color: '#e8632f' }}>
+          style={{ color: '#4a7de8' }}>
           <Plus className="w-3 h-3" strokeWidth={2.5} /> Agregar
         </button>
       </div>
 
       {/* Cuenta principal */}
-      <div className="flex items-center gap-2 py-1.5 px-2 rounded-[8px] mb-1" style={{ background: '#f8f9fa' }}>
-        <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #e8632f, #c9491c)', color: '#fff' }}>P</div>
-        <span className="text-[12px] font-semibold flex-1" style={{ color: '#181b21' }}>Cuenta principal</span>
-        <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-[6px]" style={{ background: '#fdeee7', color: '#c9491c' }}>Admin taller</span>
+      <div className="flex items-center gap-2 py-1.5 px-2 rounded-[8px] mb-1" style={{ background: '#1e2235' }}>
+        <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #4a7de8, #3d6fd4)', color: '#fff' }}>P</div>
+        <span className="text-[12px] font-semibold flex-1" style={{ color: '#e8eaee' }}>Cuenta principal</span>
+        <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-[6px]" style={{ background: 'rgba(74,125,232,0.15)', color: '#4a7de8' }}>Admin taller</span>
       </div>
 
       {/* Sub-usuarios */}
@@ -992,32 +1003,32 @@ function TallerSubUsuarios({ tallerId, usuarios, onCrear, onEliminar, onActualiz
         <div key={u.uid} className="mb-1">
           {editId === u.uid ? (
             /* Edición inline */
-            <div className="flex items-center gap-2 py-1.5 px-2 rounded-[8px]" style={{ background: '#fff', border: '1px solid #e8632f' }}>
+            <div className="flex items-center gap-2 py-1.5 px-2 rounded-[8px]" style={{ background: '#1e2235', border: '1px solid #4a7de8' }}>
               <input
                 value={editNombre}
                 onChange={e => setEditNombre(e.target.value)}
-                className="flex-1 text-[12px] px-2 py-1 rounded-[7px] border outline-none focus:border-[#e8632f]"
-                style={{ borderColor: '#e3e5ea' }}
+                className="flex-1 text-[12px] px-2 py-1 rounded-[7px] border outline-none focus:border-[#4a7de8]"
+                style={{ background: '#13162a', borderColor: '#2a2f46', color: '#e8eaee' }}
                 autoFocus
               />
               <button onClick={() => handleSaveEdit(u.uid)} disabled={saving} className="w-6 h-6 rounded-[6px] flex items-center justify-center text-white text-[11px] font-bold" style={{ background: '#10b981' }}>✓</button>
-              <button onClick={() => setEditId(null)} className="w-6 h-6 rounded-[6px] flex items-center justify-center border text-[11px]" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>✕</button>
+              <button onClick={() => setEditId(null)} className="w-6 h-6 rounded-[6px] flex items-center justify-center border text-[11px]" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>✕</button>
             </div>
           ) : (
-            <div className="flex items-center gap-2 py-1.5 px-2 rounded-[8px]" style={{ background: '#f8f9fa' }}>
-              <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #f3f4f6, #e8eaed)', color: '#4a505c' }}>
+            <div className="flex items-center gap-2 py-1.5 px-2 rounded-[8px]" style={{ background: '#1e2235' }}>
+              <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: '#2a2f46', color: '#8a90a8' }}>
                 {(u.nombre || u.email || '?')[0].toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[12px] font-semibold truncate" style={{ color: '#181b21' }}>{u.nombre}</div>
-                <div className="text-[11px] truncate" style={{ color: '#8a909c' }}>{u.email}</div>
+                <div className="text-[12px] font-semibold truncate" style={{ color: '#e8eaee' }}>{u.nombre}</div>
+                <div className="text-[11px] truncate" style={{ color: '#8a90a8' }}>{u.email}</div>
               </div>
               <button onClick={() => { setEditId(u.uid); setEditNombre(u.nombre || ''); }}
-                className="w-6 h-6 rounded-[6px] flex items-center justify-center hover:bg-[#fdeee7] transition-colors flex-shrink-0" style={{ color: '#aab0b9' }}>
+                className="w-6 h-6 rounded-[6px] flex items-center justify-center hover:bg-[#2a2f46] transition-colors flex-shrink-0" style={{ color: '#5a6078' }}>
                 <Pencil className="w-3 h-3" />
               </button>
               <button onClick={() => { if (window.confirm(`¿Eliminar a ${u.nombre}?`)) onEliminar(u.uid); }}
-                className="w-6 h-6 rounded-[6px] flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors flex-shrink-0" style={{ color: '#aab0b9' }}>
+                className="w-6 h-6 rounded-[6px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors flex-shrink-0" style={{ color: '#5a6078' }}>
                 <X className="w-3 h-3" />
               </button>
             </div>
@@ -1027,17 +1038,17 @@ function TallerSubUsuarios({ tallerId, usuarios, onCrear, onEliminar, onActualiz
 
       {/* Formulario nuevo sub-usuario */}
       {showForm && (
-        <form onSubmit={handleCreate} className="mt-2 p-3 rounded-[11px] space-y-2 border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
-          <p className="text-[11.5px] font-bold" style={{ color: '#181b21' }}>Nuevo usuario</p>
+        <form onSubmit={handleCreate} className="mt-2 p-3 rounded-[11px] space-y-2 border" style={{ background: '#1e2235', borderColor: 'rgba(255,255,255,0.07)' }}>
+          <p className="text-[11.5px] font-bold" style={{ color: '#e8eaee' }}>Nuevo usuario</p>
           <input value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} placeholder="Nombre" className={inputClass} required />
           <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Correo electrónico" className={inputClass} required />
           <input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="Contraseña (mín. 6)" className={inputClass} required minLength={6} />
           {error && <p className="text-[12px] px-3 py-2 rounded-[9px]" style={{ background: '#fdecec', color: '#dc2626' }}>{error}</p>}
           <div className="flex gap-2 pt-1">
-            <button type="submit" disabled={saving} className="flex-1 py-2 rounded-[9px] text-white text-[12.5px] font-bold hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+            <button type="submit" disabled={saving} className="flex-1 py-2 rounded-[9px] text-white text-[12.5px] font-bold hover:brightness-105 disabled:opacity-60" style={{ background: '#4a7de8' }}>
               {saving ? 'Creando…' : 'Crear usuario'}
             </button>
-            <button type="button" onClick={() => { setShowForm(false); setError(''); }} className="px-3 py-2 rounded-[9px] border text-[12.5px] font-semibold hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>✕</button>
+            <button type="button" onClick={() => { setShowForm(false); setError(''); }} className="px-3 py-2 rounded-[9px] border text-[12.5px] font-semibold hover:bg-[#1e2235]" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>✕</button>
           </div>
         </form>
       )}
@@ -1119,13 +1130,13 @@ function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos, onCrea
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-[15px] font-bold" style={{ color: '#181b21' }}>Talleres registrados</h2>
-          <p className="text-[12.5px]" style={{ color: '#767d8a' }}>{talleres.length} taller{talleres.length !== 1 ? 'es' : ''} en el sistema</p>
+          <h2 className="text-[15px] font-bold" style={{ color: '#e8eaee' }}>Talleres registrados</h2>
+          <p className="text-[12.5px]" style={{ color: '#8a90a8' }}>{talleres.length} taller{talleres.length !== 1 ? 'es' : ''} en el sistema</p>
         </div>
         <button
           onClick={() => { setShowForm(s => !s); setError(''); }}
-          className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:brightness-105"
-          style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)', boxShadow: '0 8px 18px -8px rgba(201,73,28,.5)' }}
+          className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#3d6fd4]"
+          style={{ background: '#4a7de8' }}
         >
           <Plus className="w-4 h-4" strokeWidth={2.2} /> Nuevo taller
         </button>
@@ -1139,8 +1150,8 @@ function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos, onCrea
 
       {/* Formulario nuevo taller */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="rounded-[16px] p-6 border space-y-4" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
-          <p className="text-[14px] font-bold" style={{ color: '#181b21' }}>Nuevo taller</p>
+        <form onSubmit={handleSubmit} className="rounded-[16px] p-6 border space-y-4" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
+          <p className="text-[14px] font-bold" style={{ color: '#e8eaee' }}>Nuevo taller</p>
           <FormField label="Nombre del taller">
             <input value={form.nombre} onChange={e => handleChange('nombre', e.target.value)} placeholder="ej. Hojalatería y Pintura Martínez" className={inputClass} required />
           </FormField>
@@ -1162,7 +1173,7 @@ function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos, onCrea
             <FormField label="Contraseña (opcional)">
               <div className="flex gap-2">
                 <input value={form.password} onChange={e => handleChange('password', e.target.value)} placeholder="••••••" className={`${inputClass} font-mono`} />
-                <button type="button" onClick={generarPassword} className="px-3 rounded-[11px] border text-[12px] font-semibold whitespace-nowrap transition-colors hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>
+                <button type="button" onClick={generarPassword} className="px-3 rounded-[11px] border text-[12px] font-semibold whitespace-nowrap transition-colors hover:bg-[#1e2235]" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>
                   Generar
                 </button>
               </div>
@@ -1174,10 +1185,10 @@ function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos, onCrea
             </div>
           )}
           <div className="flex gap-3 pt-1">
-            <button type="submit" disabled={saving} className="flex-1 py-[11px] rounded-[11px] text-white font-bold text-[13.5px] transition-all hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+            <button type="submit" disabled={saving} className="flex-1 py-[11px] rounded-[11px] text-white font-bold text-[13.5px] transition-all hover:bg-[#3d6fd4] disabled:opacity-60" style={{ background: '#4a7de8' }}>
               {saving ? 'Creando…' : 'Crear taller'}
             </button>
-            <button type="button" onClick={() => { setShowForm(false); setError(''); }} className="px-5 py-[11px] rounded-[11px] border text-[13.5px] font-semibold transition-colors hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>
+            <button type="button" onClick={() => { setShowForm(false); setError(''); }} className="px-5 py-[11px] rounded-[11px] border text-[13.5px] font-semibold transition-colors hover:bg-[#1e2235]" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>
               Cancelar
             </button>
           </div>
@@ -1192,10 +1203,10 @@ function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos, onCrea
 
           if (editingId === t.uid) {
             return (
-              <div key={t.uid} className="rounded-[15px] border p-5 space-y-3" style={{ background: '#fff', borderColor: '#e8632f', boxShadow: '0 0 0 3px rgba(232,99,47,.08)' }}>
+              <div key={t.uid} className="rounded-[15px] border p-5 space-y-3" style={{ background: '#1a1d2e', borderColor: '#4a7de8', boxShadow: '0 0 0 3px rgba(74,125,232,.08)' }}>
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-[13.5px] font-bold" style={{ color: '#181b21' }}>Editar taller</p>
-                  <button onClick={() => setEditingId(null)} className="w-7 h-7 rounded-[7px] flex items-center justify-center hover:bg-stone-100 transition-colors" style={{ color: '#9aa1ad' }}><X className="w-4 h-4" /></button>
+                  <p className="text-[13.5px] font-bold" style={{ color: '#e8eaee' }}>Editar taller</p>
+                  <button onClick={() => setEditingId(null)} className="w-7 h-7 rounded-[7px] flex items-center justify-center hover:bg-[#1e2235] transition-colors" style={{ color: '#5a6078' }}><X className="w-4 h-4" /></button>
                 </div>
                 <FormField label="Nombre"><input value={editForm.nombre} onChange={e => handleEditChange('nombre', e.target.value)} className={inputClass} /></FormField>
                 <div className="grid grid-cols-2 gap-3">
@@ -1206,10 +1217,10 @@ function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos, onCrea
                 <FormField label="Usuario"><input value={editForm.usuario} onChange={e => handleEditChange('usuario', e.target.value)} className={`${inputClass} font-mono`} /></FormField>
                 {editError && <div className="flex items-center gap-2 text-[13px] px-3 py-2 rounded-[11px]" style={{ background: '#fdecec', color: '#dc2626' }}><AlertCircle className="w-4 h-4 flex-shrink-0" />{editError}</div>}
                 <div className="flex gap-2 pt-1">
-                  <button onClick={handleUpdate} disabled={editSaving} className="flex-1 py-[10px] rounded-[11px] text-white text-[13px] font-bold transition-all hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+                  <button onClick={handleUpdate} disabled={editSaving} className="flex-1 py-[10px] rounded-[11px] text-white text-[13px] font-bold transition-all hover:bg-[#3d6fd4] disabled:opacity-60" style={{ background: '#4a7de8' }}>
                     {editSaving ? 'Guardando…' : 'Guardar'}
                   </button>
-                  <button onClick={() => setEditingId(null)} className="px-4 py-[10px] rounded-[11px] border text-[13px] font-semibold transition-colors hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>
+                  <button onClick={() => setEditingId(null)} className="px-4 py-[10px] rounded-[11px] border text-[13px] font-semibold transition-colors hover:bg-[#1e2235]" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>
                     Cancelar
                   </button>
                 </div>
@@ -1218,50 +1229,50 @@ function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos, onCrea
           }
 
           return (
-            <div key={t.uid} className="rounded-[15px] border p-[18px]" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+            <div key={t.uid} className="rounded-[15px] border p-[18px]" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
               {/* Cabecera */}
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-11 h-11 rounded-[12px] flex items-center justify-center text-[15px] font-extrabold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #f3f4f6, #e8eaed)', color: '#4a505c' }}>
+                <div className="w-11 h-11 rounded-[12px] flex items-center justify-center text-[15px] font-extrabold flex-shrink-0" style={{ background: '#2a2f46', color: '#8a90a8' }}>
                   {initials(t.nombre)}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-[14px] font-bold truncate" style={{ color: '#181b21' }}>{t.nombre}</h3>
-                  <p className="text-[12px]" style={{ color: '#8a909c' }}>{t.contacto}</p>
+                  <h3 className="text-[14px] font-bold truncate" style={{ color: '#e8eaee' }}>{t.nombre}</h3>
+                  <p className="text-[12px]" style={{ color: '#8a90a8' }}>{t.contacto}</p>
                 </div>
               </div>
 
               {/* Datos de contacto */}
               <div className="space-y-1.5 mb-4">
                 {t.telefono && (
-                  <p className="flex items-center gap-2 text-[12.5px]" style={{ color: '#5b626e' }}>
-                    <Phone className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#aab0b9' }} />{t.telefono}
+                  <p className="flex items-center gap-2 text-[12.5px]" style={{ color: '#8a90a8' }}>
+                    <Phone className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#5a6078' }} />{t.telefono}
                   </p>
                 )}
                 {t.email && (
-                  <p className="flex items-center gap-2 text-[12.5px] truncate" style={{ color: '#5b626e' }}>
-                    <Mail className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#aab0b9' }} />{t.email}
+                  <p className="flex items-center gap-2 text-[12.5px] truncate" style={{ color: '#8a90a8' }}>
+                    <Mail className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#5a6078' }} />{t.email}
                   </p>
                 )}
               </div>
 
               {/* Pie */}
-              <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px dashed #e7e9ed' }}>
+              <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px dashed rgba(255,255,255,0.07)' }}>
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-[11.5px]" style={{ color: '#8a909c' }}>
-                    Usuario: <span className="font-mono font-semibold" style={{ color: '#5b626e' }}>{t.usuario || '—'}</span>
+                  <span className="text-[11.5px]" style={{ color: '#8a90a8' }}>
+                    Usuario: <span className="font-mono font-semibold" style={{ color: '#8a90a8' }}>{t.usuario || '—'}</span>
                   </span>
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: activos > 0 ? '#fef6e9' : '#f1f3f5', color: activos > 0 ? '#b7791f' : '#767d8a' }}>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: activos > 0 ? '#fef6e9' : '#1e2235', color: activos > 0 ? '#b7791f' : '#5a6078' }}>
                     {activos} activos
                   </span>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <button onClick={() => onVerPedidos(t.uid)} className="flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[12px] font-bold transition-colors hover:bg-[#fdeee7]" style={{ color: '#c9491c' }}>
+                  <button onClick={() => onVerPedidos(t.uid)} className="flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[12px] font-bold transition-colors hover:bg-[#1e2235]" style={{ color: '#e8eaee' }}>
                     Ver <ChevronRight className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={() => startEdit(t)} className="w-7 h-7 rounded-[8px] flex items-center justify-center transition-colors hover:bg-[#fdeee7] hover:text-[#e8632f]" style={{ color: '#aab0b9' }} title="Editar">
+                  <button onClick={() => startEdit(t)} className="w-7 h-7 rounded-[8px] flex items-center justify-center transition-colors hover:bg-[#1e2235] hover:text-[#4a7de8]" style={{ color: '#5a6078' }} title="Editar">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={() => { if (window.confirm(`¿Eliminar el taller "${t.nombre}"? Esta acción no se puede deshacer.`)) onDeleteTaller(t.uid); }} className="w-7 h-7 rounded-[8px] flex items-center justify-center transition-colors hover:bg-red-50 hover:text-red-500" style={{ color: '#aab0b9' }} title="Eliminar">
+                  <button onClick={() => { if (window.confirm(`¿Eliminar el taller "${t.nombre}"? Esta acción no se puede deshacer.`)) onDeleteTaller(t.uid); }} className="w-7 h-7 rounded-[8px] flex items-center justify-center transition-colors hover:bg-red-900/30 hover:text-red-400" style={{ color: '#5a6078' }} title="Eliminar">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -1312,16 +1323,16 @@ function AdminNuevoPedido({ talleres, onCreate }) {
 
   return (
     <div className="max-w-lg mx-auto">
-      <h2 className="font-semibold text-stone-900 mb-1 text-lg">Registrar nuevo pedido</h2>
-      <p className="text-sm text-stone-500 mb-4">Crea el folio a nombre de un taller. Aparecerá de inmediato en su portal.</p>
+      <h2 className="font-semibold mb-1 text-lg" style={{ color: '#e8eaee' }}>Registrar nuevo pedido</h2>
+      <p className="text-sm mb-4" style={{ color: '#8a90a8' }}>Crea el folio a nombre de un taller. Aparecerá de inmediato en su portal.</p>
       {done && (
-        <div className="mb-4 text-sm text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg flex items-center gap-2">
+        <div className="mb-4 text-sm text-emerald-400 bg-emerald-900/20 px-3 py-2 rounded-lg flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4" /> Pedido registrado correctamente.
         </div>
       )}
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-stone-200 p-5 space-y-4">
+      <form onSubmit={handleSubmit} className="rounded-xl border p-5 space-y-4" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
         <FormField label="Taller">
-          <select value={form.tallerId} onChange={e => handleChange('tallerId', e.target.value)} className={`${inputClass} bg-white`} required>
+          <select value={form.tallerId} onChange={e => handleChange('tallerId', e.target.value)} className={inputClass} required>
             {talleres.map(t => <option key={t.uid} value={t.uid}>{t.nombre}</option>)}
           </select>
         </FormField>
@@ -1341,9 +1352,9 @@ function AdminNuevoPedido({ talleres, onCreate }) {
         </FormField>
         <FormField label="Fecha del pedido (opcional)">
           <input type="date" value={fechaPersonalizada} onChange={e => setFechaPersonalizada(e.target.value)} className={inputClass} />
-          <p className="text-xs text-stone-400 mt-1">Vacío = fecha de hoy. Útil para importar órdenes antiguas.</p>
+          <p className="text-xs mt-1" style={{ color: '#5a6078' }}>Vacío = fecha de hoy. Útil para importar órdenes antiguas.</p>
         </FormField>
-        <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 rounded-lg transition-colors">
+        <button type="submit" className="w-full text-white font-semibold py-2.5 rounded-lg transition-colors hover:bg-[#3d6fd4]" style={{ background: '#4a7de8' }}>
           Registrar pedido
         </button>
       </form>
@@ -1394,21 +1405,21 @@ function AdminNuevaCotizacion({ talleres, onCreate }) {
 
   return (
     <div className="max-w-lg mx-auto">
-      <h2 className="font-semibold text-stone-900 mb-1 text-lg">Nueva cotización</h2>
-      <p className="text-sm text-stone-500 mb-4">Crea una cotización con estimado incluido. Aparecerá en el portal del taller para que la acepte o rechace.</p>
+      <h2 className="font-semibold mb-1 text-lg" style={{ color: '#e8eaee' }}>Nueva cotización</h2>
+      <p className="text-sm mb-4" style={{ color: '#8a90a8' }}>Crea una cotización con estimado incluido. Aparecerá en el portal del taller para que la acepte o rechace.</p>
       {done && (
-        <div className="mb-4 text-sm text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg flex items-center gap-2">
+        <div className="mb-4 text-sm text-emerald-400 bg-emerald-900/20 px-3 py-2 rounded-lg flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4" /> Cotización creada y enviada al taller.
         </div>
       )}
       {error && (
-        <div className="mb-4 text-sm text-red-700 bg-red-50 px-3 py-2 rounded-lg flex items-center gap-2">
+        <div className="mb-4 text-sm text-red-400 bg-red-900/20 px-3 py-2 rounded-lg flex items-center gap-2">
           <AlertCircle className="w-4 h-4" /> {error}
         </div>
       )}
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-stone-200 p-5 space-y-4">
+      <form onSubmit={handleSubmit} className="rounded-xl border p-5 space-y-4" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
         <FormField label="Taller">
-          <select value={form.tallerId} onChange={e => handleChange('tallerId', e.target.value)} className={`${inputClass} bg-white`} required>
+          <select value={form.tallerId} onChange={e => handleChange('tallerId', e.target.value)} className={inputClass} required>
             {talleres.map(t => <option key={t.uid} value={t.uid}>{t.nombre}</option>)}
           </select>
         </FormField>
@@ -1428,14 +1439,14 @@ function AdminNuevaCotizacion({ talleres, onCreate }) {
         </FormField>
         <FormField label="PDF del estimado (opcional)">
           {archivoEstimado ? (
-            <div className="flex items-center justify-between gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2">
-              <a href={archivoEstimado.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-stone-700 truncate hover:underline">
+            <div className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 border" style={{ background: '#1e2235', borderColor: 'rgba(255,255,255,0.07)' }}>
+              <a href={archivoEstimado.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm truncate hover:underline" style={{ color: '#e8eaee' }}>
                 <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{archivoEstimado.name}</span>
               </a>
-              <button type="button" onClick={() => setArchivoEstimado(null)} className="text-stone-400 hover:text-red-500 flex-shrink-0"><X className="w-4 h-4" /></button>
+              <button type="button" onClick={() => setArchivoEstimado(null)} style={{ color: '#5a6078' }} className="hover:text-red-400 flex-shrink-0"><X className="w-4 h-4" /></button>
             </div>
           ) : (
-            <label className="flex items-center justify-center gap-2 border border-dashed border-stone-300 rounded-lg px-3 py-2.5 text-sm text-stone-500 hover:border-orange-300 hover:text-orange-600 cursor-pointer transition-colors bg-white">
+            <label className="flex items-center justify-center gap-2 border border-dashed rounded-lg px-3 py-2.5 text-sm cursor-pointer transition-colors hover:border-[#4a7de8]" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>
               <Paperclip className="w-4 h-4" /> Adjuntar PDF
               <input type="file" accept="application/pdf" onChange={handleFile} className="hidden" />
             </label>
@@ -1446,9 +1457,9 @@ function AdminNuevaCotizacion({ talleres, onCreate }) {
         </FormField>
         <FormField label="Fecha del pedido (opcional)">
           <input type="date" value={fechaPersonalizada} onChange={e => setFechaPersonalizada(e.target.value)} className={inputClass} />
-          <p className="text-xs text-stone-400 mt-1">Vacío = fecha de hoy. Útil para importar órdenes antiguas.</p>
+          <p className="text-xs mt-1" style={{ color: '#5a6078' }}>Vacío = fecha de hoy. Útil para importar órdenes antiguas.</p>
         </FormField>
-        <button type="submit" disabled={sending} className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+        <button type="submit" disabled={sending} className="w-full disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 hover:bg-[#3d6fd4]" style={{ background: '#4a7de8' }}>
           <Send className="w-4 h-4" /> {sending ? 'Creando…' : 'Crear y enviar cotización'}
         </button>
       </form>
@@ -1537,13 +1548,13 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
   return (
     <div className="space-y-4">
       {/* Taller + estado actual */}
-      <div className="flex items-center gap-3 rounded-[13px] p-3" style={{ background: '#f8f9fa' }}>
-        <div className="w-10 h-10 rounded-[10px] border flex items-center justify-center font-bold text-[14px] flex-shrink-0" style={{ background: '#fff', borderColor: '#e7e9ed', color: '#4a505c' }}>
+      <div className="flex items-center gap-3 rounded-[13px] p-3" style={{ background: '#1e2235' }}>
+        <div className="w-10 h-10 rounded-[10px] border flex items-center justify-center font-bold text-[14px] flex-shrink-0" style={{ background: '#2a2f46', borderColor: 'rgba(255,255,255,0.07)', color: '#8a90a8' }}>
           {(taller?.nombre || '?').split(' ').filter(w => w.length > 2).slice(0,2).map(w => w[0]).join('').toUpperCase() || '?'}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-[13.5px] font-bold truncate" style={{ color: '#181b21' }}>{taller?.nombre}</div>
-          <div className="text-[12px]" style={{ color: '#8a909c' }}>{taller?.contacto}</div>
+          <div className="text-[13.5px] font-bold truncate" style={{ color: '#e8eaee' }}>{taller?.nombre}</div>
+          <div className="text-[12px]" style={{ color: '#8a90a8' }}>{taller?.contacto}</div>
         </div>
         <StatusBadge estado={estado} />
       </div>
@@ -1557,7 +1568,7 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
           </div>
 
           <FormField label="Estado del pedido">
-            <select value={estado} onChange={e => setEstado(e.target.value)} className={`${inputClass} bg-white`}>
+            <select value={estado} onChange={e => setEstado(e.target.value)} className={inputClass}>
               {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
             </select>
           </FormField>
@@ -1582,42 +1593,42 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
           )}
 
           {order.archivo && (
-            <div className="rounded-[12px] p-3" style={{ background: '#f8f9fa' }}>
-              <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: '#9aa1ad', letterSpacing: '.05em' }}>Archivo del taller</p>
+            <div className="rounded-[12px] p-3" style={{ background: '#1e2235' }}>
+              <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: '#5a6078', letterSpacing: '.05em' }}>Archivo del taller</p>
               {order.archivo.type?.startsWith('image/') || order.archivo.url?.match(/\.(jpg|jpeg|png|webp|gif)/i) ? (
-                <a href={order.archivo.url} target="_blank" rel="noreferrer"><img src={order.archivo.url} alt={order.archivo.name} className="rounded-lg max-h-36 object-cover" style={{ border: '1px solid #e7e9ed' }} /></a>
+                <a href={order.archivo.url} target="_blank" rel="noreferrer"><img src={order.archivo.url} alt={order.archivo.name} className="rounded-lg max-h-36 object-cover" style={{ border: '1px solid rgba(255,255,255,0.07)' }} /></a>
               ) : (
-                <a href={order.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-[10px] px-3 py-2 text-[13px] border transition-colors hover:border-[#e8632f] hover:text-[#c9491c]" style={{ background: '#fff', borderColor: '#e7e9ed', color: '#4a505c' }}>
+                <a href={order.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-[10px] px-3 py-2 text-[13px] border transition-colors hover:border-[#4a7de8]" style={{ background: '#13162a', borderColor: '#2a2f46', color: '#8a90a8' }}>
                   <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{order.archivo.name}</span>
                 </a>
               )}
             </div>
           )}
 
-          <div className="rounded-[12px] p-3" style={{ background: '#f8f9fa' }}>
-            <p className="text-[10.5px] font-bold uppercase mb-3" style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>Progreso</p>
+          <div className="rounded-[12px] p-3" style={{ background: '#1e2235' }}>
+            <p className="text-[10.5px] font-bold uppercase mb-3" style={{ color: '#5a6078', letterSpacing: '.06em' }}>Progreso</p>
             <StatusStepper estado={estado} />
           </div>
 
-          <div className="rounded-[12px] p-3" style={{ background: '#f8f9fa' }}>
-            <p className="text-[10.5px] font-bold uppercase mb-2 flex items-center gap-1.5" style={{ color: '#9aa1ad', letterSpacing: '.05em' }}>
+          <div className="rounded-[12px] p-3" style={{ background: '#1e2235' }}>
+            <p className="text-[10.5px] font-bold uppercase mb-2 flex items-center gap-1.5" style={{ color: '#5a6078', letterSpacing: '.05em' }}>
               <StickyNote className="w-3.5 h-3.5" /> Notas internas
             </p>
             <textarea value={notasInt} onChange={e => setNotasInt(e.target.value)} placeholder="Solo visibles para el admin…" rows={3}
-              className="w-full text-[13px] rounded-[10px] p-2.5 resize-none border outline-none focus:ring-2 focus:ring-[#e8632f]/10 focus:border-[#e8632f]"
-              style={{ background: '#fff', borderColor: '#e3e5ea', color: '#181b21' }} />
+              className="w-full text-[13px] rounded-[10px] p-2.5 resize-none border outline-none focus:ring-2 focus:ring-[#4a7de8]/10 focus:border-[#4a7de8]"
+              style={{ background: '#13162a', borderColor: '#2a2f46', color: '#e8eaee' }} />
           </div>
 
           {saved && <div className="flex items-center gap-2 px-3 py-2.5 rounded-[11px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}><CheckCircle2 className="w-4 h-4" /> Cambios guardados.</div>}
-          <button onClick={handleActualizar} disabled={saving} className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:brightness-105 disabled:opacity-60 transition-all" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)', boxShadow: '0 8px 18px -8px rgba(201,73,28,.5)' }}>
+          <button onClick={handleActualizar} disabled={saving} className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:bg-[#3d6fd4] disabled:opacity-60 transition-all" style={{ background: '#4a7de8' }}>
             {saving ? 'Guardando…' : 'Actualizar'}
           </button>
         </div>
 
         {/* ── Columna derecha: Estimado ── */}
         <div className="space-y-3">
-          <div className="rounded-[13px] p-4 space-y-3 border" style={{ borderColor: '#e7e9ed' }}>
-            <p className="text-[10.5px] font-bold uppercase flex items-center gap-1.5" style={{ color: '#9aa1ad', letterSpacing: '.05em' }}>
+          <div className="rounded-[13px] p-4 space-y-3 border" style={{ borderColor: 'rgba(255,255,255,0.07)', background: '#1e2235' }}>
+            <p className="text-[10.5px] font-bold uppercase flex items-center gap-1.5" style={{ color: '#5a6078', letterSpacing: '.05em' }}>
               <Send className="w-3.5 h-3.5" /> Estimado
             </p>
             {order.estimado?.respuesta === 'pendiente' && <div className="flex items-center gap-2 text-[13px] px-3 py-2 rounded-[10px]" style={{ background: '#fef6e9', color: '#b7791f' }}><Clock className="w-4 h-4 flex-shrink-0" /> Esperando respuesta del taller…</div>}
@@ -1634,38 +1645,38 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
             </FormField>
             <FormField label="PDF del estimado (opcional)">
               {archivo ? (
-                <div className="flex items-center justify-between gap-2 rounded-[10px] px-3 py-2 border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
-                  <a href={archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[13px] truncate hover:underline" style={{ color: '#4a505c' }}>
+                <div className="flex items-center justify-between gap-2 rounded-[10px] px-3 py-2 border" style={{ background: '#13162a', borderColor: '#2a2f46' }}>
+                  <a href={archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[13px] truncate hover:underline" style={{ color: '#8a90a8' }}>
                     <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{archivo.name}</span>
                   </a>
-                  <button type="button" onClick={() => setArchivo(null)} style={{ color: '#aab0b9' }}><X className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => setArchivo(null)} style={{ color: '#5a6078' }}><X className="w-4 h-4" /></button>
                 </div>
               ) : (
-                <label className="flex items-center justify-center gap-2 border-dashed border rounded-[10px] px-3 py-2.5 text-[13px] cursor-pointer transition-colors hover:border-[#e8632f] hover:text-[#c9491c]" style={{ borderColor: '#d3d6db', color: '#8a909c' }}>
+                <label className="flex items-center justify-center gap-2 border-dashed border rounded-[10px] px-3 py-2.5 text-[13px] cursor-pointer transition-colors hover:border-[#4a7de8] hover:text-[#4a7de8]" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>
                   <Paperclip className="w-4 h-4" /> Adjuntar PDF
                   <input type="file" accept="application/pdf" onChange={handleFile} className="hidden" />
                 </label>
               )}
             </FormField>
-            <button onClick={handleSendEstimate} disabled={sending} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:brightness-105 disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: '#181b21' }}>
+            <button onClick={handleSendEstimate} disabled={sending} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#3d6fd4] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: '#4a7de8' }}>
               <Send className="w-4 h-4" /> {sending ? 'Enviando…' : order.estimado ? 'Actualizar estimado' : 'Enviar estimado al taller'}
             </button>
           </div>
 
           {taller?.email && (
             <div className="space-y-2">
-              <button type="button" onClick={() => setShowEmail(v => !v)} className="w-full py-[9px] rounded-[10px] text-[13px] font-semibold border flex items-center justify-center gap-2 hover:bg-stone-50 transition-colors" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>
+              <button type="button" onClick={() => setShowEmail(v => !v)} className="w-full py-[9px] rounded-[10px] text-[13px] font-semibold border flex items-center justify-center gap-2 hover:bg-[#1e2235] transition-colors" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>
                 <Mail className="w-4 h-4" /> Correo a {taller.email}
               </button>
               {showEmail && (() => {
                 const subject = `Estimado · ${order.referencia || order.vehiculo}`;
                 const body = [`Hola ${taller.contacto || ''},`, '', `Estimado para: ${order.vehiculo}`, notasEstimado ? `Notas: ${notasEstimado}` : '', '', 'Puedes verlo en Parts Pilot.', '', 'Saludos.'].filter((l, i) => !(i === 3 && !notasEstimado)).join('\n');
                 return (
-                  <div className="rounded-[12px] p-3 border space-y-2 text-[13px]" style={{ background: '#f8f9fa', borderColor: '#e7e9ed' }}>
-                    <div><span className="font-semibold" style={{ color: '#767d8a' }}>Para: </span><span style={{ color: '#181b21' }}>{taller.email}</span></div>
-                    <div><span className="font-semibold" style={{ color: '#767d8a' }}>Asunto: </span><span style={{ color: '#181b21' }}>{subject}</span></div>
-                    <textarea readOnly value={body} rows={4} className="w-full text-[12px] rounded-[10px] p-2 resize-none outline-none border" style={{ background: '#fff', borderColor: '#e7e9ed', color: '#5b626e' }} />
-                    <button type="button" onClick={() => navigator.clipboard.writeText(`Para: ${taller.email}\nAsunto: ${subject}\n\n${body}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); })} className="w-full py-2 rounded-[10px] text-white text-[13px] font-semibold flex items-center justify-center gap-2" style={{ background: '#181b21' }}>
+                  <div className="rounded-[12px] p-3 border space-y-2 text-[13px]" style={{ background: '#1e2235', borderColor: 'rgba(255,255,255,0.07)' }}>
+                    <div><span className="font-semibold" style={{ color: '#8a90a8' }}>Para: </span><span style={{ color: '#e8eaee' }}>{taller.email}</span></div>
+                    <div><span className="font-semibold" style={{ color: '#8a90a8' }}>Asunto: </span><span style={{ color: '#e8eaee' }}>{subject}</span></div>
+                    <textarea readOnly value={body} rows={4} className="w-full text-[12px] rounded-[10px] p-2 resize-none outline-none border" style={{ background: '#13162a', borderColor: '#2a2f46', color: '#8a90a8' }} />
+                    <button type="button" onClick={() => navigator.clipboard.writeText(`Para: ${taller.email}\nAsunto: ${subject}\n\n${body}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); })} className="w-full py-2 rounded-[10px] text-white text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-[#3d6fd4]" style={{ background: '#4a7de8' }}>
                       {copied ? <><CheckCircle2 className="w-4 h-4" /> ¡Copiado!</> : <><Paperclip className="w-4 h-4" /> Copiar correo</>}
                     </button>
                   </div>
@@ -1753,18 +1764,18 @@ function ReporteModal({ pedidos, talleres, onClose }) {
     <Modal title="Reporte · Pedidos en Proceso" onClose={onClose}>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm text-stone-500">
-            <span className="font-semibold text-stone-800">{activos.length}</span> pedidos activos — excluye Orden Completa
+          <p className="text-sm" style={{ color: '#8a90a8' }}>
+            <span className="font-semibold" style={{ color: '#e8eaee' }}>{activos.length}</span> pedidos activos — excluye Orden Completa
           </p>
-          <button onClick={handlePrint} className="flex items-center gap-2 bg-stone-800 hover:bg-stone-900 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+          <button onClick={handlePrint} className="flex items-center gap-2 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors hover:bg-[#3d6fd4]" style={{ background: '#4a7de8' }}>
             <Printer className="w-4 h-4" /> Imprimir / Guardar PDF
           </button>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-stone-200">
+        <div className="overflow-x-auto rounded-xl border" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-stone-800 text-white text-[10px] uppercase tracking-wider">
+              <tr className="text-[10px] uppercase tracking-wider" style={{ background: '#2a2f46', color: '#e8eaee' }}>
                 <th className="text-left px-3 py-2.5 font-medium">#</th>
                 <th className="text-left px-3 py-2.5 font-medium">Referencia</th>
                 <th className="text-left px-3 py-2.5 font-medium">Taller</th>
@@ -1777,22 +1788,22 @@ function ReporteModal({ pedidos, talleres, onClose }) {
             </thead>
             <tbody>
               {activos.map((p, i) => (
-                <tr key={p.id} className={`border-b border-stone-100 ${i % 2 === 0 ? 'bg-white' : 'bg-stone-50'}`}>
-                  <td className="px-3 py-2 text-stone-400">{i + 1}</td>
-                  <td className="px-3 py-2 font-semibold text-stone-800">{p.referencia || <span className="text-stone-300 font-normal">—</span>}</td>
-                  <td className="px-3 py-2 text-stone-600">{getTaller(p.tallerId)?.nombre || '—'}</td>
-                  <td className="px-3 py-2 text-stone-600">{p.vehiculo || '—'}</td>
+                <tr key={p.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: i % 2 === 0 ? '#1a1d2e' : '#1e2235' }}>
+                  <td className="px-3 py-2" style={{ color: '#5a6078' }}>{i + 1}</td>
+                  <td className="px-3 py-2 font-semibold" style={{ color: '#e8eaee' }}>{p.referencia || <span style={{ color: '#5a6078', fontWeight: 400 }}>—</span>}</td>
+                  <td className="px-3 py-2" style={{ color: '#8a90a8' }}>{getTaller(p.tallerId)?.nombre || '—'}</td>
+                  <td className="px-3 py-2" style={{ color: '#8a90a8' }}>{p.vehiculo || '—'}</td>
                   <td className="px-3 py-2"><StatusBadge estado={p.estado} /></td>
-                  <td className="px-3 py-2 text-stone-500 whitespace-nowrap">{formatDate(p.fecha)}</td>
+                  <td className="px-3 py-2 whitespace-nowrap" style={{ color: '#8a90a8' }}>{formatDate(p.fecha)}</td>
                   <td className="px-3 py-2 font-semibold whitespace-nowrap">
-                    {p.fechaEntrega ? <span className="text-blue-600">{formatDate(p.fechaEntrega)}</span> : <span className="text-stone-300">—</span>}
+                    {p.fechaEntrega ? <span className="text-blue-400">{formatDate(p.fechaEntrega)}</span> : <span style={{ color: '#5a6078' }}>—</span>}
                   </td>
-                  <td className="px-3 py-2 text-stone-500 max-w-[140px] truncate">{p.notas || ''}</td>
+                  <td className="px-3 py-2 max-w-[140px] truncate" style={{ color: '#8a90a8' }}>{p.notas || ''}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {activos.length === 0 && <div className="py-10 text-center text-stone-400 text-sm">No hay pedidos activos en este momento.</div>}
+          {activos.length === 0 && <div className="py-10 text-center text-sm" style={{ color: '#5a6078' }}>No hay pedidos activos en este momento.</div>}
         </div>
       </div>
     </Modal>
@@ -1815,34 +1826,34 @@ function AdminEstimados({ solicitudes, getTaller, onSelect }) {
     const isCotizando = p.estado === 'cotizando';
     const hasAct = hasNewActivity('admin', p);
     return (
-      <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[15px] p-[17px] border transition-all hover:border-[#e8632f] hover:shadow-[0_8px_24px_-14px_rgba(201,73,28,.4)] relative" style={{ background: '#fff', borderColor: hasAct ? '#e8632f' : isCotizando ? '#dbe7fe' : '#f3d9cb', boxShadow: hasAct ? '0 0 0 2px rgba(232,99,47,.12)' : 'none' }}>
+      <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[15px] p-[17px] border transition-all hover:border-[#4a7de8] hover:shadow-[0_8px_24px_-14px_rgba(74,125,232,.3)] relative" style={{ background: '#1a1d2e', borderColor: hasAct ? '#4a7de8' : isCotizando ? 'rgba(74,125,232,0.3)' : 'rgba(255,255,255,0.07)', boxShadow: hasAct ? '0 0 0 2px rgba(74,125,232,.12)' : 'none' }}>
       {hasAct && (
         <span className="absolute top-3 right-3 flex h-2.5 w-2.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: '#e8632f' }} />
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ background: '#e8632f' }} />
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: '#4a7de8' }} />
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ background: '#4a7de8' }} />
         </span>
       )}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[11.5px] flex items-center gap-1 mb-1 truncate" style={{ color: '#8a909c' }}>
+            <p className="text-[11.5px] flex items-center gap-1 mb-1 truncate" style={{ color: '#8a90a8' }}>
               <Building2 className="w-3 h-3 flex-shrink-0" />{taller?.nombre || '—'}
             </p>
-            <h3 className="text-[14.5px] font-bold truncate" style={{ color: '#181b21' }}>{p.vehiculo}</h3>
-            {p.pieza && <p className="text-[12.5px] mt-0.5" style={{ color: '#767d8a' }}>{p.pieza}</p>}
+            <h3 className="text-[14.5px] font-bold truncate" style={{ color: '#e8eaee' }}>{p.vehiculo}</h3>
+            {p.pieza && <p className="text-[12.5px] mt-0.5" style={{ color: '#8a90a8' }}>{p.pieza}</p>}
           </div>
           {isCotizando ? (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0" style={{ background: '#eef4ff', color: '#2563eb' }}>
               <FileText className="w-3 h-3" /> Cotizando
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0" style={{ background: '#fdeee7', color: '#c9491c' }}>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0" style={{ background: 'rgba(74,125,232,0.15)', color: '#4a7de8' }}>
               <Clock className="w-3 h-3" /> Sin estimado
             </span>
           )}
         </div>
-        {p.notas && <p className="text-[13px] line-clamp-2 mt-2" style={{ color: '#767d8a' }}>{p.notas}</p>}
-        {p.archivo && <p className="text-[11.5px] flex items-center gap-1 mt-1.5" style={{ color: '#9aa1ad' }}><Paperclip className="w-3 h-3" />{p.archivo.name}</p>}
-        <p className="font-mono text-[11.5px] mt-2.5" style={{ color: '#9aa1ad' }}>{p.folio || p.id?.slice(0,8)} · {formatDate(p.fecha)}</p>
+        {p.notas && <p className="text-[13px] line-clamp-2 mt-2" style={{ color: '#8a90a8' }}>{p.notas}</p>}
+        {p.archivo && <p className="text-[11.5px] flex items-center gap-1 mt-1.5" style={{ color: '#5a6078' }}><Paperclip className="w-3 h-3" />{p.archivo.name}</p>}
+        <p className="font-mono text-[11.5px] mt-2.5" style={{ color: '#5a6078' }}>{p.folio || p.id?.slice(0,8)} · {formatDate(p.fecha)}</p>
       </button>
     );
   };
@@ -1890,21 +1901,21 @@ function fmtDateDisp(d) {
 /* ------------------------------------------------------------------ */
 
 function FacturaInlineRow({ form, setForm, onSave, onCancel, saving }) {
-  const inp = "px-2 py-1 rounded-[8px] border text-[16px] outline-none focus:border-[#e8632f]";
+  const inp = "px-2 py-1 rounded-[8px] border text-[16px] outline-none focus:border-[#4a7de8]";
   return (
-    <tr style={{ background: '#fffbf5', borderTop: '1px solid #eef0f2' }}>
-      <td className="py-2 pl-5 pr-1"><input type="date" value={form.fechaFactura || ''} onChange={e => setForm(f => ({ ...f, fechaFactura: e.target.value }))} className={`w-[130px] ${inp}`} style={{ borderColor: '#e3e5ea' }} /></td>
-      <td className="py-2 px-1"><input value={form.numeroFactura || ''} onChange={e => setForm(f => ({ ...f, numeroFactura: e.target.value }))} placeholder="# Factura" className={`w-[88px] font-mono ${inp}`} style={{ borderColor: '#e3e5ea' }} /></td>
-      <td className="py-2 px-1"><input value={form.poTag || ''} onChange={e => setForm(f => ({ ...f, poTag: e.target.value }))} placeholder="PO Tag" className={`w-[88px] font-mono ${inp}`} style={{ borderColor: '#e3e5ea' }} /></td>
-      <td className="py-2 px-1"><input type="number" step="0.01" value={form.valor || ''} onChange={e => setForm(f => ({ ...f, valor: e.target.value }))} placeholder="0.00" className={`w-[90px] ${inp}`} style={{ borderColor: '#e3e5ea' }} /></td>
-      <td className="py-2 px-1"><input type="number" step="0.01" value={form.pagado || ''} onChange={e => setForm(f => ({ ...f, pagado: e.target.value }))} placeholder="0.00" className={`w-[90px] ${inp}`} style={{ borderColor: '#e3e5ea' }} /></td>
+    <tr style={{ background: '#1e2235', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <td className="py-2 pl-5 pr-1"><input type="date" value={form.fechaFactura || ''} onChange={e => setForm(f => ({ ...f, fechaFactura: e.target.value }))} className={`w-[130px] ${inp}`} style={{ borderColor: '#2a2f46', background: '#13162a', color: '#e8eaee' }} /></td>
+      <td className="py-2 px-1"><input value={form.numeroFactura || ''} onChange={e => setForm(f => ({ ...f, numeroFactura: e.target.value }))} placeholder="# Factura" className={`w-[88px] font-mono ${inp}`} style={{ borderColor: '#2a2f46', background: '#13162a', color: '#e8eaee' }} /></td>
+      <td className="py-2 px-1"><input value={form.poTag || ''} onChange={e => setForm(f => ({ ...f, poTag: e.target.value }))} placeholder="PO Tag" className={`w-[88px] font-mono ${inp}`} style={{ borderColor: '#2a2f46', background: '#13162a', color: '#e8eaee' }} /></td>
+      <td className="py-2 px-1"><input type="number" step="0.01" value={form.valor || ''} onChange={e => setForm(f => ({ ...f, valor: e.target.value }))} placeholder="0.00" className={`w-[90px] ${inp}`} style={{ borderColor: '#2a2f46', background: '#13162a', color: '#e8eaee' }} /></td>
+      <td className="py-2 px-1"><input type="number" step="0.01" value={form.pagado || ''} onChange={e => setForm(f => ({ ...f, pagado: e.target.value }))} placeholder="0.00" className={`w-[90px] ${inp}`} style={{ borderColor: '#2a2f46', background: '#13162a', color: '#e8eaee' }} /></td>
       <td className="py-2 px-2 text-[12.5px] font-semibold" style={{ color: '#b7791f' }}>{fmtCur(Number(form.valor || 0) - Number(form.pagado || 0))}</td>
-      <td className="py-2 px-1"><input value={form.numeroCheck || ''} onChange={e => setForm(f => ({ ...f, numeroCheck: e.target.value }))} placeholder="Check" className={`w-[80px] font-mono ${inp}`} style={{ borderColor: '#e3e5ea' }} /></td>
-      <td className="py-2 px-1"><input type="date" value={form.fechaPago || ''} onChange={e => setForm(f => ({ ...f, fechaPago: e.target.value }))} className={`w-[130px] ${inp}`} style={{ borderColor: '#e3e5ea' }} /></td>
+      <td className="py-2 px-1"><input value={form.numeroCheck || ''} onChange={e => setForm(f => ({ ...f, numeroCheck: e.target.value }))} placeholder="Check" className={`w-[80px] font-mono ${inp}`} style={{ borderColor: '#2a2f46', background: '#13162a', color: '#e8eaee' }} /></td>
+      <td className="py-2 px-1"><input type="date" value={form.fechaPago || ''} onChange={e => setForm(f => ({ ...f, fechaPago: e.target.value }))} className={`w-[130px] ${inp}`} style={{ borderColor: '#2a2f46', background: '#13162a', color: '#e8eaee' }} /></td>
       <td className="py-2 pl-1 pr-4">
         <div className="flex gap-1">
           <button onClick={onSave} disabled={saving} className="w-7 h-7 rounded-[8px] flex items-center justify-center text-white text-[13px] font-bold" style={{ background: '#10b981' }}>✓</button>
-          <button onClick={onCancel} className="w-7 h-7 rounded-[8px] flex items-center justify-center border text-[13px]" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>✕</button>
+          <button onClick={onCancel} className="w-7 h-7 rounded-[8px] flex items-center justify-center border text-[13px]" style={{ borderColor: '#2a2f46', color: '#8a90a8', background: '#1e2235' }}>✕</button>
         </div>
       </td>
     </tr>
@@ -2094,10 +2105,10 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
           <select value={tallerSel} onChange={e => setTallerSel(e.target.value)} className={`${inputClass} w-auto`}>
             {talleres.map(t => <option key={t.uid} value={t.uid}>{t.nombre}</option>)}
           </select>
-          <div className="flex gap-1 p-1 rounded-[10px]" style={{ background: '#f1f3f5' }}>
+          <div className="flex gap-1 p-1 rounded-[10px]" style={{ background: '#1e2235' }}>
             {MARCAS_FACTURA.map(m => (
               <button key={m} onClick={() => setMarca(m)} className="px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all"
-                style={{ background: marca === m ? '#fff' : 'transparent', color: marca === m ? '#181b21' : '#9aa1ad', boxShadow: marca === m ? '0 1px 4px rgba(0,0,0,.08)' : 'none' }}>
+                style={{ background: marca === m ? '#2a2f46' : 'transparent', color: marca === m ? '#e8eaee' : '#5a6078', boxShadow: marca === m ? '0 1px 4px rgba(0,0,0,.2)' : 'none' }}>
                 {m}
               </button>
             ))}
@@ -2111,12 +2122,12 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
           )}
           {!readOnly && (
             <>
-              <label className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border cursor-pointer hover:bg-stone-50 transition-colors" style={{ borderColor: '#e3e5ea', color: '#4a505c' }}>
+              <label className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border cursor-pointer hover:bg-[#1e2235] transition-colors" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 Importar CSV / Excel
                 <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleXlsx} className="hidden" />
               </label>
-              <button onClick={startAdd} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:brightness-105" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+              <button onClick={startAdd} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:bg-[#3d6fd4]" style={{ background: '#4a7de8' }}>
                 <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva factura
               </button>
             </>
@@ -2127,46 +2138,46 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
       {/* Modal previsualización import */}
       {importRows && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(20,22,26,.5)' }}>
-          <div className="relative w-full flex flex-col rounded-[20px] overflow-hidden" style={{ maxWidth: 900, maxHeight: '85vh', background: '#fff', boxShadow: '0 40px 80px -20px rgba(0,0,0,.35)' }}>
-            <div className="flex items-center justify-between px-7 py-5 border-b flex-shrink-0" style={{ borderColor: '#eef0f2' }}>
+          <div className="relative w-full flex flex-col rounded-[20px] overflow-hidden" style={{ maxWidth: 900, maxHeight: '85vh', background: '#1a1d2e', boxShadow: '0 40px 80px -20px rgba(0,0,0,.35)' }}>
+            <div className="flex items-center justify-between px-7 py-5 border-b flex-shrink-0" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
               <div>
-                <h2 className="text-[17px] font-bold" style={{ color: '#181b21' }}>Vista previa de importación</h2>
-                <p className="text-[12.5px] mt-0.5" style={{ color: '#767d8a' }}>{importRows.length} filas detectadas · {marca} · {talleres.find(t => t.uid === tallerSel)?.nombre}</p>
+                <h2 className="text-[17px] font-bold" style={{ color: '#e8eaee' }}>Vista previa de importación</h2>
+                <p className="text-[12.5px] mt-0.5" style={{ color: '#8a90a8' }}>{importRows.length} filas detectadas · {marca} · {talleres.find(t => t.uid === tallerSel)?.nombre}</p>
               </div>
-              <button onClick={() => setImportRows(null)} className="w-9 h-9 rounded-[10px] border flex items-center justify-center hover:bg-stone-50" style={{ borderColor: '#e7e9ed', color: '#767d8a' }}>
+              <button onClick={() => setImportRows(null)} className="w-9 h-9 rounded-[10px] border flex items-center justify-center hover:bg-[#1e2235]" style={{ borderColor: 'rgba(255,255,255,0.07)', color: '#8a90a8' }}>
                 <X className="w-[17px] h-[17px]" />
               </button>
             </div>
             <div className="flex-1 overflow-auto px-7 py-5">
               <table className="w-full text-[12px]" style={{ minWidth: 780 }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #eef0f2' }}>
+                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                     {['Fecha', '# Factura', 'PO Tag', 'Valor', 'Pagado', 'Pendiente', '# Check', 'F. Pago'].map(h => (
-                      <th key={h} className="text-left pb-2 pr-4 text-[10.5px] font-bold uppercase" style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>{h}</th>
+                      <th key={h} className="text-left pb-2 pr-4 text-[10.5px] font-bold uppercase" style={{ color: '#5a6078', letterSpacing: '.06em' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {importRows.map((r, i) => (
-                    <tr key={i} style={{ borderTop: '1px solid #f1f2f4' }}>
-                      <td className="py-2 pr-4 whitespace-nowrap" style={{ color: '#4a505c' }}>{fmtDateDisp(r.fechaFactura)}</td>
-                      <td className="py-2 pr-4 font-mono font-semibold" style={{ color: '#181b21' }}>{r.numeroFactura}</td>
-                      <td className="py-2 pr-4 font-mono" style={{ color: '#5b626e' }}>{r.poTag || '—'}</td>
-                      <td className="py-2 pr-4 font-semibold" style={{ color: '#181b21' }}>{fmtCur(r.valor)}</td>
-                      <td className="py-2 pr-4 font-semibold" style={{ color: r.pagado > 0 ? '#059669' : '#aab0b9' }}>{r.pagado > 0 ? fmtCur(r.pagado) : '—'}</td>
+                    <tr key={i} style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                      <td className="py-2 pr-4 whitespace-nowrap" style={{ color: '#8a90a8' }}>{fmtDateDisp(r.fechaFactura)}</td>
+                      <td className="py-2 pr-4 font-mono font-semibold" style={{ color: '#e8eaee' }}>{r.numeroFactura}</td>
+                      <td className="py-2 pr-4 font-mono" style={{ color: '#8a90a8' }}>{r.poTag || '—'}</td>
+                      <td className="py-2 pr-4 font-semibold" style={{ color: '#e8eaee' }}>{fmtCur(r.valor)}</td>
+                      <td className="py-2 pr-4 font-semibold" style={{ color: r.pagado > 0 ? '#059669' : '#5a6078' }}>{r.pagado > 0 ? fmtCur(r.pagado) : '—'}</td>
                       <td className="py-2 pr-4 font-semibold" style={{ color: r.pendiente > 0 ? '#b7791f' : '#059669' }}>{fmtCur(r.pendiente)}</td>
-                      <td className="py-2 pr-4 font-mono" style={{ color: '#5b626e' }}>{r.numeroCheck || '—'}</td>
-                      <td className="py-2 whitespace-nowrap" style={{ color: '#767d8a' }}>{fmtDateDisp(r.fechaPago)}</td>
+                      <td className="py-2 pr-4 font-mono" style={{ color: '#8a90a8' }}>{r.numeroCheck || '—'}</td>
+                      <td className="py-2 whitespace-nowrap" style={{ color: '#8a90a8' }}>{fmtDateDisp(r.fechaPago)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <div className="flex items-center justify-between px-7 py-4 border-t flex-shrink-0" style={{ borderColor: '#eef0f2' }}>
-              <p className="text-[12.5px]" style={{ color: '#767d8a' }}>Revisa las filas antes de importar. Se agregarán a las existentes.</p>
+            <div className="flex items-center justify-between px-7 py-4 border-t flex-shrink-0" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+              <p className="text-[12.5px]" style={{ color: '#8a90a8' }}>Revisa las filas antes de importar. Se agregarán a las existentes.</p>
               <div className="flex gap-3">
-                <button onClick={() => setImportRows(null)} className="px-5 py-[9px] rounded-[10px] border text-[13px] font-semibold hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>Cancelar</button>
-                <button onClick={confirmImport} disabled={importing} className="px-5 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+                <button onClick={() => setImportRows(null)} className="px-5 py-[9px] rounded-[10px] border text-[13px] font-semibold hover:bg-[#1e2235]" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>Cancelar</button>
+                <button onClick={confirmImport} disabled={importing} className="px-5 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:bg-[#3d6fd4] disabled:opacity-60" style={{ background: '#4a7de8' }}>
                   {importing ? 'Importando…' : `Importar ${importRows.length} filas`}
                 </button>
               </div>
@@ -2177,16 +2188,16 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
 
       {/* # de cuenta */}
       <div className="flex items-center gap-3">
-        <span className="text-[12.5px] font-semibold" style={{ color: '#767d8a' }}># de cuenta:</span>
+        <span className="text-[12.5px] font-semibold" style={{ color: '#8a90a8' }}># de cuenta:</span>
         <input
           key={`${tallerSel}_${marca}`}
           defaultValue={numeroCuenta}
           onBlur={e => saveCuenta(e.target.value)}
           placeholder="ej. 517831"
-          className="px-3 py-1.5 rounded-[9px] border text-[13px] font-mono w-36 outline-none focus:border-[#e8632f]"
-          style={{ borderColor: '#e3e5ea' }}
+          className="px-3 py-1.5 rounded-[9px] border text-[13px] font-mono w-36 outline-none focus:border-[#4a7de8]"
+          style={{ borderColor: '#2a2f46', background: '#13162a', color: '#e8eaee' }}
         />
-        <span className="text-[11.5px]" style={{ color: '#aab0b9' }}>Se guarda al salir del campo</span>
+        <span className="text-[11.5px]" style={{ color: '#5a6078' }}>Se guarda al salir del campo</span>
       </div>
 
       {/* Tarjetas de totales */}
@@ -2196,18 +2207,18 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
           { label: 'Pagado',         val: fmtCur(totals.pagado),   color: '#059669' },
           { label: 'Pendiente',      val: fmtCur(totals.pendiente),color: totals.pendiente > 0 ? '#b7791f' : '#059669' },
         ].map(({ label, val, color }) => (
-          <div key={label} className="rounded-[15px] p-4 border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
-            <p className="text-[12px] font-medium mb-1" style={{ color: '#767d8a' }}>{label}</p>
+          <div key={label} className="rounded-[15px] p-4 border" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
+            <p className="text-[12px] font-medium mb-1" style={{ color: '#8a90a8' }}>{label}</p>
             <p className="text-[22px] font-extrabold leading-none" style={{ color }}>{val}</p>
           </div>
         ))}
       </div>
 
       {/* Tabla */}
-      <div className="rounded-[16px] border overflow-x-auto" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+      <div className="rounded-[16px] border overflow-x-auto" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
         <table className="w-full" style={{ minWidth: 920 }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #eef0f2' }}>
+            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
               {['Fecha factura', '# Factura', 'PO Tag', 'Valor', 'Pagado', 'Pendiente', '# Check', 'F. Pago', ''].map((h, i) => (
                 <th key={i} className={`${thCls} ${i === 0 ? 'pl-5 pr-2' : 'px-2'} ${i === 8 ? 'pr-4' : ''}`} style={thSt}>{h}</th>
               ))}
@@ -2215,22 +2226,22 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
           </thead>
           <tbody>
             {facturasFiltradas.length === 0 && !addingRow && (
-              <tr><td colSpan={9} className="py-12 text-center text-[13px]" style={{ color: '#9aa1ad' }}>Sin facturas. Usa "+ Nueva factura" para agregar.</td></tr>
+              <tr><td colSpan={9} className="py-12 text-center text-[13px]" style={{ color: '#5a6078' }}>Sin facturas. Usa "+ Nueva factura" para agregar.</td></tr>
             )}
             {facturasFiltradas.map(f => editId === f.id
               ? <FacturaInlineRow key={f.id} form={editForm} setForm={setEditForm} onSave={saveEdit} onCancel={cancelEdit} saving={saving} />
               : (
-                <tr key={f.id} onClick={() => startEdit(f)} className="cursor-pointer hover:bg-[#fafbfc] transition-colors" style={{ borderTop: '1px solid #f1f2f4' }}>
-                  <td className={`${tdCls} pl-5 pr-2 whitespace-nowrap`} style={{ color: '#4a505c' }}>{fmtDateDisp(f.fechaFactura)}</td>
-                  <td className={`${tdCls} px-2 font-mono font-semibold`} style={{ color: '#181b21' }}>{f.numeroFactura}</td>
-                  <td className={`${tdCls} px-2 font-mono`} style={{ color: '#5b626e' }}>{f.poTag || '—'}</td>
-                  <td className={`${tdCls} px-2 font-semibold`} style={{ color: '#181b21' }}>{fmtCur(f.valor)}</td>
-                  <td className={`${tdCls} px-2 font-semibold`} style={{ color: Number(f.pagado) > 0 ? '#059669' : '#aab0b9' }}>{Number(f.pagado) > 0 ? fmtCur(f.pagado) : '—'}</td>
+                <tr key={f.id} onClick={() => startEdit(f)} className="cursor-pointer hover:bg-[#1e2235] transition-colors" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                  <td className={`${tdCls} pl-5 pr-2 whitespace-nowrap`} style={{ color: '#8a90a8' }}>{fmtDateDisp(f.fechaFactura)}</td>
+                  <td className={`${tdCls} px-2 font-mono font-semibold`} style={{ color: '#e8eaee' }}>{f.numeroFactura}</td>
+                  <td className={`${tdCls} px-2 font-mono`} style={{ color: '#8a90a8' }}>{f.poTag || '—'}</td>
+                  <td className={`${tdCls} px-2 font-semibold`} style={{ color: '#e8eaee' }}>{fmtCur(f.valor)}</td>
+                  <td className={`${tdCls} px-2 font-semibold`} style={{ color: Number(f.pagado) > 0 ? '#059669' : '#5a6078' }}>{Number(f.pagado) > 0 ? fmtCur(f.pagado) : '—'}</td>
                   <td className={`${tdCls} px-2 font-semibold`} style={{ color: Number(f.pendiente) > 0 ? '#b7791f' : '#059669' }}>{fmtCur(f.pendiente)}</td>
-                  <td className={`${tdCls} px-2 font-mono`} style={{ color: '#5b626e' }}>{f.numeroCheck || '—'}</td>
-                  <td className={`${tdCls} px-2 whitespace-nowrap`} style={{ color: '#767d8a' }}>{fmtDateDisp(f.fechaPago)}</td>
+                  <td className={`${tdCls} px-2 font-mono`} style={{ color: '#8a90a8' }}>{f.numeroCheck || '—'}</td>
+                  <td className={`${tdCls} px-2 whitespace-nowrap`} style={{ color: '#8a90a8' }}>{fmtDateDisp(f.fechaPago)}</td>
                   <td className="py-2 pl-1 pr-4">
-                    <button onClick={e => { e.stopPropagation(); if (window.confirm('¿Eliminar esta factura?')) onEliminar(f.id); }} className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors" style={{ color: '#aab0b9' }}>
+                    <button onClick={e => { e.stopPropagation(); if (window.confirm('¿Eliminar esta factura?')) onEliminar(f.id); }} className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ color: '#5a6078' }}>
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </td>
@@ -2240,9 +2251,9 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
             {addingRow && <FacturaInlineRow form={newForm} setForm={setNewForm} onSave={saveNew} onCancel={() => setAddingRow(false)} saving={saving} />}
             {/* Fila de acción rápida al fondo */}
             {!addingRow && !readOnly && (
-              <tr style={{ borderTop: '1px solid #f1f2f4' }}>
+              <tr style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                 <td colSpan={9} className="py-2 pl-5">
-                  <button onClick={startAdd} className="flex items-center gap-1.5 text-[12.5px] font-semibold transition-colors hover:text-[#e8632f]" style={{ color: '#aab0b9' }}>
+                  <button onClick={startAdd} className="flex items-center gap-1.5 text-[12.5px] font-semibold transition-colors hover:text-[#4a7de8]" style={{ color: '#5a6078' }}>
                     <Plus className="w-4 h-4" strokeWidth={2.5} /> Añadir fila
                   </button>
                 </td>
@@ -2251,9 +2262,9 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
           </tbody>
           {facturasFiltradas.length > 0 && (
             <tfoot>
-              <tr style={{ borderTop: '2px solid #eef0f2', background: '#f8f9fa' }}>
-                <td colSpan={3} className="py-3 pl-5 text-[12.5px] font-bold" style={{ color: '#181b21' }}>TOTAL</td>
-                <td className="py-3 px-2 text-[12.5px] font-bold" style={{ color: '#181b21' }}>{fmtCur(totals.valor)}</td>
+              <tr style={{ borderTop: '2px solid rgba(255,255,255,0.06)', background: '#1e2235' }}>
+                <td colSpan={3} className="py-3 pl-5 text-[12.5px] font-bold" style={{ color: '#e8eaee' }}>TOTAL</td>
+                <td className="py-3 px-2 text-[12.5px] font-bold" style={{ color: '#e8eaee' }}>{fmtCur(totals.valor)}</td>
                 <td className="py-3 px-2 text-[12.5px] font-bold" style={{ color: '#059669' }}>{fmtCur(totals.pagado)}</td>
                 <td className="py-3 px-2 text-[12.5px] font-bold" style={{ color: totals.pendiente > 0 ? '#b7791f' : '#059669' }}>{fmtCur(totals.pendiente)}</td>
                 <td colSpan={3} />
@@ -2268,35 +2279,35 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
         <div className="mt-2">
           <button
             onClick={() => setShowArchived(v => !v)}
-            className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#e8632f]"
-            style={{ color: '#9aa1ad' }}
+            className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#4a7de8]"
+            style={{ color: '#5a6078' }}
           >
             <ChevronRight className={`w-4 h-4 transition-transform ${showArchived ? 'rotate-90' : ''}`} />
             Historial de pagadas archivadas ({facturasArchivadas.length})
           </button>
           {showArchived && (
-            <div className="mt-3 rounded-[16px] border overflow-x-auto" style={{ background: '#fff', borderColor: '#e7e9ed', opacity: 0.85 }}>
+            <div className="mt-3 rounded-[16px] border overflow-x-auto" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)', opacity: 0.85 }}>
               <table className="w-full" style={{ minWidth: 800 }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #eef0f2' }}>
+                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                     {['Fecha','# Factura','PO Tag','Valor','Pagado','Pendiente','# Check','F. Pago',''].map((h,i) => (
-                      <th key={i} className={`text-left py-2.5 text-[10.5px] font-bold uppercase ${i===0?'pl-5 pr-2':'px-2'}`} style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>{h}</th>
+                      <th key={i} className={`text-left py-2.5 text-[10.5px] font-bold uppercase ${i===0?'pl-5 pr-2':'px-2'}`} style={{ color: '#5a6078', letterSpacing: '.06em' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {facturasArchivadas.map(f => (
-                    <tr key={f.id} style={{ borderTop: '1px solid #f1f2f4' }}>
-                      <td className="py-3 pl-5 pr-2 text-[12px] whitespace-nowrap" style={{ color: '#aab0b9' }}>{fmtDateDisp(f.fechaFactura)}</td>
-                      <td className="py-3 px-2 font-mono text-[12px]" style={{ color: '#aab0b9' }}>{f.numeroFactura}</td>
-                      <td className="py-3 px-2 font-mono text-[12px]" style={{ color: '#aab0b9' }}>{f.poTag||'—'}</td>
-                      <td className="py-3 px-2 text-[12px]" style={{ color: '#aab0b9' }}>{fmtCur(f.valor)}</td>
+                    <tr key={f.id} style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                      <td className="py-3 pl-5 pr-2 text-[12px] whitespace-nowrap" style={{ color: '#5a6078' }}>{fmtDateDisp(f.fechaFactura)}</td>
+                      <td className="py-3 px-2 font-mono text-[12px]" style={{ color: '#5a6078' }}>{f.numeroFactura}</td>
+                      <td className="py-3 px-2 font-mono text-[12px]" style={{ color: '#5a6078' }}>{f.poTag||'—'}</td>
+                      <td className="py-3 px-2 text-[12px]" style={{ color: '#5a6078' }}>{fmtCur(f.valor)}</td>
                       <td className="py-3 px-2 text-[12px] font-semibold" style={{ color: '#059669' }}>{fmtCur(f.pagado)}</td>
                       <td className="py-3 px-2 text-[12px] font-semibold" style={{ color: '#059669' }}>{fmtCur(f.pendiente)}</td>
-                      <td className="py-3 px-2 font-mono text-[12px]" style={{ color: '#aab0b9' }}>{f.numeroCheck||'—'}</td>
-                      <td className="py-3 px-2 text-[12px] whitespace-nowrap" style={{ color: '#aab0b9' }}>{fmtDateDisp(f.fechaPago)}</td>
+                      <td className="py-3 px-2 font-mono text-[12px]" style={{ color: '#5a6078' }}>{f.numeroCheck||'—'}</td>
+                      <td className="py-3 px-2 text-[12px] whitespace-nowrap" style={{ color: '#5a6078' }}>{fmtDateDisp(f.fechaPago)}</td>
                       <td className="py-3 pr-4">
-                        <button onClick={() => onActualizar(f.id, { archivada: false })} className="text-[11px] font-semibold hover:underline" style={{ color: '#e8632f' }}>
+                        <button onClick={() => onActualizar(f.id, { archivada: false })} className="text-[11px] font-semibold hover:underline" style={{ color: '#4a7de8' }}>
                           Restaurar
                         </button>
                       </td>
@@ -2405,57 +2416,57 @@ function ClientFacturas({ facturas, taller }) {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex gap-1 p-1 rounded-[10px]" style={{ background: '#f1f3f5' }}>
+        <div className="flex gap-1 p-1 rounded-[10px]" style={{ background: '#1e2235' }}>
           {marcasDisponibles.map(m => (
             <button key={m} onClick={() => setMarca(m)} className="px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all"
-              style={{ background: marca === m ? '#fff' : 'transparent', color: marca === m ? '#181b21' : '#9aa1ad', boxShadow: marca === m ? '0 1px 4px rgba(0,0,0,.08)' : 'none' }}>
+              style={{ background: marca === m ? '#2a2f46' : 'transparent', color: marca === m ? '#e8eaee' : '#5a6078', boxShadow: marca === m ? '0 1px 4px rgba(0,0,0,.2)' : 'none' }}>
               {m}
             </button>
           ))}
         </div>
-        <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border hover:bg-stone-50 transition-colors" style={{ borderColor: '#e3e5ea', color: '#4a505c' }}>
+        <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border transition-colors hover:bg-[#1e2235]" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>
           <Printer className="w-4 h-4" /> Imprimir / PDF
         </button>
       </div>
 
       {numeroCuenta && (
-        <p className="text-[12.5px]" style={{ color: '#767d8a' }}>
-          # de cuenta: <span className="font-mono font-semibold" style={{ color: '#181b21' }}>{numeroCuenta}</span>
+        <p className="text-[12.5px]" style={{ color: '#8a90a8' }}>
+          # de cuenta: <span className="font-mono font-semibold" style={{ color: '#e8eaee' }}>{numeroCuenta}</span>
         </p>
       )}
 
-      <div className="rounded-[16px] border overflow-x-auto" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+      <div className="rounded-[16px] border overflow-x-auto" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
         <table className="w-full" style={{ minWidth: 800 }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #eef0f2' }}>
+            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
               {['Fecha', '# Factura', 'PO Tag', 'Valor', 'Pagado', 'Pendiente', '# Check', 'F. Pago'].map((h, i) => (
                 <th key={i} className={`text-left py-3 text-[10.5px] font-bold uppercase ${i === 0 ? 'pl-5 pr-3' : 'px-3'} ${i === 7 ? 'pr-5' : ''}`} style={thSt}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {facturasMarca.length === 0 && <tr><td colSpan={8} className="py-10 text-center text-[13px]" style={{ color: '#9aa1ad' }}>Sin facturas para {marca}.</td></tr>}
+            {facturasMarca.length === 0 && <tr><td colSpan={8} className="py-10 text-center text-[13px]" style={{ color: '#5a6078' }}>Sin facturas para {marca}.</td></tr>}
             {facturasMarca.map(f => {
               const isPending = Number(f.pendiente) > 0;
               return (
-                <tr key={f.id} style={{ borderTop: '1px solid #f1f2f4', background: isPending ? '#fffdf8' : '#fff' }}>
-                  <td className="py-3.5 pl-5 pr-3 text-[12.5px] whitespace-nowrap" style={{ color: '#4a505c' }}>{fmtDateDisp(f.fechaFactura)}</td>
-                  <td className="py-3.5 px-3 font-mono text-[12.5px] font-semibold" style={{ color: '#181b21' }}>{f.numeroFactura}</td>
-                  <td className="py-3.5 px-3 font-mono text-[12.5px]" style={{ color: '#5b626e' }}>{f.poTag || '—'}</td>
-                  <td className="py-3.5 px-3 text-[12.5px] font-semibold" style={{ color: '#181b21' }}>{fmtCur(f.valor)}</td>
-                  <td className="py-3.5 px-3 text-[12.5px] font-semibold" style={{ color: Number(f.pagado) > 0 ? '#059669' : '#aab0b9' }}>{Number(f.pagado) > 0 ? fmtCur(f.pagado) : '—'}</td>
+                <tr key={f.id} style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: isPending ? 'rgba(183,121,31,0.05)' : '#1a1d2e' }}>
+                  <td className="py-3.5 pl-5 pr-3 text-[12.5px] whitespace-nowrap" style={{ color: '#8a90a8' }}>{fmtDateDisp(f.fechaFactura)}</td>
+                  <td className="py-3.5 px-3 font-mono text-[12.5px] font-semibold" style={{ color: '#e8eaee' }}>{f.numeroFactura}</td>
+                  <td className="py-3.5 px-3 font-mono text-[12.5px]" style={{ color: '#8a90a8' }}>{f.poTag || '—'}</td>
+                  <td className="py-3.5 px-3 text-[12.5px] font-semibold" style={{ color: '#e8eaee' }}>{fmtCur(f.valor)}</td>
+                  <td className="py-3.5 px-3 text-[12.5px] font-semibold" style={{ color: Number(f.pagado) > 0 ? '#059669' : '#5a6078' }}>{Number(f.pagado) > 0 ? fmtCur(f.pagado) : '—'}</td>
                   <td className="py-3.5 px-3 text-[12.5px] font-semibold" style={{ color: isPending ? '#b7791f' : '#059669' }}>{fmtCur(f.pendiente)}</td>
-                  <td className="py-3.5 px-3 font-mono text-[12.5px]" style={{ color: '#5b626e' }}>{f.numeroCheck || '—'}</td>
-                  <td className="py-3.5 pl-3 pr-5 text-[12.5px] whitespace-nowrap" style={{ color: '#767d8a' }}>{fmtDateDisp(f.fechaPago)}</td>
+                  <td className="py-3.5 px-3 font-mono text-[12.5px]" style={{ color: '#8a90a8' }}>{f.numeroCheck || '—'}</td>
+                  <td className="py-3.5 pl-3 pr-5 text-[12.5px] whitespace-nowrap" style={{ color: '#8a90a8' }}>{fmtDateDisp(f.fechaPago)}</td>
                 </tr>
               );
             })}
           </tbody>
           {facturasMarca.length > 0 && (
             <tfoot>
-              <tr style={{ borderTop: '2px solid #eef0f2', background: '#f8f9fa' }}>
-                <td colSpan={3} className="py-3.5 pl-5 text-[12.5px] font-bold" style={{ color: '#181b21' }}>TOTAL</td>
-                <td className="py-3.5 px-3 text-[12.5px] font-bold" style={{ color: '#181b21' }}>{fmtCur(totals.valor)}</td>
+              <tr style={{ borderTop: '2px solid rgba(255,255,255,0.06)', background: '#1e2235' }}>
+                <td colSpan={3} className="py-3.5 pl-5 text-[12.5px] font-bold" style={{ color: '#e8eaee' }}>TOTAL</td>
+                <td className="py-3.5 px-3 text-[12.5px] font-bold" style={{ color: '#e8eaee' }}>{fmtCur(totals.valor)}</td>
                 <td className="py-3.5 px-3 text-[12.5px] font-bold" style={{ color: '#059669' }}>{fmtCur(totals.pagado)}</td>
                 <td className="py-3.5 px-3 text-[12.5px] font-bold" style={{ color: totals.pendiente > 0 ? '#b7791f' : '#059669' }}>{fmtCur(totals.pendiente)}</td>
                 <td colSpan={2} className="pr-5" />
@@ -2468,15 +2479,15 @@ function ClientFacturas({ facturas, taller }) {
       {/* Historial de pagadas archivadas */}
       {facturasArch.length > 0 && (
         <div>
-          <button onClick={() => setVerHistorial(v => !v)} className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#e8632f]" style={{ color: '#9aa1ad' }}>
+          <button onClick={() => setVerHistorial(v => !v)} className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#4a7de8]" style={{ color: '#5a6078' }}>
             <ChevronRight className={`w-4 h-4 transition-transform ${verHistorial ? 'rotate-90' : ''}`} />
             Historial de pagadas ({facturasArch.length})
           </button>
           {verHistorial && (
-            <div className="mt-3 rounded-[16px] border overflow-x-auto" style={{ background: '#fff', borderColor: '#e7e9ed', opacity: 0.85 }}>
+            <div className="mt-3 rounded-[16px] border overflow-x-auto" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)', opacity: 0.85 }}>
               <table className="w-full" style={{ minWidth: 700 }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #eef0f2' }}>
+                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                     {['Fecha','# Factura','PO Tag','Valor','Pagado','# Check','F. Pago',''].map((h, i) => (
                       <th key={i} className={`text-left py-2.5 text-[10.5px] font-bold uppercase ${i===0?'pl-5 pr-3':'px-3'}`} style={thSt}>{h}</th>
                     ))}
@@ -2484,11 +2495,11 @@ function ClientFacturas({ facturas, taller }) {
                 </thead>
                 <tbody>
                   {facturasArch.map(f => (
-                    <tr key={f.id} style={{ borderTop: '1px solid #f1f2f4' }}>
-                      <td className="py-3 pl-5 pr-3 text-[12px] whitespace-nowrap" style={{ color: '#aab0b9' }}>{fmtDateDisp(f.fechaFactura)}</td>
-                      <td className="py-3 px-3 font-mono text-[12px]" style={{ color: '#aab0b9' }}>{f.numeroFactura}</td>
-                      <td className="py-3 px-3 font-mono text-[12px]" style={{ color: '#aab0b9' }}>{f.poTag||'—'}</td>
-                      <td className="py-3 px-3 text-[12px]" style={{ color: '#aab0b9' }}>{fmtCur(f.valor)}</td>
+                    <tr key={f.id} style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                      <td className="py-3 pl-5 pr-3 text-[12px] whitespace-nowrap" style={{ color: '#5a6078' }}>{fmtDateDisp(f.fechaFactura)}</td>
+                      <td className="py-3 px-3 font-mono text-[12px]" style={{ color: '#5a6078' }}>{f.numeroFactura}</td>
+                      <td className="py-3 px-3 font-mono text-[12px]" style={{ color: '#5a6078' }}>{f.poTag||'—'}</td>
+                      <td className="py-3 px-3 text-[12px]" style={{ color: '#5a6078' }}>{fmtCur(f.valor)}</td>
                       <td className="py-3 px-3 text-[12px] font-semibold" style={{ color: '#059669' }}>{fmtCur(f.pagado)}</td>
                       <td className="py-3 px-3 font-mono text-[12px]" style={{ color: '#aab0b9' }}>{f.numeroCheck||'—'}</td>
                       <td className="py-3 px-3 text-[12px] whitespace-nowrap" style={{ color: '#aab0b9' }}>{fmtDateDisp(f.fechaPago)}</td>
@@ -2538,9 +2549,9 @@ function PermSelector({ value, onChange }) {
         <button key={opt.val} onClick={() => onChange(opt.val)}
           className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold transition-all border"
           style={{
-            background: value === opt.val ? opt.bg : '#fff',
-            color: value === opt.val ? opt.color : '#9aa1ad',
-            borderColor: value === opt.val ? opt.color + '40' : '#e3e5ea',
+            background: value === opt.val ? opt.bg : '#1e2235',
+            color: value === opt.val ? opt.color : '#8a90a8',
+            borderColor: value === opt.val ? opt.color + '40' : '#2a2f46',
           }}>
           {opt.label}
         </button>
@@ -2606,12 +2617,12 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-[15px] font-bold" style={{ color: '#181b21' }}>Equipo</h2>
-          <p className="text-[12.5px]" style={{ color: '#767d8a' }}>Usuarios con acceso al panel de administración</p>
+          <h2 className="text-[15px] font-bold" style={{ color: '#e8eaee' }}>Equipo</h2>
+          <p className="text-[12.5px]" style={{ color: '#8a90a8' }}>Usuarios con acceso al panel de administración</p>
         </div>
         <button onClick={() => { setShowForm(s => !s); setError(''); }}
-          className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:brightness-105"
-          style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+          className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:bg-[#3d6fd4]"
+          style={{ background: '#4a7de8' }}>
           <Plus className="w-4 h-4" strokeWidth={2.2} /> Agregar usuario
         </button>
       </div>
@@ -2620,8 +2631,8 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
 
       {/* Formulario nuevo usuario */}
       {showForm && (
-        <form onSubmit={handleCreate} className="rounded-[16px] p-6 border space-y-5" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
-          <p className="text-[14px] font-bold" style={{ color: '#181b21' }}>Nuevo usuario admin</p>
+        <form onSubmit={handleCreate} className="rounded-[16px] p-6 border space-y-5" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
+          <p className="text-[14px] font-bold" style={{ color: '#e8eaee' }}>Nuevo usuario admin</p>
           <div className="grid grid-cols-3 gap-3">
             <FormField label="Nombre"><input value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} placeholder="ej. Carlos López" className={inputClass} required /></FormField>
             <FormField label="Correo electrónico"><input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="carlos@correo.com" className={inputClass} required /></FormField>
@@ -2630,33 +2641,33 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
 
           {/* Permisos por módulo */}
           <div>
-            <p className="text-[12.5px] font-semibold mb-3" style={{ color: '#4a505c' }}>Permisos por módulo</p>
+            <p className="text-[12.5px] font-semibold mb-3" style={{ color: '#8a90a8' }}>Permisos por módulo</p>
             <div className="space-y-3">
               {MODULOS_PERM.map(({ id, label }) => (
                 <div key={id} className="flex items-center justify-between gap-4">
-                  <span className="text-[13px] font-medium w-28" style={{ color: '#181b21' }}>{label}</span>
+                  <span className="text-[13px] font-medium w-28" style={{ color: '#e8eaee' }}>{label}</span>
                   <PermSelector value={form.permisos[id] || 'none'} onChange={val => setP(id, val)} />
                 </div>
               ))}
-              <div className="flex items-center justify-between gap-4 pt-2" style={{ borderTop: '1px dashed #e7e9ed' }}>
-                <span className="text-[13px] font-medium w-28" style={{ color: '#181b21' }}>Crear pedidos</span>
+              <div className="flex items-center justify-between gap-4 pt-2" style={{ borderTop: '1px dashed rgba(255,255,255,0.07)' }}>
+                <span className="text-[13px] font-medium w-28" style={{ color: '#e8eaee' }}>Crear pedidos</span>
                 <div className="flex gap-1">
                   {[{ val: true, label: 'Sí' }, { val: false, label: 'No' }].map(opt => (
                     <button key={String(opt.val)} type="button" onClick={() => setP('crearPedidos', opt.val)}
                       className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-all"
-                      style={{ background: form.permisos.crearPedidos === opt.val ? '#eafaf2' : '#fff', color: form.permisos.crearPedidos === opt.val ? '#059669' : '#9aa1ad', borderColor: form.permisos.crearPedidos === opt.val ? '#059669' + '40' : '#e3e5ea' }}>
+                      style={{ background: form.permisos.crearPedidos === opt.val ? '#eafaf2' : '#1e2235', color: form.permisos.crearPedidos === opt.val ? '#059669' : '#8a90a8', borderColor: form.permisos.crearPedidos === opt.val ? '#059669' + '40' : '#2a2f46' }}>
                       {opt.label}
                     </button>
                   ))}
                 </div>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <span className="text-[13px] font-medium w-28" style={{ color: '#181b21' }}>Gestionar equipo</span>
+                <span className="text-[13px] font-medium w-28" style={{ color: '#e8eaee' }}>Gestionar equipo</span>
                 <div className="flex gap-1">
                   {[{ val: true, label: 'Sí' }, { val: false, label: 'No' }].map(opt => (
                     <button key={String(opt.val)} type="button" onClick={() => setP('equipo', opt.val)}
                       className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-all"
-                      style={{ background: form.permisos.equipo === opt.val ? '#eafaf2' : '#fff', color: form.permisos.equipo === opt.val ? '#059669' : '#9aa1ad', borderColor: form.permisos.equipo === opt.val ? '#059669' + '40' : '#e3e5ea' }}>
+                      style={{ background: form.permisos.equipo === opt.val ? '#eafaf2' : '#1e2235', color: form.permisos.equipo === opt.val ? '#059669' : '#8a90a8', borderColor: form.permisos.equipo === opt.val ? '#059669' + '40' : '#2a2f46' }}>
                       {opt.label}
                     </button>
                   ))}
@@ -2667,10 +2678,10 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
 
           {error && <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[11px]" style={{ background: '#fdecec', color: '#dc2626' }}><AlertCircle className="w-4 h-4 flex-shrink-0" />{error}</div>}
           <div className="flex gap-3 pt-1">
-            <button type="submit" disabled={saving} className="flex-1 py-[11px] rounded-[11px] text-white font-bold text-[13.5px] hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+            <button type="submit" disabled={saving} className="flex-1 py-[11px] rounded-[11px] text-white font-bold text-[13.5px] hover:bg-[#3d6fd4] disabled:opacity-60" style={{ background: '#4a7de8' }}>
               {saving ? 'Creando…' : 'Crear usuario'}
             </button>
-            <button type="button" onClick={() => { setShowForm(false); setError(''); }} className="px-5 py-[11px] rounded-[11px] border text-[13.5px] font-semibold hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>Cancelar</button>
+            <button type="button" onClick={() => { setShowForm(false); setError(''); }} className="px-5 py-[11px] rounded-[11px] border text-[13.5px] font-semibold hover:bg-[#1e2235]" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>Cancelar</button>
           </div>
         </form>
       )}
@@ -2678,35 +2689,35 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
       {/* Lista de usuarios */}
       <div className="grid md:grid-cols-2 gap-4">
         {equipo.map(u => (
-          <div key={u.uid} className="rounded-[15px] border p-5" style={{ background: '#fff', borderColor: editId === u.uid ? '#e8632f' : '#e7e9ed', boxShadow: editId === u.uid ? '0 0 0 3px rgba(232,99,47,.08)' : 'none' }}>
+          <div key={u.uid} className="rounded-[15px] border p-5" style={{ background: '#1a1d2e', borderColor: editId === u.uid ? '#4a7de8' : 'rgba(255,255,255,0.07)', boxShadow: editId === u.uid ? '0 0 0 3px rgba(74,125,232,.08)' : 'none' }}>
             <div className="flex items-start justify-between gap-3 mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-[10px] flex items-center justify-center text-[14px] font-extrabold flex-shrink-0"
-                  style={{ background: isSuperadmin(u) ? 'linear-gradient(160deg, #e8632f, #c9491c)' : 'linear-gradient(150deg, #f3f4f6, #e8eaed)', color: '#fff', ...(isSuperadmin(u) ? {} : { color: '#4a505c' }) }}>
+                  style={{ background: isSuperadmin(u) ? 'linear-gradient(160deg, #4a7de8, #3d6fd4)' : '#2a2f46', color: '#fff', ...(isSuperadmin(u) ? {} : { color: '#8a90a8' }) }}>
                   {(u.nombre || u.email || 'A')[0].toUpperCase()}
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[14px] font-bold truncate" style={{ color: '#181b21' }}>{u.nombre || (isSuperadmin(u) ? 'Administrador' : '—')}</div>
-                  <div className="text-[12px] truncate" style={{ color: '#8a909c' }}>{u.email || (isSuperadmin(u) ? 'Cuenta principal' : '—')}</div>
+                  <div className="text-[14px] font-bold truncate" style={{ color: '#e8eaee' }}>{u.nombre || (isSuperadmin(u) ? 'Administrador' : '—')}</div>
+                  <div className="text-[12px] truncate" style={{ color: '#8a90a8' }}>{u.email || (isSuperadmin(u) ? 'Cuenta principal' : '—')}</div>
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
                 {isSuperadmin(u) ? (
                   <>
-                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-[8px]" style={{ background: '#141619', color: '#e8632f' }}>Superadmin</span>
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-[8px]" style={{ background: 'rgba(74,125,232,0.15)', color: '#4a7de8' }}>Superadmin</span>
                     <button onClick={() => editId === u.uid ? setEditId(null) : startEdit(u)}
-                      className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-[#fdeee7] transition-colors" style={{ color: '#aab0b9' }}>
+                      className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-[#1e2235] transition-colors" style={{ color: '#5a6078' }}>
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                   </>
                 ) : u.uid !== currentUid && (
                   <>
                     <button onClick={() => editId === u.uid ? setEditId(null) : startEdit(u)}
-                      className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-[#fdeee7] transition-colors" style={{ color: '#aab0b9' }}>
+                      className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-[#1e2235] transition-colors" style={{ color: '#5a6078' }}>
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                     <button onClick={() => { if (window.confirm(`¿Eliminar a ${u.nombre || u.email}?`)) onEliminar(u.uid); }}
-                      className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors" style={{ color: '#aab0b9' }}>
+                      className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ color: '#5a6078' }}>
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </>
@@ -2717,17 +2728,17 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
             {isSuperadmin(u) && editId !== u.uid ? (
               <div className="grid grid-cols-2 gap-2">
                 {MODULOS_PERM.map(({ id, label }) => (
-                  <div key={id} className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#f8f9fa' }}>
-                    <span className="text-[12px]" style={{ color: '#767d8a' }}>{label}</span>
+                  <div key={id} className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#1e2235' }}>
+                    <span className="text-[12px]" style={{ color: '#8a90a8' }}>{label}</span>
                     <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: '#eafaf2', color: '#059669' }}>Editar</span>
                   </div>
                 ))}
-                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#f8f9fa' }}>
-                  <span className="text-[12px]" style={{ color: '#767d8a' }}>Crear pedidos</span>
+                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#1e2235' }}>
+                  <span className="text-[12px]" style={{ color: '#8a90a8' }}>Crear pedidos</span>
                   <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: '#eafaf2', color: '#059669' }}>Sí</span>
                 </div>
-                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#f8f9fa' }}>
-                  <span className="text-[12px]" style={{ color: '#767d8a' }}>Equipo</span>
+                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#1e2235' }}>
+                  <span className="text-[12px]" style={{ color: '#8a90a8' }}>Equipo</span>
                   <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: '#eafaf2', color: '#059669' }}>Sí</span>
                 </div>
               </div>
@@ -2737,10 +2748,10 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
                 <FormField label="Nombre"><input value={editNombreAdmin} onChange={e => setEditNombreAdmin(e.target.value)} className={inputClass} placeholder="Tu nombre" /></FormField>
                 <FormField label="Correo (referencia)"><input value={editEmailAdmin} onChange={e => setEditEmailAdmin(e.target.value)} className={inputClass} placeholder="tu@correo.com" /></FormField>
                 <div className="flex gap-2 pt-1">
-                  <button onClick={saveEdit} disabled={saving} className="flex-1 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+                  <button onClick={saveEdit} disabled={saving} className="flex-1 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:bg-[#3d6fd4] disabled:opacity-60" style={{ background: '#4a7de8' }}>
                     {saving ? 'Guardando…' : 'Guardar'}
                   </button>
-                  <button onClick={() => setEditId(null)} className="px-4 py-[9px] rounded-[10px] border text-[13px] font-semibold hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>Cancelar</button>
+                  <button onClick={() => setEditId(null)} className="px-4 py-[9px] rounded-[10px] border text-[13px] font-semibold hover:bg-[#1e2235]" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>Cancelar</button>
                 </div>
               </div>
             ) : editId === u.uid ? (
@@ -2748,56 +2759,56 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
               <div className="space-y-3">
                 {MODULOS_PERM.map(({ id, label }) => (
                   <div key={id} className="flex items-center justify-between gap-3">
-                    <span className="text-[12.5px] font-medium w-24" style={{ color: '#181b21' }}>{label}</span>
+                    <span className="text-[12.5px] font-medium w-24" style={{ color: '#e8eaee' }}>{label}</span>
                     <PermSelector value={editPermisos[id] || 'none'} onChange={val => setEP(id, val)} />
                   </div>
                 ))}
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-[12.5px] font-medium w-24" style={{ color: '#181b21' }}>Crear pedidos</span>
+                  <span className="text-[12.5px] font-medium w-24" style={{ color: '#e8eaee' }}>Crear pedidos</span>
                   <div className="flex gap-1">
                     {[{ val: true, label: 'Sí' }, { val: false, label: 'No' }].map(opt => (
                       <button key={String(opt.val)} onClick={() => setEP('crearPedidos', opt.val)}
                         className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-all"
-                        style={{ background: editPermisos.crearPedidos === opt.val ? '#eafaf2' : '#fff', color: editPermisos.crearPedidos === opt.val ? '#059669' : '#9aa1ad', borderColor: editPermisos.crearPedidos === opt.val ? '#059669' + '40' : '#e3e5ea' }}>
+                        style={{ background: editPermisos.crearPedidos === opt.val ? '#eafaf2' : '#1e2235', color: editPermisos.crearPedidos === opt.val ? '#059669' : '#8a90a8', borderColor: editPermisos.crearPedidos === opt.val ? '#059669' + '40' : '#2a2f46' }}>
                         {opt.label}
                       </button>
                     ))}
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-[12.5px] font-medium w-24" style={{ color: '#181b21' }}>Gestionar equipo</span>
+                  <span className="text-[12.5px] font-medium w-24" style={{ color: '#e8eaee' }}>Gestionar equipo</span>
                   <div className="flex gap-1">
                     {[{ val: true, label: 'Sí' }, { val: false, label: 'No' }].map(opt => (
                       <button key={String(opt.val)} onClick={() => setEP('equipo', opt.val)}
                         className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-all"
-                        style={{ background: editPermisos.equipo === opt.val ? '#eafaf2' : '#fff', color: editPermisos.equipo === opt.val ? '#059669' : '#9aa1ad', borderColor: editPermisos.equipo === opt.val ? '#059669' + '40' : '#e3e5ea' }}>
+                        style={{ background: editPermisos.equipo === opt.val ? '#eafaf2' : '#1e2235', color: editPermisos.equipo === opt.val ? '#059669' : '#8a90a8', borderColor: editPermisos.equipo === opt.val ? '#059669' + '40' : '#2a2f46' }}>
                         {opt.label}
                       </button>
                     ))}
                   </div>
                 </div>
                 <div className="flex gap-2 pt-2">
-                  <button onClick={saveEdit} disabled={saving} className="flex-1 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+                  <button onClick={saveEdit} disabled={saving} className="flex-1 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:bg-[#3d6fd4] disabled:opacity-60" style={{ background: '#4a7de8' }}>
                     {saving ? 'Guardando…' : 'Guardar permisos'}
                   </button>
-                  <button onClick={() => setEditId(null)} className="px-4 py-[9px] rounded-[10px] border text-[13px] font-semibold hover:bg-stone-50" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>Cancelar</button>
+                  <button onClick={() => setEditId(null)} className="px-4 py-[9px] rounded-[10px] border text-[13px] font-semibold hover:bg-[#1e2235]" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>Cancelar</button>
                 </div>
               </div>
             ) : (
               /* Permisos en modo lectura */
               <div className="grid grid-cols-2 gap-2">
                 {MODULOS_PERM.map(({ id, label }) => (
-                  <div key={id} className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#f8f9fa' }}>
-                    <span className="text-[12px]" style={{ color: '#767d8a' }}>{label}</span>
+                  <div key={id} className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#1e2235' }}>
+                    <span className="text-[12px]" style={{ color: '#8a90a8' }}>{label}</span>
                     <PermBadge val={u.permisos?.[id] || 'none'} />
                   </div>
                 ))}
-                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#f8f9fa' }}>
-                  <span className="text-[12px]" style={{ color: '#767d8a' }}>Crear pedidos</span>
+                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#1e2235' }}>
+                  <span className="text-[12px]" style={{ color: '#8a90a8' }}>Crear pedidos</span>
                   <PermBadge val={u.permisos?.crearPedidos !== false ? 'edit' : 'none'} />
                 </div>
-                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#f8f9fa' }}>
-                  <span className="text-[12px]" style={{ color: '#767d8a' }}>Equipo</span>
+                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#1e2235' }}>
+                  <span className="text-[12px]" style={{ color: '#8a90a8' }}>Equipo</span>
                   <PermBadge val={u.permisos?.equipo ? 'edit' : 'none'} />
                 </div>
               </div>
@@ -2870,15 +2881,15 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
   /* ── Layout común: contenido por tab ── */
   const detallesContent = (
     <div className="space-y-4">
-      <div className="flex items-center gap-3 rounded-[13px] p-3" style={{ background: '#f8f9fa' }}>
-        <div className="w-10 h-10 rounded-[10px] border flex items-center justify-center font-bold text-[14px] flex-shrink-0" style={{ background: '#fff', borderColor: '#e7e9ed', color: '#4a505c' }}>{initials(taller?.nombre)}</div>
+      <div className="flex items-center gap-3 rounded-[13px] p-3" style={{ background: '#1e2235' }}>
+        <div className="w-10 h-10 rounded-[10px] border flex items-center justify-center font-bold text-[14px] flex-shrink-0" style={{ background: '#2a2f46', borderColor: 'rgba(255,255,255,0.07)', color: '#8a90a8' }}>{initials(taller?.nombre)}</div>
         <div className="flex-1 min-w-0">
-          <div className="text-[13.5px] font-bold truncate" style={{ color: '#181b21' }}>{taller?.nombre}</div>
-          <div className="text-[12px]" style={{ color: '#8a909c' }}>{taller?.contacto}</div>
+          <div className="text-[13.5px] font-bold truncate" style={{ color: '#e8eaee' }}>{taller?.nombre}</div>
+          <div className="text-[12px]" style={{ color: '#8a90a8' }}>{taller?.contacto}</div>
         </div>
       </div>
       <FormField label="Estado del pedido">
-        <select value={estado} onChange={e => setEstado(e.target.value)} className={`${inputClass} bg-white`}>
+        <select value={estado} onChange={e => setEstado(e.target.value)} className={inputClass}>
           {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
         </select>
       </FormField>
@@ -2903,19 +2914,19 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
       )}
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <p className="text-[12.5px] font-semibold" style={{ color: '#4a505c' }}>Notas internas</p>
-          <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-[6px]" style={{ background: '#f1f3f5', color: '#9aa1ad' }}>🔒 Solo admin</span>
+          <p className="text-[12.5px] font-semibold" style={{ color: '#8a90a8' }}>Notas internas</p>
+          <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-[6px]" style={{ background: '#1e2235', color: '#5a6078' }}>🔒 Solo admin</span>
         </div>
         <textarea value={notasInt} onChange={e => setNotasInt(e.target.value)} placeholder="Observaciones internas…" rows={3}
-          className="w-full text-[13px] rounded-[10px] p-3 resize-none border outline-none focus:ring-2 focus:ring-[#e8632f]/10 focus:border-[#e8632f]"
-          style={{ background: '#fff', borderColor: '#e3e5ea', color: '#181b21' }} />
+          className="w-full text-[13px] rounded-[10px] p-3 resize-none border outline-none focus:ring-2 focus:ring-[#4a7de8]/10 focus:border-[#4a7de8]"
+          style={{ background: '#13162a', borderColor: '#2a2f46', color: '#e8eaee' }} />
       </div>
       {saved && <div className="flex items-center gap-2 px-3 py-2.5 rounded-[11px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}><CheckCircle2 className="w-4 h-4" /> Cambios guardados.</div>}
       <div className="flex gap-3">
-        <button onClick={async () => { setSaving(true); try { await onChangeStatus(order.id, estado, fechaEntrega || undefined); await onUpdateReferencias(order.id, { numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim() }); await onUpdateNotes(order.id, notasInt); setSaved(true); setTimeout(() => setSaved(false), 2500); } finally { setSaving(false); } }} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+        <button onClick={async () => { setSaving(true); try { await onChangeStatus(order.id, estado, fechaEntrega || undefined); await onUpdateReferencias(order.id, { numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim() }); await onUpdateNotes(order.id, notasInt); setSaved(true); setTimeout(() => setSaved(false), 2500); } finally { setSaving(false); } }} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:bg-[#3d6fd4] disabled:opacity-60" style={{ background: '#4a7de8' }}>
           {saving ? 'Guardando…' : 'Guardar cambios'}
         </button>
-        <button onClick={() => { if (window.confirm('¿Eliminar este pedido?')) onDeleteOrder(order.id); }} className="px-4 py-[13px] rounded-[11px] border text-[13px] font-semibold hover:bg-red-50 hover:text-red-500 transition-colors" style={{ borderColor: '#e3e5ea', color: '#aab0b9' }}>
+        <button onClick={() => { if (window.confirm('¿Eliminar este pedido?')) onDeleteOrder(order.id); }} className="px-4 py-[13px] rounded-[11px] border text-[13px] font-semibold hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ borderColor: '#2a2f46', color: '#5a6078' }}>
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
@@ -2939,19 +2950,19 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
       <div>
         <p className="text-[12.5px] font-semibold mb-1.5" style={{ color: '#4a505c' }}>PDF <span style={{ color: '#aab0b9', fontWeight: 400 }}>(opcional)</span></p>
         {archivo ? (
-          <div className="flex items-center gap-2 rounded-[10px] px-3 py-2.5 border" style={{ background: '#f8f9fa', borderColor: '#e7e9ed' }}>
-            <FileText className="w-4 h-4 flex-shrink-0" style={{ color: '#e8632f' }} />
-            <a href={archivo.url} target="_blank" rel="noreferrer" className="text-[13px] truncate flex-1 hover:underline" style={{ color: '#4a505c' }}>{archivo.name}</a>
-            <button onClick={() => setArchivo(null)} style={{ color: '#aab0b9' }}><X className="w-4 h-4" /></button>
+          <div className="flex items-center gap-2 rounded-[10px] px-3 py-2.5 border" style={{ background: '#1e2235', borderColor: 'rgba(255,255,255,0.07)' }}>
+            <FileText className="w-4 h-4 flex-shrink-0" style={{ color: '#4a7de8' }} />
+            <a href={archivo.url} target="_blank" rel="noreferrer" className="text-[13px] truncate flex-1 hover:underline" style={{ color: '#8a90a8' }}>{archivo.name}</a>
+            <button onClick={() => setArchivo(null)} style={{ color: '#5a6078' }}><X className="w-4 h-4" /></button>
           </div>
         ) : (
-          <label className="flex items-center justify-center gap-2 border-dashed border rounded-[10px] px-3 py-3 text-[13px] cursor-pointer transition-colors hover:border-[#e8632f] hover:text-[#c9491c]" style={{ borderColor: '#d3d6db', color: '#8a909c' }}>
+          <label className="flex items-center justify-center gap-2 border-dashed border rounded-[10px] px-3 py-3 text-[13px] cursor-pointer transition-colors hover:border-[#4a7de8] hover:text-[#4a7de8]" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>
             <Paperclip className="w-4 h-4" /> Adjuntar PDF
             <input type="file" accept="application/pdf" onChange={e => { const f = e.target.files?.[0]; if (f) { setArchivo({ name: f.name, type: f.type, url: URL.createObjectURL(f), file: f }); } e.target.value = ''; }} className="hidden" />
           </label>
         )}
       </div>
-      <button onClick={async () => { setSending(true); setSendError(''); try { await onSendEstimate(order.id, { notas: notasEst, archivo }); setSent(true); setTimeout(() => setSent(false), 3000); } catch (err) { setSendError('Error: ' + (err.message || err.code)); } finally { setSending(false); } }} disabled={sending} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:brightness-105 disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: '#181b21' }}>
+      <button onClick={async () => { setSending(true); setSendError(''); try { await onSendEstimate(order.id, { notas: notasEst, archivo }); setSent(true); setTimeout(() => setSent(false), 3000); } catch (err) { setSendError('Error: ' + (err.message || err.code)); } finally { setSending(false); } }} disabled={sending} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#3d6fd4] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: '#4a7de8' }}>
         <Send className="w-4 h-4" /> {sending ? 'Enviando…' : order.estimado ? 'Actualizar estimado' : 'Enviar estimado al taller'}
       </button>
     </div>
@@ -2967,22 +2978,22 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
     return (
       <div className="fixed inset-0 z-50">
         <div className="absolute inset-0" style={{ background: 'rgba(20,22,26,.45)', animation: 'ppFade .2s ease both' }} onClick={onClose} />
-        <div className="pp-scroll absolute bottom-0 left-0 right-0 max-h-[92%] overflow-y-auto overflow-x-hidden rounded-t-[24px] flex flex-col" style={{ background: '#fff', animation: 'ppSheet .3s cubic-bezier(.2,.8,.2,1) both' }}>
-          <div className="sticky top-0 bg-white z-10 flex-shrink-0" style={{ borderBottom: '1px solid #eef0f2' }}>
-            <div className="w-10 h-1 rounded-full mx-auto mt-3 mb-3" style={{ background: '#e3e6ea' }} />
+        <div className="pp-scroll absolute bottom-0 left-0 right-0 max-h-[92%] overflow-y-auto overflow-x-hidden rounded-t-[24px] flex flex-col" style={{ background: '#1a1d2e', animation: 'ppSheet .3s cubic-bezier(.2,.8,.2,1) both' }}>
+          <div className="sticky top-0 z-10 flex-shrink-0" style={{ background: '#1a1d2e', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="w-10 h-1 rounded-full mx-auto mt-3 mb-3" style={{ background: '#2a2f46' }} />
             <div className="flex items-center gap-3 px-5 pb-3">
               <div className="min-w-0 flex-1">
-                <div className="font-mono text-[11px] font-semibold" style={{ color: '#9aa1ad' }}>{order.folio || order.id?.slice(0,8)}</div>
-                <h2 className="text-[17px] font-bold" style={{ color: '#181b21' }}>{order.vehiculo}</h2>
+                <div className="font-mono text-[11px] font-semibold" style={{ color: '#5a6078' }}>{order.folio || order.id?.slice(0,8)}</div>
+                <h2 className="text-[17px] font-bold" style={{ color: '#e8eaee' }}>{order.vehiculo}</h2>
               </div>
               <StatusBadge estado={estado} />
-              <button onClick={onClose} className="w-8 h-8 rounded-[9px] border flex items-center justify-center flex-shrink-0" style={{ borderColor: '#e7e9ed', color: '#767d8a' }}><X className="w-4 h-4" /></button>
+              <button onClick={onClose} className="w-8 h-8 rounded-[9px] border flex items-center justify-center flex-shrink-0" style={{ borderColor: 'rgba(255,255,255,0.07)', color: '#8a90a8' }}><X className="w-4 h-4" /></button>
             </div>
             <div className="flex px-5">
               {mobileTabs.map(({ id, label, icon: Icon, badge }) => (
-                <button key={id} onClick={() => setTab(id)} className={`flex items-center gap-1.5 py-3 text-[12.5px] font-semibold border-b-2 mr-5 transition-colors ${tab === id ? 'border-[#e8632f] text-[#181b21]' : 'border-transparent text-[#9aa1ad]'}`}>
+                <button key={id} onClick={() => setTab(id)} className={`flex items-center gap-1.5 py-3 text-[12.5px] font-semibold border-b-2 mr-5 transition-colors`} style={{ borderBottomColor: tab === id ? '#4a7de8' : 'transparent', color: tab === id ? '#e8eaee' : '#5a6078' }}>
                   <Icon className="w-3.5 h-3.5" strokeWidth={1.8} /> {label}
-                  {badge > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#f1f3f5', color: '#5b626e' }}>{badge}</span>}
+                  {badge > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#1e2235', color: '#8a90a8' }}>{badge}</span>}
                 </button>
               ))}
             </div>
@@ -3000,16 +3011,16 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
       <div className="absolute inset-0" style={{ background: 'rgba(20,22,26,.5)', animation: 'ppFade .2s ease both' }} onClick={onClose} />
-      <div className="relative w-full flex flex-col" style={{ maxWidth: 1020, maxHeight: '90vh', background: '#fff', borderRadius: 20, boxShadow: '0 40px 80px -20px rgba(0,0,0,.35)', animation: 'ppRise .28s cubic-bezier(.2,.8,.2,1) both' }}>
+      <div className="relative w-full flex flex-col" style={{ maxWidth: 1020, maxHeight: '90vh', background: '#1a1d2e', borderRadius: 20, boxShadow: '0 40px 80px -20px rgba(0,0,0,.35)', animation: 'ppRise .28s cubic-bezier(.2,.8,.2,1) both' }}>
 
         {/* ── Header ── */}
-        <div className="flex items-center gap-4 px-7 py-4 flex-shrink-0" style={{ borderBottom: '1px solid #eef0f2' }}>
+        <div className="flex items-center gap-4 px-7 py-4 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="min-w-0 flex-1">
-            <div className="font-mono text-[12px] font-semibold" style={{ color: '#9aa1ad' }}>{order.folio || order.id?.slice(0,8)}</div>
-            <h2 className="text-[19px] font-bold leading-tight" style={{ color: '#181b21', letterSpacing: '-.02em' }}>{order.vehiculo || '—'}</h2>
+            <div className="font-mono text-[12px] font-semibold" style={{ color: '#5a6078' }}>{order.folio || order.id?.slice(0,8)}</div>
+            <h2 className="text-[19px] font-bold leading-tight" style={{ color: '#e8eaee', letterSpacing: '-.02em' }}>{order.vehiculo || '—'}</h2>
           </div>
           <StatusBadge estado={estado} />
-          <button onClick={onClose} className="w-9 h-9 rounded-[10px] border flex items-center justify-center hover:bg-stone-50 transition-colors flex-shrink-0" style={{ borderColor: '#e7e9ed', color: '#767d8a' }}>
+          <button onClick={onClose} className="w-9 h-9 rounded-[10px] border flex items-center justify-center hover:bg-[#1e2235] transition-colors flex-shrink-0" style={{ borderColor: 'rgba(255,255,255,0.07)', color: '#8a90a8' }}>
             <X className="w-[18px] h-[18px]" />
           </button>
         </div>
@@ -3018,17 +3029,17 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
         <div className="flex-1 overflow-hidden flex min-h-0">
 
           {/* Columna izquierda */}
-          <div className="overflow-y-auto p-6 space-y-4" style={{ flex: '1.6', borderRight: '1px solid #eef0f2' }}>
+          <div className="overflow-y-auto p-6 space-y-4" style={{ flex: '1.6', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
 
             {/* Taller */}
-            <div className="flex items-center gap-3 rounded-[13px] p-3" style={{ background: '#f8f9fa' }}>
-              <div className="w-10 h-10 rounded-[10px] border flex items-center justify-center font-bold text-[14px] flex-shrink-0" style={{ background: '#fff', borderColor: '#e7e9ed', color: '#4a505c' }}>{initials(taller?.nombre)}</div>
+            <div className="flex items-center gap-3 rounded-[13px] p-3" style={{ background: '#1e2235' }}>
+              <div className="w-10 h-10 rounded-[10px] border flex items-center justify-center font-bold text-[14px] flex-shrink-0" style={{ background: '#2a2f46', borderColor: 'rgba(255,255,255,0.07)', color: '#8a90a8' }}>{initials(taller?.nombre)}</div>
               <div className="flex-1 min-w-0">
-                <div className="text-[13.5px] font-bold truncate" style={{ color: '#181b21' }}>{taller?.nombre}</div>
-                <div className="text-[12px]" style={{ color: '#8a909c' }}>{taller?.contacto}</div>
+                <div className="text-[13.5px] font-bold truncate" style={{ color: '#e8eaee' }}>{taller?.nombre}</div>
+                <div className="text-[12px]" style={{ color: '#8a90a8' }}>{taller?.contacto}</div>
               </div>
               {taller?.email && (
-                <button onClick={() => setShowEmail(v => !v)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] border text-[12px] font-semibold hover:bg-stone-50 transition-colors flex-shrink-0" style={{ borderColor: '#e3e5ea', color: '#5b626e' }}>
+                <button onClick={() => setShowEmail(v => !v)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] border text-[12px] font-semibold hover:bg-[#1a1d2e] transition-colors flex-shrink-0" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>
                   <Mail className="w-3.5 h-3.5" /> Correo
                 </button>
               )}
@@ -3039,11 +3050,11 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
               const subject = `Estimado · ${order.vehiculo}`;
               const body = [`Hola ${taller.contacto || ''},`, '', `Estimado para: ${order.vehiculo}`, notasEst ? `Notas: ${notasEst}` : '', '', 'Puedes verlo en Parts Pilot.', '', 'Saludos.'].filter((l, i) => !(i === 3 && !notasEst)).join('\n');
               return (
-                <div className="rounded-[12px] p-3 border space-y-2 text-[13px] -mt-2" style={{ background: '#f8f9fa', borderColor: '#e7e9ed' }}>
-                  <div><span className="font-semibold" style={{ color: '#767d8a' }}>Para: </span><span>{taller.email}</span></div>
-                  <div><span className="font-semibold" style={{ color: '#767d8a' }}>Asunto: </span><span>{subject}</span></div>
-                  <textarea readOnly value={body} rows={4} className="w-full text-[12px] rounded-[10px] p-2 resize-none outline-none border" style={{ background: '#fff', borderColor: '#e7e9ed', color: '#5b626e' }} />
-                  <button onClick={() => navigator.clipboard.writeText(`Para: ${taller.email}\nAsunto: ${subject}\n\n${body}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); })} className="w-full py-2 rounded-[10px] text-white text-[13px] font-semibold flex items-center justify-center gap-2" style={{ background: '#181b21' }}>
+                <div className="rounded-[12px] p-3 border space-y-2 text-[13px] -mt-2" style={{ background: '#1e2235', borderColor: 'rgba(255,255,255,0.07)' }}>
+                  <div><span className="font-semibold" style={{ color: '#8a90a8' }}>Para: </span><span style={{ color: '#e8eaee' }}>{taller.email}</span></div>
+                  <div><span className="font-semibold" style={{ color: '#8a90a8' }}>Asunto: </span><span style={{ color: '#e8eaee' }}>{subject}</span></div>
+                  <textarea readOnly value={body} rows={4} className="w-full text-[12px] rounded-[10px] p-2 resize-none outline-none border" style={{ background: '#13162a', borderColor: '#2a2f46', color: '#8a90a8' }} />
+                  <button onClick={() => navigator.clipboard.writeText(`Para: ${taller.email}\nAsunto: ${subject}\n\n${body}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); })} className="w-full py-2 rounded-[10px] text-white text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-[#3d6fd4]" style={{ background: '#4a7de8' }}>
                     {copied ? <><CheckCircle2 className="w-4 h-4" /> ¡Copiado!</> : <><Paperclip className="w-4 h-4" /> Copiar correo</>}
                   </button>
                 </div>
@@ -3055,7 +3066,7 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
               <p className="text-[10.5px] font-bold uppercase mb-3" style={{ color: '#9aa1ad', letterSpacing: '.08em' }}>Detalles del pedido</p>
               <div className="space-y-3">
                 <FormField label="Estado del pedido">
-                  <select value={estado} onChange={e => setEstado(e.target.value)} className={`${inputClass} bg-white`}>
+                  <select value={estado} onChange={e => setEstado(e.target.value)} className={inputClass}>
                     {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
                   </select>
                 </FormField>
@@ -3099,12 +3110,12 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
 
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <p className="text-[12.5px] font-semibold" style={{ color: '#4a505c' }}>Notas internas</p>
-                    <span className="flex items-center gap-1 text-[10.5px] font-semibold px-2 py-0.5 rounded-[6px]" style={{ background: '#f1f3f5', color: '#9aa1ad' }}>🔒 Solo admin</span>
+                    <p className="text-[12.5px] font-semibold" style={{ color: '#8a90a8' }}>Notas internas</p>
+                    <span className="flex items-center gap-1 text-[10.5px] font-semibold px-2 py-0.5 rounded-[6px]" style={{ background: '#1e2235', color: '#5a6078' }}>🔒 Solo admin</span>
                   </div>
                   <textarea value={notasInt} onChange={e => setNotasInt(e.target.value)} placeholder="Observaciones internas, no visibles para el taller…" rows={3}
-                    className="w-full text-[13px] rounded-[10px] p-3 resize-none border outline-none focus:ring-2 focus:ring-[#e8632f]/10 focus:border-[#e8632f]"
-                    style={{ background: '#fff', borderColor: '#e3e5ea', color: '#181b21' }} />
+                    className="w-full text-[13px] rounded-[10px] p-3 resize-none border outline-none focus:ring-2 focus:ring-[#4a7de8]/10 focus:border-[#4a7de8]"
+                    style={{ background: '#13162a', borderColor: '#2a2f46', color: '#e8eaee' }} />
                 </div>
               </div>
             </div>
@@ -3140,10 +3151,10 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
             })()}
 
             <div className="flex gap-3">
-              <button onClick={handleSave} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+              <button onClick={handleSave} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:bg-[#3d6fd4] disabled:opacity-60" style={{ background: '#4a7de8' }}>
                 {saving ? 'Guardando…' : 'Guardar cambios'}
               </button>
-              <button onClick={() => { if (window.confirm('¿Eliminar este pedido?')) onDeleteOrder(order.id); }} className="flex items-center gap-2 px-4 py-[13px] rounded-[11px] border text-[13px] font-semibold hover:bg-red-50 hover:text-red-500 transition-colors" style={{ borderColor: '#e3e5ea', color: '#aab0b9' }}>
+              <button onClick={() => { if (window.confirm('¿Eliminar este pedido?')) onDeleteOrder(order.id); }} className="flex items-center gap-2 px-4 py-[13px] rounded-[11px] border text-[13px] font-semibold hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ borderColor: '#2a2f46', color: '#5a6078' }}>
                 <Trash2 className="w-4 h-4" /> Eliminar
               </button>
             </div>
@@ -3152,11 +3163,11 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
           {/* Columna derecha: tabs Estimado | Mensajes */}
           <div className="flex flex-col" style={{ width: 380, flexShrink: 0 }}>
             {/* Tabs */}
-            <div className="flex px-6 flex-shrink-0" style={{ borderBottom: '1px solid #eef0f2' }}>
+            <div className="flex px-6 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
               {[['estimado', FileText, 'Estimado', 0], ['mensajes', MessageSquare, 'Mensajes', msgCount]].map(([id, Icon, lbl, badge]) => (
-                <button key={id} onClick={() => setTab(id)} className={`flex items-center gap-1.5 px-1 py-3.5 text-[13px] font-semibold border-b-2 mr-5 transition-colors ${tab === id ? 'border-[#e8632f] text-[#181b21]' : 'border-transparent text-[#9aa1ad] hover:text-[#5b626e]'}`}>
+                <button key={id} onClick={() => setTab(id)} className={`flex items-center gap-1.5 px-1 py-3.5 text-[13px] font-semibold border-b-2 mr-5 transition-colors`} style={{ borderBottomColor: tab === id ? '#4a7de8' : 'transparent', color: tab === id ? '#e8eaee' : '#5a6078' }}>
                   <Icon className="w-4 h-4" strokeWidth={1.8} /> {lbl}
-                  {badge > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-0.5" style={{ background: '#f1f3f5', color: '#5b626e' }}>{badge}</span>}
+                  {badge > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-0.5" style={{ background: '#1e2235', color: '#8a90a8' }}>{badge}</span>}
                 </button>
               ))}
             </div>
@@ -3182,23 +3193,23 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
                 </FormField>
 
                 <div>
-                  <p className="text-[12.5px] font-semibold mb-1.5" style={{ color: '#4a505c' }}>PDF del estimado <span style={{ color: '#aab0b9', fontWeight: 400 }}>(opcional)</span></p>
+                  <p className="text-[12.5px] font-semibold mb-1.5" style={{ color: '#8a90a8' }}>PDF del estimado <span style={{ color: '#5a6078', fontWeight: 400 }}>(opcional)</span></p>
                   {archivo ? (
-                    <div className="flex items-center gap-2 rounded-[10px] px-3 py-2.5 border" style={{ background: '#f8f9fa', borderColor: '#e7e9ed' }}>
-                      <FileText className="w-4 h-4 flex-shrink-0" style={{ color: '#e8632f' }} />
-                      <a href={archivo.url} target="_blank" rel="noreferrer" className="text-[13px] truncate flex-1 hover:underline" style={{ color: '#4a505c' }}>{archivo.name}</a>
-                      <span className="text-[11px]" style={{ color: '#aab0b9' }}>{archivo.file ? Math.round(archivo.file.size / 1024) + ' KB' : ''}</span>
-                      <button onClick={() => setArchivo(null)} style={{ color: '#aab0b9' }} className="hover:text-red-500 flex-shrink-0"><X className="w-4 h-4" /></button>
+                    <div className="flex items-center gap-2 rounded-[10px] px-3 py-2.5 border" style={{ background: '#1e2235', borderColor: 'rgba(255,255,255,0.07)' }}>
+                      <FileText className="w-4 h-4 flex-shrink-0" style={{ color: '#4a7de8' }} />
+                      <a href={archivo.url} target="_blank" rel="noreferrer" className="text-[13px] truncate flex-1 hover:underline" style={{ color: '#8a90a8' }}>{archivo.name}</a>
+                      <span className="text-[11px]" style={{ color: '#5a6078' }}>{archivo.file ? Math.round(archivo.file.size / 1024) + ' KB' : ''}</span>
+                      <button onClick={() => setArchivo(null)} style={{ color: '#5a6078' }} className="hover:text-red-400 flex-shrink-0"><X className="w-4 h-4" /></button>
                     </div>
                   ) : (
-                    <label className="flex items-center justify-center gap-2 border-dashed border rounded-[10px] px-3 py-3 text-[13px] cursor-pointer transition-colors hover:border-[#e8632f] hover:text-[#c9491c]" style={{ borderColor: '#d3d6db', color: '#8a909c' }}>
+                    <label className="flex items-center justify-center gap-2 border-dashed border rounded-[10px] px-3 py-3 text-[13px] cursor-pointer transition-colors hover:border-[#4a7de8] hover:text-[#4a7de8]" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>
                       <Paperclip className="w-4 h-4" /> Adjuntar PDF
                       <input type="file" accept="application/pdf" onChange={handleFile} className="hidden" />
                     </label>
                   )}
                 </div>
 
-                <button onClick={handleSendEst} disabled={sending} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:brightness-105 disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: '#181b21' }}>
+                <button onClick={handleSendEst} disabled={sending} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#3d6fd4] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: '#4a7de8' }}>
                   <Send className="w-4 h-4" /> {sending ? 'Enviando…' : order.estimado ? 'Actualizar estimado' : 'Enviar estimado al taller'}
                 </button>
               </div>
@@ -3235,29 +3246,29 @@ function AdminHistorial({ pedidos, talleres, getTaller, onSelect }) {
 
   return (
     <div className="space-y-4">
-      <p className="text-[13px]" style={{ color: '#767d8a' }}>
-        <strong style={{ color: '#181b21' }}>{completados.length}</strong> orden{completados.length !== 1 ? 'es' : ''} completada{completados.length !== 1 ? 's' : ''}
+      <p className="text-[13px]" style={{ color: '#8a90a8' }}>
+        <strong style={{ color: '#e8eaee' }}>{completados.length}</strong> orden{completados.length !== 1 ? 'es' : ''} completada{completados.length !== 1 ? 's' : ''}
       </p>
-      <div className="rounded-[16px] overflow-hidden border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+      <div className="rounded-[16px] overflow-hidden border" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
         <table className="w-full border-collapse">
           <thead>
-            <tr style={{ borderBottom: '1px solid #eef0f2' }}>
+            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
               {['Folio', 'Taller', 'Vehículo / Pieza', 'Fecha', 'Entrega'].map((h, i) => (
-                <th key={h} className={`text-left py-3 text-[10.5px] font-bold uppercase ${i === 0 ? 'pl-6' : 'px-3'} ${i === 4 ? 'pr-6' : ''}`} style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>{h}</th>
+                <th key={h} className={`text-left py-3 text-[10.5px] font-bold uppercase ${i === 0 ? 'pl-6' : 'px-3'} ${i === 4 ? 'pr-6' : ''}`} style={{ color: '#5a6078', letterSpacing: '.06em' }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {completados.map(p => (
-              <tr key={p.id} onClick={() => onSelect(p.id)} className="cursor-pointer hover:bg-[#fafbfc] transition-colors" style={{ borderTop: '1px solid #f1f2f4' }}>
-                <td className="py-3.5 pl-6 pr-3 font-mono text-[12.5px] font-semibold whitespace-nowrap" style={{ color: '#181b21' }}>{p.folio || p.id.slice(0,8)}</td>
-                <td className="py-3.5 px-3 text-[13px] max-w-[150px] truncate" style={{ color: '#4a505c' }}>{getTaller(p.tallerId)?.nombre || '—'}</td>
+              <tr key={p.id} onClick={() => onSelect(p.id)} className="cursor-pointer hover:bg-[#1e2235] transition-colors" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <td className="py-3.5 pl-6 pr-3 font-mono text-[12.5px] font-semibold whitespace-nowrap" style={{ color: '#e8eaee' }}>{p.folio || p.id.slice(0,8)}</td>
+                <td className="py-3.5 px-3 text-[13px] max-w-[150px] truncate" style={{ color: '#8a90a8' }}>{getTaller(p.tallerId)?.nombre || '—'}</td>
                 <td className="py-3.5 px-3">
-                  <div className="text-[13px] font-semibold" style={{ color: '#181b21' }}>{p.vehiculo || '—'}</div>
-                  {p.pieza && <div className="text-[11.5px]" style={{ color: '#8a909c' }}>{p.pieza}</div>}
+                  <div className="text-[13px] font-semibold" style={{ color: '#e8eaee' }}>{p.vehiculo || '—'}</div>
+                  {p.pieza && <div className="text-[11.5px]" style={{ color: '#8a90a8' }}>{p.pieza}</div>}
                 </td>
-                <td className="py-3.5 px-3 text-[12.5px] whitespace-nowrap" style={{ color: '#767d8a' }}>{formatDate(p.fecha)}</td>
-                <td className="py-3.5 pr-6 px-3 text-[12.5px] whitespace-nowrap" style={{ color: p.fechaEntrega ? '#059669' : '#aab0b9' }}>
+                <td className="py-3.5 px-3 text-[12.5px] whitespace-nowrap" style={{ color: '#8a90a8' }}>{formatDate(p.fecha)}</td>
+                <td className="py-3.5 pr-6 px-3 text-[12.5px] whitespace-nowrap" style={{ color: p.fechaEntrega ? '#059669' : '#5a6078' }}>
                   {p.fechaEntrega ? formatDate(p.fechaEntrega) : '—'}
                 </td>
               </tr>
@@ -3364,18 +3375,18 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
     ].filter(Boolean);
 
     return (
-      <div style={{ minHeight: '100vh', background: '#f4f5f7' }}>
+      <div style={{ minHeight: '100vh', background: '#12141f' }}>
         {/* Header móvil admin */}
-        <div className="safe-top" style={{ background: '#141619' }}>
+        <div className="safe-top" style={{ background: '#12141f' }}>
           <div className="px-4 py-3 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #e8632f, #c9491c)' }}>
+            <div className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.07) 100%)', border: '1px solid rgba(255,255,255,0.17)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.13)' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[14px] font-extrabold leading-none" style={{ color: '#fff' }}>Parts Pilot</div>
               <div className="text-[10px] font-bold uppercase mt-0.5" style={{ color: '#6a7180', letterSpacing: '.04em' }}>Admin</div>
             </div>
-            <button onClick={onLogout} className="w-8 h-8 rounded-[9px] flex items-center justify-center" style={{ background: '#262a31', color: '#9aa1ad' }}>
+            <button onClick={onLogout} className="w-8 h-8 rounded-[9px] flex items-center justify-center" style={{ background: '#1e2235', color: '#5a6078' }}>
               <LogOut className="w-3.5 h-3.5" strokeWidth={1.9} />
             </button>
           </div>
@@ -3397,17 +3408,17 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
         </main>
 
         {/* Bottom nav móvil admin */}
-        <div className="fixed bottom-0 left-0 right-0 z-20 safe-bottom" style={{ background: 'rgba(255,255,255,.97)', backdropFilter: 'blur(12px)', borderTop: '1px solid #e7e9ed' }}>
+        <div className="fixed bottom-0 left-0 right-0 z-20 safe-bottom" style={{ background: 'rgba(18,20,31,0.97)', backdropFilter: 'blur(12px)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="flex items-end justify-between px-2 pt-2 pb-2">
             {mobileNav.map(({ id, label, icon: Icon, badge, accent }) => {
               const active = activeTab === id;
               return (
                 <button key={id} onClick={() => goTo(id)} className="flex flex-col items-center gap-1 flex-1 relative pt-1">
                   <div className="relative">
-                    <Icon className="w-[22px] h-[22px]" strokeWidth={1.9} style={{ color: active ? '#e8632f' : '#9aa1ad' }} />
-                    {badge > 0 && <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: accent ? '#e8632f' : '#6b7280' }}>{badge}</span>}
+                    <Icon className="w-[22px] h-[22px]" strokeWidth={1.9} style={{ color: active ? '#e8eaee' : '#5a6078' }} />
+                    {badge > 0 && <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: '#4a7de8' }}>{badge}</span>}
                   </div>
-                  <span className="text-[9.5px] font-semibold" style={{ color: active ? '#e8632f' : '#9aa1ad' }}>{label}</span>
+                  <span className="text-[9.5px] font-semibold" style={{ color: active ? '#e8eaee' : '#5a6078' }}>{label}</span>
                 </button>
               );
             })}
@@ -3433,7 +3444,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
   }
 
   return (
-    <div className="flex min-h-screen" style={{ background: '#f4f5f7' }}>
+    <div className="flex min-h-screen" style={{ background: '#12141f' }}>
       <AdminSidebar
         activeTab={activeTab}
         onChange={goTo}
@@ -3470,14 +3481,14 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
 function EstimateCard({ order }) {
   const { estimado } = order;
   return (
-    <div className="bg-white rounded-xl border border-stone-200 p-4">
+    <div className="rounded-xl border p-4" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
       <div className="mb-2">
-        <h3 className="font-semibold text-stone-900 truncate">{order.referencia || order.vehiculo}</h3>
-        {order.referencia && <p className="text-sm text-stone-500 truncate">{order.vehiculo}</p>}
+        <h3 className="font-semibold truncate" style={{ color: '#e8eaee' }}>{order.referencia || order.vehiculo}</h3>
+        {order.referencia && <p className="text-sm truncate" style={{ color: '#8a90a8' }}>{order.vehiculo}</p>}
       </div>
-      {estimado.notas && <p className="text-sm text-stone-600 mb-3 bg-stone-50 rounded-lg p-2">{estimado.notas}</p>}
+      {estimado.notas && <p className="text-sm mb-3 rounded-lg p-2" style={{ color: '#8a90a8', background: '#1e2235' }}>{estimado.notas}</p>}
       {estimado.archivo && (
-        <a href={estimado.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 hover:border-orange-300 hover:text-orange-600 transition-colors mb-3">
+        <a href={estimado.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors mb-3 border hover:border-[#4a7de8]" style={{ background: '#1e2235', borderColor: 'rgba(255,255,255,0.07)', color: '#8a90a8' }}>
           <FileText className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{estimado.archivo.name}</span>
         </a>
       )}
@@ -3496,7 +3507,7 @@ function EstimateActions({ order, onRespond }) {
         <button onClick={() => onRespond(order.id, 'aceptado')} className="flex-1 py-[11px] rounded-[11px] text-white text-[13px] font-bold flex items-center justify-center gap-1.5 transition-colors" style={{ background: '#10b981' }}>
           <ThumbsUp className="w-4 h-4" /> Aceptar
         </button>
-        <button onClick={() => onRespond(order.id, 'rechazado')} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold flex items-center justify-center gap-1.5 border transition-colors hover:bg-stone-50" style={{ background: '#fff', borderColor: '#e3e5ea', color: '#5b626e' }}>
+        <button onClick={() => onRespond(order.id, 'rechazado')} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold flex items-center justify-center gap-1.5 border transition-colors hover:bg-[#1e2235]" style={{ background: '#13162a', borderColor: '#2a2f46', color: '#8a90a8' }}>
           <ThumbsDown className="w-4 h-4" /> Rechazar
         </button>
       </div>
@@ -3521,9 +3532,9 @@ function EstimateActions({ order, onRespond }) {
 function ClientEstimados({ solicitudes, cotizaciones = [], onRespond }) {
   const total = solicitudes.length + cotizaciones.length;
   if (total === 0) return (
-    <div className="text-center py-14 text-stone-400">
+    <div className="text-center py-14" style={{ color: '#5a6078' }}>
       <FileText className="w-10 h-10 mx-auto mb-2 opacity-40" />
-      <p className="text-sm font-medium text-stone-500">No tienes solicitudes ni cotizaciones pendientes.</p>
+      <p className="text-sm font-medium" style={{ color: '#8a90a8' }}>No tienes solicitudes ni cotizaciones pendientes.</p>
       <p className="text-xs mt-1">Usa "Solicitar Estimado" para enviar una nueva solicitud al depto. de piezas.</p>
     </div>
   );
@@ -3533,14 +3544,14 @@ function ClientEstimados({ solicitudes, cotizaciones = [], onRespond }) {
       {/* Cotizaciones recibidas del admin — por responder */}
       {cotizaciones.length > 0 && (
         <div className="space-y-3">
-          <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#8a90a8' }}>
             Cotizaciones por responder · {cotizaciones.length}
           </p>
           <div className="grid sm:grid-cols-2 gap-3">
             {cotizaciones.map(p => (
-              <div key={p.id} className="bg-white border border-orange-200 ring-1 ring-orange-50 rounded-xl p-4 space-y-3">
+              <div key={p.id} className="rounded-xl p-4 space-y-3 border" style={{ background: '#1a1d2e', borderColor: 'rgba(74,125,232,0.3)', boxShadow: '0 0 0 1px rgba(74,125,232,0.1)' }}>
                 <div>
-                  <h3 className="font-semibold text-stone-900 truncate">{p.vehiculo}</h3>
+                  <h3 className="font-semibold truncate" style={{ color: '#e8eaee' }}>{p.vehiculo}</h3>
                   {(p.numeroPO || p.numeroOrden) && (
                     <div className="flex gap-1.5 mt-1 flex-wrap">
                       {p.numeroPO && <span className="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md font-medium">PO# {p.numeroPO}</span>}
@@ -3548,14 +3559,14 @@ function ClientEstimados({ solicitudes, cotizaciones = [], onRespond }) {
                     </div>
                   )}
                   {p.referencia && !p.numeroPO && !p.numeroOrden && (
-                    <p className="text-xs text-stone-400 mt-0.5">{p.referencia}</p>
+                    <p className="text-xs mt-0.5" style={{ color: '#5a6078' }}>{p.referencia}</p>
                   )}
                 </div>
                 {p.estimado?.notas && (
-                  <p className="text-sm text-stone-600 bg-stone-50 rounded-lg p-2.5">{p.estimado.notas}</p>
+                  <p className="text-sm rounded-lg p-2.5" style={{ color: '#8a90a8', background: '#1e2235' }}>{p.estimado.notas}</p>
                 )}
                 {p.estimado?.archivo && (
-                  <a href={p.estimado.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 hover:border-orange-300 hover:text-orange-600 transition-colors">
+                  <a href={p.estimado.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors border hover:border-[#4a7de8]" style={{ background: '#1e2235', borderColor: 'rgba(255,255,255,0.07)', color: '#8a90a8' }}>
                     <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{p.estimado.archivo.name}</span>
                   </a>
                 )}
@@ -3563,7 +3574,7 @@ function ClientEstimados({ solicitudes, cotizaciones = [], onRespond }) {
                   <button onClick={() => onRespond(p.id, 'aceptado')} className="flex-1 py-[11px] rounded-[11px] text-white text-[13px] font-bold flex items-center justify-center gap-1.5 transition-colors hover:brightness-105" style={{ background: '#10b981' }}>
                     <ThumbsUp className="w-4 h-4" /> Aceptar
                   </button>
-                  <button onClick={() => onRespond(p.id, 'rechazado')} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold border flex items-center justify-center gap-1.5 transition-colors hover:bg-stone-50" style={{ background: '#fff', borderColor: '#e3e5ea', color: '#5b626e' }}>
+                  <button onClick={() => onRespond(p.id, 'rechazado')} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold border flex items-center justify-center gap-1.5 transition-colors hover:bg-[#1e2235]" style={{ background: '#13162a', borderColor: '#2a2f46', color: '#8a90a8' }}>
                     <ThumbsDown className="w-4 h-4" /> Rechazar
                   </button>
                 </div>
@@ -3577,23 +3588,23 @@ function ClientEstimados({ solicitudes, cotizaciones = [], onRespond }) {
       {solicitudes.length > 0 && (
         <div className="space-y-3">
           {cotizaciones.length > 0 && (
-            <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Solicitudes enviadas · {solicitudes.length}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#8a90a8' }}>Solicitudes enviadas · {solicitudes.length}</p>
           )}
           <div className="grid sm:grid-cols-2 gap-3">
             {[...solicitudes].sort((a, b) => {
               const t = f => f?.toDate ? f.toDate().getTime() : new Date(f + 'T00:00:00').getTime();
               return t(b.fecha) - t(a.fecha);
             }).map(p => (
-              <div key={p.id} className="bg-white rounded-xl border border-stone-200 p-4">
+              <div key={p.id} className="rounded-xl border p-4" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="min-w-0">
-                    <h3 className="font-semibold text-stone-900 truncate">{p.vehiculo}</h3>
+                    <h3 className="font-semibold truncate" style={{ color: '#e8eaee' }}>{p.vehiculo}</h3>
                   </div>
                   <StatusBadge estado={p.estado} />
                 </div>
-                {p.notas && <p className="text-sm text-stone-600 bg-stone-50 rounded-lg p-2.5 mb-2.5">{p.notas}</p>}
+                {p.notas && <p className="text-sm rounded-lg p-2.5 mb-2.5" style={{ color: '#8a90a8', background: '#1e2235' }}>{p.notas}</p>}
                 {p.archivo && (
-                  <a href={p.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 hover:border-orange-300 hover:text-orange-600 transition-colors mb-2.5">
+                  <a href={p.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors mb-2.5 border hover:border-[#4a7de8]" style={{ background: '#1e2235', borderColor: 'rgba(255,255,255,0.07)', color: '#8a90a8' }}>
                     <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{p.archivo.name}</span>
                   </a>
                 )}
@@ -3634,14 +3645,14 @@ function ClientNuevaSolicitud({ onCreate }) {
 
   return (
     <div className="max-w-lg">
-      <h2 className="font-semibold text-stone-900 mb-1 text-lg">Solicitar Estimado</h2>
-      <p className="text-sm text-stone-500 mb-4">El departamento de piezas recibirá tu solicitud y te enviará un estimado.</p>
+      <h2 className="font-semibold mb-1 text-lg" style={{ color: '#e8eaee' }}>Solicitar Estimado</h2>
+      <p className="text-sm mb-4" style={{ color: '#8a90a8' }}>El departamento de piezas recibirá tu solicitud y te enviará un estimado.</p>
       {done && (
-        <div className="mb-4 text-sm text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg flex items-center gap-2">
+        <div className="mb-4 text-sm text-emerald-400 bg-emerald-900/20 px-3 py-2 rounded-lg flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4" /> Solicitud enviada correctamente.
         </div>
       )}
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-stone-200 p-5 space-y-4">
+      <form onSubmit={handleSubmit} className="rounded-xl border p-5 space-y-4" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
         <FormField label="Vehículo">
           <input value={form.vehiculo} onChange={e => handleChange('vehiculo', e.target.value)} placeholder="ej. Honda Civic 2021" className={inputClass} required />
         </FormField>
@@ -3650,25 +3661,25 @@ function ClientNuevaSolicitud({ onCreate }) {
         </FormField>
         <FormField label="Foto o archivo (opcional)">
           {archivo ? (
-            <div className="flex items-center justify-between gap-2 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2">
+            <div className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 border" style={{ background: '#1e2235', borderColor: 'rgba(255,255,255,0.07)' }}>
               {archivo.type?.startsWith('image/') ? (
                 <img src={archivo.url} alt={archivo.name} className="w-12 h-12 object-cover rounded-lg flex-shrink-0" />
               ) : (
-                <FileText className="w-5 h-5 text-stone-500 flex-shrink-0" />
+                <FileText className="w-5 h-5 flex-shrink-0" style={{ color: '#8a90a8' }} />
               )}
-              <span className="text-sm text-stone-700 truncate flex-1">{archivo.name}</span>
-              <button type="button" onClick={() => setArchivo(null)} className="text-stone-400 hover:text-red-500 flex-shrink-0">
+              <span className="text-sm truncate flex-1" style={{ color: '#e8eaee' }}>{archivo.name}</span>
+              <button type="button" onClick={() => setArchivo(null)} className="hover:text-red-400 flex-shrink-0" style={{ color: '#5a6078' }}>
                 <X className="w-4 h-4" />
               </button>
             </div>
           ) : (
-            <label className="flex items-center justify-center gap-2 border border-dashed border-stone-300 rounded-lg px-3 py-2.5 text-sm text-stone-500 hover:border-orange-300 hover:text-orange-600 cursor-pointer transition-colors">
+            <label className="flex items-center justify-center gap-2 border border-dashed rounded-lg px-3 py-2.5 text-sm cursor-pointer transition-colors hover:border-[#4a7de8]" style={{ borderColor: '#2a2f46', color: '#8a90a8' }}>
               <Paperclip className="w-4 h-4" /> Adjuntar foto o PDF
               <input type="file" accept="image/*,application/pdf" onChange={handleFile} className="hidden" />
             </label>
           )}
         </FormField>
-        <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 rounded-lg transition-colors">
+        <button type="submit" className="w-full text-white font-semibold py-2.5 rounded-lg transition-colors hover:bg-[#3d6fd4]" style={{ background: '#4a7de8' }}>
           Enviar solicitud
         </button>
       </form>
@@ -3681,13 +3692,13 @@ function ClientProgressBar({ estado }) {
   const pct = Math.round((idx / (STATUS_ORDER.length - 1)) * 100);
   return (
     <div>
-      <div className="flex justify-between text-[11px] text-stone-400 mb-1.5">
+      <div className="flex justify-between text-[11px] mb-1.5" style={{ color: '#5a6078' }}>
         <span>Inicio</span>
-        <span className="font-medium text-stone-600">{STATUS_CONFIG[estado].label}</span>
+        <span className="font-medium" style={{ color: '#8a90a8' }}>{STATUS_CONFIG[estado].label}</span>
         <span>Entregado</span>
       </div>
-      <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
-        <div className="h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+      <div className="h-2 rounded-full overflow-hidden" style={{ background: '#1e2235' }}>
+        <div className="h-full bg-gradient-to-r from-[#4a7de8] to-[#3d6fd4] rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
@@ -3699,20 +3710,20 @@ function ClientHistorial({ pedidos, onSelect }) {
   if (sorted.length === 0) return <EmptyState text="Aún no tienes órdenes completadas." />;
   return (
     <div className="space-y-3">
-      <p className="text-sm text-stone-400">{sorted.length} orden{sorted.length !== 1 ? 'es' : ''} completada{sorted.length !== 1 ? 's' : ''}</p>
+      <p className="text-sm" style={{ color: '#5a6078' }}>{sorted.length} orden{sorted.length !== 1 ? 'es' : ''} completada{sorted.length !== 1 ? 's' : ''}</p>
       {sorted.map(p => (
-        <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left bg-white border border-stone-200 rounded-xl p-4 hover:border-orange-300 hover:shadow-sm transition-all">
+        <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-xl p-4 hover:border-[#4a7de8] hover:shadow-sm transition-all border" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h3 className="font-semibold text-stone-900 truncate">{p.referencia || p.vehiculo}</h3>
-              {p.referencia && <p className="text-sm text-stone-500 truncate">{p.vehiculo}</p>}
+              <h3 className="font-semibold truncate" style={{ color: '#e8eaee' }}>{p.referencia || p.vehiculo}</h3>
+              {p.referencia && <p className="text-sm truncate" style={{ color: '#8a90a8' }}>{p.vehiculo}</p>}
             </div>
             <StatusBadge estado={p.estado} />
           </div>
-          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-dashed border-stone-200 text-xs text-stone-400">
+          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-dashed text-xs" style={{ borderColor: 'rgba(255,255,255,0.07)', color: '#5a6078' }}>
             <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{formatDate(p.fecha)}</span>
-            {p.folio && <span className="font-mono font-medium text-stone-500">{p.folio}</span>}
-            <span className="flex items-center gap-1 ml-auto text-teal-600"><CheckCheck className="w-3.5 h-3.5" />Completada</span>
+            {p.folio && <span className="font-mono font-medium" style={{ color: '#8a90a8' }}>{p.folio}</span>}
+            <span className="flex items-center gap-1 ml-auto text-teal-500"><CheckCheck className="w-3.5 h-3.5" />Completada</span>
           </div>
         </button>
       ))}
@@ -3744,11 +3755,11 @@ function ClientPerfil({ taller, onUpdate, isSubUser = false }) {
   return (
     <div className="flex flex-col items-center py-4">
       {/* Avatar */}
-      <div className="w-[72px] h-[72px] rounded-[20px] flex items-center justify-center text-[24px] font-extrabold mb-3" style={{ background: 'linear-gradient(150deg, #f3f4f6, #e3e6ea)', color: '#4a505c' }}>
+      <div className="w-[72px] h-[72px] rounded-[20px] flex items-center justify-center text-[24px] font-extrabold mb-3" style={{ background: '#2a2f46', color: '#8a90a8' }}>
         {initials(taller.nombre)}
       </div>
-      <h2 className="text-[17px] font-bold mb-0.5" style={{ color: '#181b21' }}>{taller.nombre || 'Mi taller'}</h2>
-      <p className="text-[13px] mb-6" style={{ color: '#767d8a' }}>{taller.contacto || ''}</p>
+      <h2 className="text-[17px] font-bold mb-0.5" style={{ color: '#e8eaee' }}>{taller.nombre || 'Mi taller'}</h2>
+      <p className="text-[13px] mb-6" style={{ color: '#8a90a8' }}>{taller.contacto || ''}</p>
 
       <div className="w-full max-w-md">
         {done && (
@@ -3756,12 +3767,12 @@ function ClientPerfil({ taller, onUpdate, isSubUser = false }) {
             <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> Cambios guardados.
           </div>
         )}
-        <form onSubmit={handleSubmit} className="rounded-[16px] p-[18px] space-y-4 border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+        <form onSubmit={handleSubmit} className="rounded-[16px] p-[18px] space-y-4 border" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
           {isSubUser ? (
             /* Sub-usuario: solo edita su propio nombre */
             <>
-              <div className="px-3 py-2.5 rounded-[11px] text-[12.5px]" style={{ background: '#f8f9fa', color: '#767d8a' }}>
-                Eres usuario de <strong style={{ color: '#181b21' }}>{taller.nombre}</strong>. Solo puedes editar tu nombre.
+              <div className="px-3 py-2.5 rounded-[11px] text-[12.5px]" style={{ background: '#1e2235', color: '#8a90a8' }}>
+                Eres usuario de <strong style={{ color: '#e8eaee' }}>{taller.nombre}</strong>. Solo puedes editar tu nombre.
               </div>
               <FormField label="Tu nombre">
                 <input value={form.contacto} onChange={e => set('contacto', e.target.value)} className={inputClass} required />
@@ -3777,7 +3788,7 @@ function ClientPerfil({ taller, onUpdate, isSubUser = false }) {
             </>
           )}
           {error && <div className="text-[13px] px-3 py-2.5 rounded-[11px]" style={{ background: '#fdecec', color: '#dc2626' }}>{error}</div>}
-          <button type="submit" disabled={saving} className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14px] transition-all hover:brightness-105 disabled:opacity-60" style={{ background: '#181b21' }}>
+          <button type="submit" disabled={saving} className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14px] transition-all hover:bg-[#3d6fd4] disabled:opacity-60" style={{ background: '#4a7de8' }}>
             {saving ? 'Guardando…' : 'Guardar cambios'}
           </button>
         </form>
@@ -3809,10 +3820,10 @@ function ClientOrderDetail({ order, onRespond }) {
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="font-bold text-lg text-stone-900">{order.referencia || order.vehiculo}</h3>
-          {order.referencia && <p className="text-stone-500 text-sm">{order.vehiculo}</p>}
+          <h3 className="font-bold text-lg" style={{ color: '#e8eaee' }}>{order.referencia || order.vehiculo}</h3>
+          {order.referencia && <p className="text-sm" style={{ color: '#8a90a8' }}>{order.vehiculo}</p>}
         </div>
-        <button onClick={handlePrint} className="flex items-center gap-1.5 text-xs text-stone-500 hover:text-stone-700 border border-stone-200 rounded-lg px-2.5 py-1.5 hover:bg-stone-50 transition-colors flex-shrink-0">
+        <button onClick={handlePrint} className="flex items-center gap-1.5 text-xs border rounded-lg px-2.5 py-1.5 transition-colors flex-shrink-0 hover:border-[#4a7de8]" style={{ color: '#8a90a8', borderColor: 'rgba(255,255,255,0.07)', background: '#1e2235' }}>
           <Printer className="w-3.5 h-3.5" /> Imprimir
         </button>
       </div>
@@ -3836,28 +3847,28 @@ function ClientOrderDetail({ order, onRespond }) {
       )}
 
       {order.notas && (
-        <div className="bg-stone-50 rounded-lg p-3 text-sm text-stone-600">
-          <p className="font-medium text-stone-700 mb-1">Tus notas</p>
+        <div className="rounded-lg p-3 text-sm" style={{ background: '#1e2235', color: '#8a90a8' }}>
+          <p className="font-medium mb-1" style={{ color: '#e8eaee' }}>Tus notas</p>
           {order.notas}
         </div>
       )}
 
       <div>
-        <p className="font-medium text-stone-700 text-sm mb-3">Estatus del pedido</p>
+        <p className="font-medium text-sm mb-3" style={{ color: '#e8eaee' }}>Estatus del pedido</p>
         <StatusStepper estado={order.estado} />
       </div>
 
       {order.estimado && (
-        <div className="border-t border-dashed border-stone-200 pt-4">
-          <p className="font-medium text-stone-700 text-sm mb-2 flex items-center gap-2"><FileText className="w-4 h-4" /> Estimado recibido</p>
-          <div className="bg-stone-50 rounded-lg p-3 mb-3 space-y-2">
+        <div className="pt-4 border-t border-dashed" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+          <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: '#e8eaee' }}><FileText className="w-4 h-4" /> Estimado recibido</p>
+          <div className="rounded-lg p-3 mb-3 space-y-2" style={{ background: '#1e2235' }}>
             {order.estimado.notas ? (
-              <p className="text-sm text-stone-700">{order.estimado.notas}</p>
+              <p className="text-sm" style={{ color: '#8a90a8' }}>{order.estimado.notas}</p>
             ) : (
-              <p className="text-sm text-stone-400 italic">Sin notas adicionales.</p>
+              <p className="text-sm italic" style={{ color: '#5a6078' }}>Sin notas adicionales.</p>
             )}
             {order.estimado.archivo && (
-              <a href={order.estimado.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 hover:border-orange-300 hover:text-orange-600 transition-colors">
+              <a href={order.estimado.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors border hover:border-[#4a7de8]" style={{ background: '#13162a', borderColor: '#2a2f46', color: '#8a90a8' }}>
                 <FileText className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{order.estimado.archivo.name}</span>
               </a>
             )}
@@ -3941,13 +3952,13 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
         return (
           <div className="grid grid-cols-3 gap-3 mb-5">
             {[
-              { val: fmtCur(totV),    label: 'Total facturas', color: '#181b21' },
+              { val: fmtCur(totV),    label: 'Total facturas', color: '#e8eaee' },
               { val: fmtCur(totP),    label: 'Pagado',         color: '#059669' },
               { val: fmtCur(totPend), label: 'Pendiente',      color: totPend > 0 ? '#b7791f' : '#0d9488' },
             ].map(({ val, label, color }) => (
-              <div key={label} className="rounded-[14px] px-3 py-3 text-center border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+              <div key={label} className="rounded-[14px] px-3 py-3 text-center border" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
                 <p className="text-[15px] font-extrabold leading-none truncate" style={{ color }}>{val}</p>
-                <p className="text-[11px] mt-1 font-medium" style={{ color: '#8a909c' }}>{label}</p>
+                <p className="text-[11px] mt-1 font-medium" style={{ color: '#8a90a8' }}>{label}</p>
               </div>
             ))}
           </div>
@@ -3955,11 +3966,11 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
       })() : (
         <div className="grid grid-cols-3 gap-3 mb-5">
           {[
-            { val: pedidosActivos.length,  label: 'Activos',     color: '#e8632f' },
-            { val: totalEstimados,         label: 'Estimados',   color: totalEstimados > 0 ? '#b7791f' : '#d1d5db' },
+            { val: pedidosActivos.length,  label: 'Activos',     color: '#4a7de8' },
+            { val: totalEstimados,         label: 'Estimados',   color: totalEstimados > 0 ? '#b7791f' : '#5a6078' },
             { val: pedidosHistorial.length,label: 'Completados', color: '#0d9488' },
           ].map(({ val, label, color }) => (
-            <div key={label} className="rounded-[14px] px-3 py-3 text-center border" style={{ background: '#fff', borderColor: '#e7e9ed' }}>
+            <div key={label} className="rounded-[14px] px-3 py-3 text-center border" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
               <p className="text-[24px] font-extrabold leading-none" style={{ color }}>{val}</p>
               <p className="text-[11px] mt-1 font-medium" style={{ color: '#8a909c' }}>{label}</p>
             </div>
@@ -3970,8 +3981,8 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
       {activeTab === 'pedidos' && (
         <div className="space-y-3">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#9aa1ad' }} />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio…" className="w-full pl-10 pr-4 py-[11px] rounded-[12px] border text-[13.5px] outline-none focus:border-[#e8632f] focus:ring-2 focus:ring-[#e8632f]/10" style={{ background: '#fff', borderColor: '#e3e5ea' }} />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#5a6078' }} />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio…" className="w-full pl-10 pr-4 py-[11px] rounded-[12px] border text-[13.5px] outline-none focus:border-[#4a7de8] focus:ring-2 focus:ring-[#4a7de8]/10" style={{ background: '#1e2235', borderColor: '#2a2f46', color: '#e8eaee' }} />
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             {pedidosFiltrados.length === 0
@@ -4022,11 +4033,11 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
   return isDesktop ? (
     <>
       {/* ── DESKTOP ── */}
-      <div style={{ display: 'flex', minHeight: '100vh', background: '#f4f5f7' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', background: '#12141f' }}>
         {/* Sidebar */}
-        <aside className="w-[230px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: '#141619' }}>
+        <aside className="w-[230px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: '#12141f' }}>
           <div className="px-5 py-[22px] flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #e8632f, #c9491c)', boxShadow: '0 6px 16px -6px rgba(201,73,28,.6)' }}>
+            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #4a7de8, #3d6fd4)', boxShadow: '0 6px 16px -6px rgba(74,125,232,.6)' }}>
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
             </div>
             <div className="min-w-0">
@@ -4036,29 +4047,29 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
           </div>
 
           <div className="px-3 flex-1">
-            <div className="text-[10.5px] font-bold uppercase px-2.5 py-2 mb-1" style={{ color: '#565d6b', letterSpacing: '.08em' }}>Menú</div>
+            <div className="text-[10.5px] font-bold uppercase px-2.5 py-2 mb-1" style={{ color: '#3d4260', letterSpacing: '.08em' }}>Menú</div>
             {sideNavItems.map(({ id, label, icon: Icon, badge, accent }) => {
               const active = activeTab === id;
               return (
                 <button key={id} onClick={() => goTab(id)}
                   className={`w-full flex items-center gap-2.5 px-2.5 py-[9px] rounded-[10px] text-[13px] font-semibold mb-0.5 transition-colors ${!active ? 'hover:bg-[#1f2228]' : ''}`}
-                  style={{ background: active ? '#e8632f' : 'transparent', color: active ? '#fff' : '#9aa1ad' }}
+                  style={{ background: active ? 'rgba(74,125,232,0.15)' : 'transparent', color: active ? '#e8eaee' : '#8a90a8', border: active ? '1px solid rgba(74,125,232,0.25)' : '1px solid transparent' }}
                 >
                   <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.8} />
                   {label}
                   {badge > 0 && (
                     <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-[7px]"
-                      style={{ background: active ? 'rgba(255,255,255,.2)' : (accent ? '#e8632f' : '#2a2e36'), color: active ? '#fff' : (accent ? '#fff' : '#9aa1ad') }}>
+                      style={{ background: active ? 'rgba(255,255,255,.18)' : (accent ? '#4a7de8' : '#2a2e36'), color: active ? '#fff' : (accent ? '#fff' : '#8a90a8') }}>
                       {badge}
                     </span>
                   )}
                 </button>
               );
             })}
-            <div className="my-3" style={{ borderTop: '1px solid #1e2127' }} />
+            <div className="my-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }} />
             <button onClick={() => goTab('nueva')}
               className={`w-full flex items-center gap-2.5 px-2.5 py-[9px] rounded-[10px] text-[13px] font-semibold mb-0.5 transition-colors ${activeTab === 'nueva' ? '' : 'hover:bg-[#1f2228]'}`}
-              style={{ background: activeTab === 'nueva' ? '#e8632f' : 'transparent', color: activeTab === 'nueva' ? '#fff' : '#9aa1ad' }}
+              style={{ background: activeTab === 'nueva' ? 'rgba(74,125,232,0.15)' : 'transparent', color: activeTab === 'nueva' ? '#e8eaee' : '#8a90a8', border: activeTab === 'nueva' ? '1px solid rgba(74,125,232,0.25)' : '1px solid transparent' }}
             >
               <Plus className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.8} />
               Solicitar estimado
@@ -4066,15 +4077,15 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
           </div>
 
           <div className="p-3.5">
-            <div className="rounded-[13px] p-3 flex items-center gap-2.5" style={{ background: '#1c1f25' }}>
-              <div className="w-9 h-9 rounded-[9px] flex items-center justify-center text-[12px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #3a3f49, #272b32)', color: '#d6dae0' }}>
+            <div className="rounded-[13px] p-3 flex items-center gap-2.5" style={{ background: '#1e2235' }}>
+              <div className="w-9 h-9 rounded-[9px] flex items-center justify-center text-[12px] font-bold flex-shrink-0" style={{ background: '#2a2f46', color: '#d6dae0' }}>
                 {initials(taller.nombre)}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-[12px] font-bold truncate" style={{ color: '#e8eaee' }}>{taller.contacto || taller.nombre}</div>
                 <div className="text-[10.5px] truncate" style={{ color: '#6a7180' }}>{taller.isSubUser ? 'taller' : (taller.usuario || 'taller')}</div>
               </div>
-              <button onClick={onLogout} className="w-[28px] h-[28px] rounded-[7px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: '#262a31', color: '#8a909c' }} title="Salir">
+              <button onClick={onLogout} className="w-[28px] h-[28px] rounded-[7px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: '#1e2235', color: '#5a6078' }} title="Salir">
                 <LogOut className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -4083,9 +4094,9 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
 
         {/* Main */}
         <div className="flex-1 min-w-0 flex flex-col">
-          <header className="h-[70px] flex-shrink-0 flex items-center px-8 border-b sticky top-0 z-20" style={{ background: 'rgba(244,245,247,.88)', backdropFilter: 'blur(8px)', borderColor: '#e7e9ed' }}>
+          <header className="h-[70px] flex-shrink-0 flex items-center px-8 border-b sticky top-0 z-20" style={{ background: 'rgba(18,20,31,0.94)', backdropFilter: 'blur(8px)', borderColor: 'rgba(255,255,255,0.07)' }}>
             <div>
-              <h1 className="text-[18px] font-bold" style={{ color: '#181b21', letterSpacing: '-.02em' }}>
+              <h1 className="text-[18px] font-bold" style={{ color: '#e8eaee', letterSpacing: '-.02em' }}>
                 {{ pedidos: 'Mis pedidos', estimados: 'Estimados', historial: 'Historial', nueva: 'Solicitar estimado', perfil: 'Mi Perfil' }[activeTab]}
               </h1>
             </div>
@@ -4103,17 +4114,17 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
   ) : (
     <>
       {/* ── MÓVIL ── */}
-      <div style={{ minHeight: '100vh', background: '#f4f5f7' }}>
-        <div className="safe-top" style={{ background: '#141619' }}>
+      <div style={{ minHeight: '100vh', background: '#12141f' }}>
+        <div className="safe-top" style={{ background: '#12141f' }}>
           <div className="px-5 py-[18px] pb-4 flex items-center gap-2.5">
-            <div className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #e8632f, #c9491c)', boxShadow: '0 6px 16px -6px rgba(201,73,28,.6)' }}>
+            <div className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #4a7de8, #3d6fd4)', boxShadow: '0 6px 16px -6px rgba(74,125,232,.6)' }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[15px] font-extrabold truncate" style={{ color: '#fff', letterSpacing: '-.01em' }}>{taller.nombre || 'Parts Pilot'}</div>
-              <div className="text-[11.5px]" style={{ color: '#8a909c' }}>{taller.contacto || ''}</div>
+              <div className="text-[11.5px]" style={{ color: '#8a90a8' }}>{taller.contacto || ''}</div>
             </div>
-            <button onClick={onLogout} className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: '#262a31', color: '#9aa1ad' }}>
+            <button onClick={onLogout} className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: '#1e2235', color: '#5a6078' }}>
               <LogOut className="w-4 h-4" strokeWidth={1.9} />
             </button>
           </div>
@@ -4122,25 +4133,25 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
         <main className="max-w-2xl mx-auto px-4 py-5 pb-32">{contentView}</main>
 
         {/* Bottom nav móvil */}
-        <div className="fixed bottom-0 left-0 right-0 z-10 safe-bottom" style={{ background: 'rgba(255,255,255,.95)', backdropFilter: 'blur(12px)', borderTop: '1px solid #e7e9ed' }}>
+        <div className="fixed bottom-0 left-0 right-0 z-10 safe-bottom" style={{ background: 'rgba(18,20,31,0.97)', backdropFilter: 'blur(12px)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="flex items-end justify-between px-2 pt-2 pb-2 max-w-2xl mx-auto">
             {bottomNav.map(({ id, label, icon: Icon, badge, center }) => {
               const active = activeTab === id;
               if (center) return (
                 <button key={id} onClick={() => goTab(id)} className="flex flex-col items-center gap-1 flex-1">
-                  <div className="w-[46px] h-[46px] -mt-4 rounded-[15px] flex items-center justify-center" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)', boxShadow: '0 10px 20px -8px rgba(201,73,28,.6)' }}>
+                  <div className="w-[46px] h-[46px] -mt-4 rounded-[15px] flex items-center justify-center" style={{ background: 'linear-gradient(160deg, #4a7de8, #3d6fd4)', boxShadow: '0 10px 20px -8px rgba(74,125,232,.6)' }}>
                     <Plus className="w-6 h-6 text-white" strokeWidth={2.4} />
                   </div>
-                  <span className="text-[10px] font-semibold" style={{ color: active ? '#e8632f' : '#9aa1ad' }}>{label}</span>
+                  <span className="text-[10px] font-semibold" style={{ color: active ? '#4a7de8' : '#5a6078' }}>{label}</span>
                 </button>
               );
               return (
                 <button key={id} onClick={() => goTab(id)} className="flex flex-col items-center gap-1 flex-1 relative pt-1">
                   <div className="relative">
-                    <Icon className="w-[22px] h-[22px]" strokeWidth={1.9} style={{ color: active ? '#e8632f' : '#9aa1ad' }} />
-                    {badge > 0 && <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: '#e8632f' }}>{badge}</span>}
+                    <Icon className="w-[22px] h-[22px]" strokeWidth={1.9} style={{ color: active ? '#4a7de8' : '#5a6078' }} />
+                    {badge > 0 && <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: '#4a7de8' }}>{badge}</span>}
                   </div>
-                  <span className="text-[10px] font-semibold" style={{ color: active ? '#e8632f' : '#9aa1ad' }}>{label}</span>
+                  <span className="text-[10px] font-semibold" style={{ color: active ? '#4a7de8' : '#5a6078' }}>{label}</span>
                 </button>
               );
             })}
@@ -4172,7 +4183,7 @@ export default function App() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#101115' }}>
         <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl inline-flex items-center justify-center mb-4 animate-pulse" style={{ background: 'linear-gradient(160deg, #e8632f, #c9491c)' }}>
+          <div className="w-16 h-16 rounded-2xl inline-flex items-center justify-center mb-4 animate-pulse" style={{ background: 'linear-gradient(160deg, #4a7de8, #3d6fd4)' }}>
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
           </div>
           <p className="text-sm" style={{ color: '#6a7180' }}>Cargando Parts Pilot…</p>
