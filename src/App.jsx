@@ -2201,15 +2201,15 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
       </div>
 
       {/* Tarjetas de totales */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {[
           { label: 'Total facturas', val: fmtCur(totals.valor),    color: '#e8eaee' },
           { label: 'Pagado',         val: fmtCur(totals.pagado),   color: '#34d399' },
           { label: 'Pendiente',      val: fmtCur(totals.pendiente),color: totals.pendiente > 0 ? '#f59e0b' : '#34d399' },
         ].map(({ label, val, color }) => (
-          <div key={label} className="rounded-[15px] p-4 border" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
-            <p className="text-[12px] font-medium mb-1" style={{ color: '#8a90a8' }}>{label}</p>
-            <p className="text-[22px] font-extrabold leading-none" style={{ color }}>{val}</p>
+          <div key={label} className="rounded-[15px] p-3 sm:p-4 border min-w-0" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
+            <p className="text-[10px] sm:text-[12px] font-medium mb-1 truncate" style={{ color: '#8a90a8' }}>{label}</p>
+            <p className="text-[13px] sm:text-[22px] font-extrabold leading-none break-all" style={{ color }}>{val}</p>
           </div>
         ))}
       </div>
