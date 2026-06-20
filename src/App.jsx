@@ -2810,7 +2810,13 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
 }
 
 function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstimate, onDeleteOrder, onUpdateNotes, onUpdateReferencias, onSendMessage }) {
-  const [tab, setTab] = useState('estimado');
+  const [tab, setTab] = useState('detalles');
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
   const [estado, setEstado]             = useState(order.estado);
   const [fechaEntrega, setFechaEntrega] = useState(order.fechaEntrega || '');
   const [numeroPO, setNumeroPO]         = useState(order.numeroPO ?? '');
@@ -2860,6 +2866,136 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
   };
 
   const initials = (n) => (n || '').split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
+
+  /* ── Layout común: contenido por tab ── */
+  const detallesContent = (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3 rounded-[13px] p-3" style={{ background: '#f8f9fa' }}>
+        <div className="w-10 h-10 rounded-[10px] border flex items-center justify-center font-bold text-[14px] flex-shrink-0" style={{ background: '#fff', borderColor: '#e7e9ed', color: '#4a505c' }}>{initials(taller?.nombre)}</div>
+        <div className="flex-1 min-w-0">
+          <div className="text-[13.5px] font-bold truncate" style={{ color: '#181b21' }}>{taller?.nombre}</div>
+          <div className="text-[12px]" style={{ color: '#8a909c' }}>{taller?.contacto}</div>
+        </div>
+      </div>
+      <FormField label="Estado del pedido">
+        <select value={estado} onChange={e => setEstado(e.target.value)} className={`${inputClass} bg-white`}>
+          {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
+        </select>
+      </FormField>
+      <div>
+        <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: '#9aa1ad', letterSpacing: '.06em' }}>Progreso</p>
+        <StatusStepper estado={estado} />
+      </div>
+      {['pedido_fabrica','ordenadas','esperando_piezas','en_transito','recibido','entregado'].includes(estado) && (
+        <FormField label="Fecha estimada de entrega">
+          <input type="date" value={fechaEntrega} onChange={e => setFechaEntrega(e.target.value)} className={inputClass} />
+        </FormField>
+      )}
+      <div className="grid grid-cols-2 gap-3">
+        <FormField label="No. PO"><input value={numeroPO} onChange={e => setNumeroPO(e.target.value)} placeholder="ej. Emma" className={inputClass} /></FormField>
+        <FormField label="No. Orden"><input value={numeroOrden} onChange={e => setNumeroOrden(e.target.value)} placeholder="ej. M26243" className={inputClass} /></FormField>
+      </div>
+      {order.notas && (
+        <div className="rounded-[11px] p-3" style={{ background: '#fef9ec', border: '1px solid #f6ead0' }}>
+          <p className="text-[10.5px] font-bold uppercase mb-1" style={{ color: '#b7791f' }}>Notas del taller</p>
+          <p className="text-[13px]" style={{ color: '#7c5a14' }}>{order.notas}</p>
+        </div>
+      )}
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <p className="text-[12.5px] font-semibold" style={{ color: '#4a505c' }}>Notas internas</p>
+          <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-[6px]" style={{ background: '#f1f3f5', color: '#9aa1ad' }}>🔒 Solo admin</span>
+        </div>
+        <textarea value={notasInt} onChange={e => setNotasInt(e.target.value)} placeholder="Observaciones internas…" rows={3}
+          className="w-full text-[13px] rounded-[10px] p-3 resize-none border outline-none focus:ring-2 focus:ring-[#e8632f]/10 focus:border-[#e8632f]"
+          style={{ background: '#fff', borderColor: '#e3e5ea', color: '#181b21' }} />
+      </div>
+      {saved && <div className="flex items-center gap-2 px-3 py-2.5 rounded-[11px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}><CheckCircle2 className="w-4 h-4" /> Cambios guardados.</div>}
+      <div className="flex gap-3">
+        <button onClick={async () => { setSaving(true); try { await onChangeStatus(order.id, estado, fechaEntrega || undefined); await onUpdateReferencias(order.id, { numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim() }); await onUpdateNotes(order.id, notasInt); setSaved(true); setTimeout(() => setSaved(false), 2500); } finally { setSaving(false); } }} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:brightness-105 disabled:opacity-60" style={{ background: 'linear-gradient(160deg, #e8632f, #cf4d1d)' }}>
+          {saving ? 'Guardando…' : 'Guardar cambios'}
+        </button>
+        <button onClick={() => { if (window.confirm('¿Eliminar este pedido?')) onDeleteOrder(order.id); }} className="px-4 py-[13px] rounded-[11px] border text-[13px] font-semibold hover:bg-red-50 hover:text-red-500 transition-colors" style={{ borderColor: '#e3e5ea', color: '#aab0b9' }}>
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+
+  const estimadoContent = (
+    <div className="space-y-4">
+      {order.estado === 'cotizando' && order.estimado?.respuesta === 'pendiente' && <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: '#fef6e9', color: '#b7791f' }}><Clock className="w-4 h-4 flex-shrink-0" /> Esperando respuesta del taller…</div>}
+      {order.estimado?.respuesta && order.estimado.respuesta !== 'pendiente' && (
+        <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: order.estimado.respuesta === 'aceptado' ? '#eafaf2' : '#fdecec', color: order.estimado.respuesta === 'aceptado' ? '#059669' : '#dc2626' }}>
+          {order.estimado.respuesta === 'aceptado' ? <ThumbsUp className="w-4 h-4" /> : <ThumbsDown className="w-4 h-4" />}
+          El taller {order.estimado.respuesta === 'aceptado' ? 'aceptó' : 'rechazó'} este estimado.
+        </div>
+      )}
+      {sent && <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: '#eafaf2', color: '#059669' }}><CheckCircle2 className="w-4 h-4" /> Estimado enviado.</div>}
+      {sendError && <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: '#fdecec', color: '#dc2626' }}><AlertCircle className="w-4 h-4" />{sendError}</div>}
+      <FormField label="Notas para el taller">
+        <textarea value={notasEst} onChange={e => setNotasEst(e.target.value)} rows={4} placeholder="Tiempo de entrega, condiciones, precio…" className={`${inputClass} resize-none`} />
+      </FormField>
+      <div>
+        <p className="text-[12.5px] font-semibold mb-1.5" style={{ color: '#4a505c' }}>PDF <span style={{ color: '#aab0b9', fontWeight: 400 }}>(opcional)</span></p>
+        {archivo ? (
+          <div className="flex items-center gap-2 rounded-[10px] px-3 py-2.5 border" style={{ background: '#f8f9fa', borderColor: '#e7e9ed' }}>
+            <FileText className="w-4 h-4 flex-shrink-0" style={{ color: '#e8632f' }} />
+            <a href={archivo.url} target="_blank" rel="noreferrer" className="text-[13px] truncate flex-1 hover:underline" style={{ color: '#4a505c' }}>{archivo.name}</a>
+            <button onClick={() => setArchivo(null)} style={{ color: '#aab0b9' }}><X className="w-4 h-4" /></button>
+          </div>
+        ) : (
+          <label className="flex items-center justify-center gap-2 border-dashed border rounded-[10px] px-3 py-3 text-[13px] cursor-pointer transition-colors hover:border-[#e8632f] hover:text-[#c9491c]" style={{ borderColor: '#d3d6db', color: '#8a909c' }}>
+            <Paperclip className="w-4 h-4" /> Adjuntar PDF
+            <input type="file" accept="application/pdf" onChange={e => { const f = e.target.files?.[0]; if (f) { setArchivo({ name: f.name, type: f.type, url: URL.createObjectURL(f), file: f }); } e.target.value = ''; }} className="hidden" />
+          </label>
+        )}
+      </div>
+      <button onClick={async () => { setSending(true); setSendError(''); try { await onSendEstimate(order.id, { notas: notasEst, archivo }); setSent(true); setTimeout(() => setSent(false), 3000); } catch (err) { setSendError('Error: ' + (err.message || err.code)); } finally { setSending(false); } }} disabled={sending} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:brightness-105 disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: '#181b21' }}>
+        <Send className="w-4 h-4" /> {sending ? 'Enviando…' : order.estimado ? 'Actualizar estimado' : 'Enviar estimado al taller'}
+      </button>
+    </div>
+  );
+
+  /* ── MÓVIL: bottom sheet con 3 tabs ── */
+  if (isMobile) {
+    const mobileTabs = [
+      { id: 'detalles', label: 'Detalles', icon: ClipboardList },
+      { id: 'estimado', label: 'Estimado', icon: FileText },
+      { id: 'mensajes', label: 'Mensajes', icon: MessageSquare, badge: msgCount },
+    ];
+    return (
+      <div className="fixed inset-0 z-50">
+        <div className="absolute inset-0" style={{ background: 'rgba(20,22,26,.45)', animation: 'ppFade .2s ease both' }} onClick={onClose} />
+        <div className="pp-scroll absolute bottom-0 left-0 right-0 max-h-[92%] overflow-y-auto overflow-x-hidden rounded-t-[24px] flex flex-col" style={{ background: '#fff', animation: 'ppSheet .3s cubic-bezier(.2,.8,.2,1) both' }}>
+          <div className="sticky top-0 bg-white z-10 flex-shrink-0" style={{ borderBottom: '1px solid #eef0f2' }}>
+            <div className="w-10 h-1 rounded-full mx-auto mt-3 mb-3" style={{ background: '#e3e6ea' }} />
+            <div className="flex items-center gap-3 px-5 pb-3">
+              <div className="min-w-0 flex-1">
+                <div className="font-mono text-[11px] font-semibold" style={{ color: '#9aa1ad' }}>{order.folio || order.id?.slice(0,8)}</div>
+                <h2 className="text-[17px] font-bold" style={{ color: '#181b21' }}>{order.vehiculo}</h2>
+              </div>
+              <StatusBadge estado={estado} />
+              <button onClick={onClose} className="w-8 h-8 rounded-[9px] border flex items-center justify-center flex-shrink-0" style={{ borderColor: '#e7e9ed', color: '#767d8a' }}><X className="w-4 h-4" /></button>
+            </div>
+            <div className="flex px-5">
+              {mobileTabs.map(({ id, label, icon: Icon, badge }) => (
+                <button key={id} onClick={() => setTab(id)} className={`flex items-center gap-1.5 py-3 text-[12.5px] font-semibold border-b-2 mr-5 transition-colors ${tab === id ? 'border-[#e8632f] text-[#181b21]' : 'border-transparent text-[#9aa1ad]'}`}>
+                  <Icon className="w-3.5 h-3.5" strokeWidth={1.8} /> {label}
+                  {badge > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#f1f3f5', color: '#5b626e' }}>{badge}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="p-5 pb-10" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
+            {tab === 'detalles' && detallesContent}
+            {tab === 'estimado' && estimadoContent}
+            {tab === 'mensajes' && <OrderChat order={order} role="admin" otherPartyName={taller?.nombre} onSendMessage={(id, texto, att) => onSendMessage(id, texto, 'admin', att)} />}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
