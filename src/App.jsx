@@ -49,7 +49,13 @@ function hasNewActivity(role, order) {
   try {
     const raw = localStorage.getItem(lsActivityKey(role, order.id));
     if (!raw) {
-      // Primera vez visto: guardar estado actual como baseline y no resaltar
+      // Sin baseline: resaltar si hay mensajes del otro lado o respuesta al estimado
+      if (role === 'admin') {
+        const tallerMsgs = (order.mensajes || []).filter(m => m.from === 'taller').length;
+        if (tallerMsgs > 0) return true;
+        if (order.estimado?.respuesta && order.estimado.respuesta !== 'pendiente') return true;
+      }
+      // Para taller: no resaltar en primer render (evita ruido en primera carga)
       saveOrderSeen(role, order);
       return false;
     }
@@ -879,7 +885,8 @@ function AdminDashboard({ pedidos, solicitudes, talleres, getTaller, onSelect, o
           <tbody>
             {recientes.length === 0 && <tr><td colSpan={5} className="py-10 text-center text-sm" style={{ color: '#9aa1ad' }}>Sin pedidos aún.</td></tr>}
             {recientes.map(p => (
-              <tr key={p.id} onClick={() => onSelect(p.id)} className="cursor-pointer transition-colors hover:bg-[#fafbfc]" style={{ borderTop: '1px solid #f1f2f4' }}>
+              <tr key={p.id} onClick={() => onSelect(p.id)} className="cursor-pointer transition-colors hover:bg-[#fafbfc]" style={{ borderTop: '1px solid #f1f2f4', background: hasNewActivity('admin', p) ? '#fff8f5' : undefined }}>
+
                 <td className="py-3.5 px-6 font-mono text-[12.5px] font-semibold whitespace-nowrap" style={{ color: '#181b21' }}>{p.folio || p.id.slice(0,8)}</td>
                 <td className="py-3.5 px-3 text-[13px] max-w-[150px] truncate" style={{ color: '#4a505c' }}>{getTaller(p.tallerId)?.nombre || '—'}</td>
                 <td className="py-3.5 px-3 hidden sm:table-cell">
@@ -1806,8 +1813,15 @@ function AdminEstimados({ solicitudes, getTaller, onSelect }) {
   const Card = ({ p }) => {
     const taller = getTaller(p.tallerId);
     const isCotizando = p.estado === 'cotizando';
+    const hasAct = hasNewActivity('admin', p);
     return (
-      <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[15px] p-[17px] border transition-all hover:border-[#e8632f] hover:shadow-[0_8px_24px_-14px_rgba(201,73,28,.4)]" style={{ background: '#fff', borderColor: isCotizando ? '#dbe7fe' : '#f3d9cb' }}>
+      <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[15px] p-[17px] border transition-all hover:border-[#e8632f] hover:shadow-[0_8px_24px_-14px_rgba(201,73,28,.4)] relative" style={{ background: '#fff', borderColor: hasAct ? '#e8632f' : isCotizando ? '#dbe7fe' : '#f3d9cb', boxShadow: hasAct ? '0 0 0 2px rgba(232,99,47,.12)' : 'none' }}>
+      {hasAct && (
+        <span className="absolute top-3 right-3 flex h-2.5 w-2.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: '#e8632f' }} />
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ background: '#e8632f' }} />
+        </span>
+      )}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11.5px] flex items-center gap-1 mb-1 truncate" style={{ color: '#8a909c' }}>
