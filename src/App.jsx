@@ -17,14 +17,14 @@ import {
 const STATUS_ORDER = ['pendiente', 'cotizando', 'pedido_fabrica', 'ordenadas', 'esperando_piezas', 'en_transito', 'recibido', 'entregado'];
 
 const STATUS_CONFIG = {
-  pendiente:        { label: 'Pendiente de cotizar', short: 'Pendiente',  dot: '#94a3b8', bg: '#f1f3f5', tx: '#5b626e', icon: Clock },
-  cotizando:        { label: 'Cotización enviada',   short: 'Cotizando',  dot: '#3b82f6', bg: '#eef4ff', tx: '#2563eb', icon: FileText },
-  pedido_fabrica:   { label: 'Por ordenar',           short: 'Por ordenar', dot: '#8b5cf6', bg: '#f4effe', tx: '#7c3aed', icon: Package },
-  ordenadas:        { label: 'Piezas ordenadas',     short: 'Ordenadas',  dot: '#6366f1', bg: '#eef0fe', tx: '#4f46e5', icon: PackageCheck },
-  esperando_piezas: { label: 'Esperando piezas',     short: 'Esperando',  dot: '#f59e0b', bg: '#fef6e9', tx: '#b7791f', icon: Hourglass },
-  en_transito:      { label: 'En tránsito',          short: 'En camino',  dot: '#eab308', bg: '#fdfae8', tx: '#a16207', icon: Truck },
-  recibido:         { label: 'Recibido en Tienda',   short: 'En Tienda',  dot: '#10b981', bg: '#eafaf2', tx: '#059669', icon: Package },
-  entregado:        { label: 'Orden Completa',       short: 'Completa',   dot: '#14b8a6', bg: '#e9faf7', tx: '#0d9488', icon: CheckCircle2 },
+  pendiente:        { label: 'Pendiente de cotizar', short: 'Pendiente',  dot: '#94a3b8', bg: 'rgba(148,163,184,0.15)', tx: '#94a3b8', icon: Clock },
+  cotizando:        { label: 'Cotización enviada',   short: 'Cotizando',  dot: '#3b82f6', bg: 'rgba(59,130,246,0.15)',  tx: '#60a5fa', icon: FileText },
+  pedido_fabrica:   { label: 'Por ordenar',          short: 'Por ordenar',dot: '#8b5cf6', bg: 'rgba(139,92,246,0.15)', tx: '#a78bfa', icon: Package },
+  ordenadas:        { label: 'Piezas ordenadas',     short: 'Ordenadas',  dot: '#6366f1', bg: 'rgba(99,102,241,0.15)', tx: '#818cf8', icon: PackageCheck },
+  esperando_piezas: { label: 'Esperando piezas',     short: 'Esperando',  dot: '#f59e0b', bg: 'rgba(245,158,11,0.15)', tx: '#f59e0b', icon: Hourglass },
+  en_transito:      { label: 'En tránsito',          short: 'En camino',  dot: '#eab308', bg: 'rgba(234,179,8,0.15)',  tx: '#eab308', icon: Truck },
+  recibido:         { label: 'Recibido en Tienda',   short: 'En Tienda',  dot: '#10b981', bg: 'rgba(16,185,129,0.15)', tx: '#34d399', icon: Package },
+  entregado:        { label: 'Orden Completa',       short: 'Completa',   dot: '#14b8a6', bg: 'rgba(20,184,166,0.15)', tx: '#2dd4bf', icon: CheckCircle2 },
 };
 
 /* ------------------------------------------------------------------ */
@@ -400,8 +400,8 @@ function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0, activi
           {order.pieza && !cardSub && <p className="text-[12.5px] mt-0.5 truncate" style={{ color: '#8a90a8' }}>{order.pieza}</p>}
           {hasNewIds && (
             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-              {order.numeroPO && <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: '#eef4ff', color: '#2563eb', border: '1px solid #dbe7fe' }}>PO# {order.numeroPO}</span>}
-              {order.numeroOrden && <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: '#f4effe', color: '#7c3aed', border: '1px solid #e9d5ff' }}>Orden {order.numeroOrden}</span>}
+              {order.numeroPO && <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: 'rgba(59,130,246,0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.25)' }}>PO# {order.numeroPO}</span>}
+              {order.numeroOrden && <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: 'rgba(139,92,246,0.12)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.25)' }}>Orden {order.numeroOrden}</span>}
             </div>
           )}
         </div>
