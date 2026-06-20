@@ -2116,7 +2116,7 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {pagadasSinArch.length > 0 && !readOnly && (
-            <button onClick={handleArchivarPagadas} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border hover:bg-emerald-50 transition-colors" style={{ borderColor: '#059669', color: '#059669' }}>
+            <button onClick={handleArchivarPagadas} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border transition-colors" style={{ borderColor: '#059669', color: '#34d399', background: 'rgba(16,185,129,0.08)' }} onMouseEnter={e => e.currentTarget.style.background='rgba(16,185,129,0.15)'} onMouseLeave={e => e.currentTarget.style.background='rgba(16,185,129,0.08)'}>
               <CheckCircle2 className="w-4 h-4" /> Archivar pagadas ({pagadasSinArch.length})
             </button>
           )}
@@ -2203,9 +2203,9 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
       {/* Tarjetas de totales */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Total facturas', val: fmtCur(totals.valor),    color: '#181b21' },
-          { label: 'Pagado',         val: fmtCur(totals.pagado),   color: '#059669' },
-          { label: 'Pendiente',      val: fmtCur(totals.pendiente),color: totals.pendiente > 0 ? '#b7791f' : '#059669' },
+          { label: 'Total facturas', val: fmtCur(totals.valor),    color: '#e8eaee' },
+          { label: 'Pagado',         val: fmtCur(totals.pagado),   color: '#34d399' },
+          { label: 'Pendiente',      val: fmtCur(totals.pendiente),color: totals.pendiente > 0 ? '#f59e0b' : '#34d399' },
         ].map(({ label, val, color }) => (
           <div key={label} className="rounded-[15px] p-4 border" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
             <p className="text-[12px] font-medium mb-1" style={{ color: '#8a90a8' }}>{label}</p>
@@ -2215,8 +2215,8 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
       </div>
 
       {/* Tabla */}
-      <div className="rounded-[16px] border overflow-x-auto" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)' }}>
-        <table className="w-full" style={{ minWidth: 920 }}>
+      <div className="rounded-[16px] border" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <table className="w-full" style={{ minWidth: 700 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
               {['Fecha factura', '# Factura', 'PO Tag', 'Valor', 'Pagado', 'Pendiente', '# Check', 'F. Pago', ''].map((h, i) => (
