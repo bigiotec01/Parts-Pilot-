@@ -328,8 +328,8 @@ function StatusStepper({ estado }) {
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: cfg.dot }} />
       </div>
       {/* Stepper scrollable */}
-      <div style={{ overflowX: 'auto', overflowY: 'hidden', WebkitOverflowScrolling: 'touch' }}>
-      <div className="flex items-start" style={{ minWidth: 'max-content' }}>
+      <div style={{ overflowX: 'auto', overflowY: 'clip', WebkitOverflowScrolling: 'touch' }}>
+      <div className="flex items-start" style={{ minWidth: 'max-content', paddingTop: 6, paddingBottom: 6 }}>
         {STATUS_ORDER.map((status, i) => {
           const cfg = STATUS_CONFIG[status];
           const isDone = i < currentIndex;
