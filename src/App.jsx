@@ -409,7 +409,7 @@ function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0, activi
         </div>
         <div className="flex items-center gap-2.5 flex-shrink-0 text-[11.5px]" style={{ color: '#8a909c' }}>
           {order.mensajes?.length > 0 && <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" />{order.mensajes.length}</span>}
-          {order.estimado?.respuesta === 'pendiente' && <span className="flex items-center gap-1 font-semibold" style={{ color: '#b7791f' }}><Clock className="w-3.5 h-3.5" />Esperando</span>}
+          {order.estado === 'cotizando' && order.estimado?.respuesta === 'pendiente' && <span className="flex items-center gap-1 font-semibold" style={{ color: '#b7791f' }}><Clock className="w-3.5 h-3.5" />Esperando</span>}
           {showTaller && order.notasInternas && <StickyNote className="w-3.5 h-3.5" style={{ color: '#aab0b9' }} />}
         </div>
       </div>
