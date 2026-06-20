@@ -166,7 +166,7 @@ function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onL
     return (
       <button
         onClick={() => onChange(id)}
-        className={`w-full flex items-center gap-2.5 px-2.5 py-[9px] rounded-[10px] text-[13.5px] font-semibold mb-0.5 transition-all ${!active ? 'hover:bg-[#1f2228]' : ''}`}
+        className={`w-full flex items-center gap-2.5 px-2.5 py-[9px] rounded-[10px] text-[13.5px] font-semibold mb-0.5 transition-all ${!active ? 'hover:bg-[#252840]' : ''}`}
         style={active ? {
           background: 'rgba(74,125,232,0.15)',
           border: '1px solid rgba(74,125,232,0.25)',
@@ -189,7 +189,7 @@ function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onL
   };
 
   return (
-    <aside className="w-[252px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: '#12141f' }}>
+    <aside className="w-[252px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: '#1a1d2e' }}>
       <div className="px-5 py-[22px] flex items-center gap-2.5">
         <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.07) 100%)', border: '1px solid rgba(255,255,255,0.17)', boxShadow: '0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.14)' }}>
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
@@ -225,7 +225,7 @@ function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onL
 
 function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo }) {
   return (
-    <header className="h-[70px] flex-shrink-0 flex items-center gap-[18px] px-[30px] sticky top-0 z-20 border-b" style={{ background: 'rgba(18,20,31,0.94)', backdropFilter: 'blur(8px)', borderColor: 'rgba(255,255,255,0.07)' }}>
+    <header className="h-[70px] flex-shrink-0 flex items-center gap-[18px] px-[30px] sticky top-0 z-20 border-b" style={{ background: 'rgba(18,20,31,0.96)', backdropFilter: 'blur(12px)', borderColor: 'rgba(255,255,255,0.06)' }}>
       <div className="min-w-0">
         <h1 className="text-[19px] font-bold leading-tight" style={{ color: '#e8eaee', letterSpacing: '-.02em' }}>{pageTitle}</h1>
         <p className="text-[12.5px] font-medium" style={{ color: '#8a90a8' }}>{pageSub}</p>
@@ -251,7 +251,7 @@ function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo }) {
 
 function Header({ title, subtitle, userLabel, onLogout, maxWidth = 'max-w-6xl' }) {
   return (
-    <header className="text-white safe-top" style={{ background: '#12141f' }}>
+    <header className="text-white safe-top" style={{ background: '#1a1d2e' }}>
       <div className={`${maxWidth} mx-auto px-4 sm:px-6 py-4 flex items-center justify-between`}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#4a7de8' }}>
@@ -3377,7 +3377,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
     return (
       <div style={{ minHeight: '100vh', background: '#12141f' }}>
         {/* Header móvil admin */}
-        <div className="safe-top" style={{ background: '#12141f' }}>
+        <div className="safe-top" style={{ background: '#1a1d2e' }}>
           <div className="px-4 py-3 flex items-center gap-3">
             <div className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.07) 100%)', border: '1px solid rgba(255,255,255,0.17)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.13)' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
@@ -4035,7 +4035,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
       {/* ── DESKTOP ── */}
       <div style={{ display: 'flex', minHeight: '100vh', background: '#12141f' }}>
         {/* Sidebar */}
-        <aside className="w-[230px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: '#12141f' }}>
+        <aside className="w-[230px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: '#1a1d2e' }}>
           <div className="px-5 py-[22px] flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #4a7de8, #3d6fd4)', boxShadow: '0 6px 16px -6px rgba(74,125,232,.6)' }}>
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
@@ -4115,7 +4115,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
     <>
       {/* ── MÓVIL ── */}
       <div style={{ minHeight: '100vh', background: '#12141f' }}>
-        <div className="safe-top" style={{ background: '#12141f' }}>
+        <div className="safe-top" style={{ background: '#1a1d2e' }}>
           <div className="px-5 py-[18px] pb-4 flex items-center gap-2.5">
             <div className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #4a7de8, #3d6fd4)', boxShadow: '0 6px 16px -6px rgba(74,125,232,.6)' }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
