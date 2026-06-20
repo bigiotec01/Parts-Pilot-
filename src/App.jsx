@@ -1586,8 +1586,8 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
           </div>
 
           {order.notas && (
-            <div className="rounded-[12px] p-3" style={{ background: '#fef9ec', border: '1px solid #f6ead0' }}>
-              <p className="text-[10.5px] font-bold uppercase mb-1" style={{ color: '#b7791f', letterSpacing: '.05em' }}>Notas del taller</p>
+            <div className="rounded-[12px] p-3" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
+              <p className="text-[10.5px] font-bold uppercase mb-1" style={{ color: '#f59e0b', letterSpacing: '.05em' }}>Notas del taller</p>
               <p className="text-[13px] leading-relaxed" style={{ color: '#7c5a14' }}>{order.notas}</p>
             </div>
           )}
@@ -1631,7 +1631,7 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
             <p className="text-[10.5px] font-bold uppercase flex items-center gap-1.5" style={{ color: '#5a6078', letterSpacing: '.05em' }}>
               <Send className="w-3.5 h-3.5" /> Estimado
             </p>
-            {order.estimado?.respuesta === 'pendiente' && <div className="flex items-center gap-2 text-[13px] px-3 py-2 rounded-[10px]" style={{ background: '#fef6e9', color: '#b7791f' }}><Clock className="w-4 h-4 flex-shrink-0" /> Esperando respuesta del taller…</div>}
+            {order.estimado?.respuesta === 'pendiente' && <div className="flex items-center gap-2 text-[13px] px-3 py-2 rounded-[10px]" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b' }}><Clock className="w-4 h-4 flex-shrink-0" /> Esperando respuesta del taller…</div>}
             {order.estimado?.respuesta && order.estimado.respuesta !== 'pendiente' && (
               <div className="flex items-center gap-2 text-[13px] px-3 py-2 rounded-[10px]" style={{ background: order.estimado.respuesta === 'aceptado' ? '#eafaf2' : '#fdecec', color: order.estimado.respuesta === 'aceptado' ? '#059669' : '#dc2626' }}>
                 {order.estimado.respuesta === 'aceptado' ? <ThumbsUp className="w-4 h-4 flex-shrink-0" /> : <ThumbsDown className="w-4 h-4 flex-shrink-0" />}
@@ -2907,8 +2907,8 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
         <FormField label="No. Orden"><input value={numeroOrden} onChange={e => setNumeroOrden(e.target.value)} placeholder="ej. M26243" className={inputClass} /></FormField>
       </div>
       {order.notas && (
-        <div className="rounded-[11px] p-3" style={{ background: '#fef9ec', border: '1px solid #f6ead0' }}>
-          <p className="text-[10.5px] font-bold uppercase mb-1" style={{ color: '#b7791f' }}>Notas del taller</p>
+        <div className="rounded-[11px] p-3" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
+          <p className="text-[10.5px] font-bold uppercase mb-1" style={{ color: '#f59e0b' }}>Notas del taller</p>
           <p className="text-[13px]" style={{ color: '#7c5a14' }}>{order.notas}</p>
         </div>
       )}
@@ -2935,7 +2935,7 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
 
   const estimadoContent = (
     <div className="space-y-4">
-      {order.estado === 'cotizando' && order.estimado?.respuesta === 'pendiente' && <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: '#fef6e9', color: '#b7791f' }}><Clock className="w-4 h-4 flex-shrink-0" /> Esperando respuesta del taller…</div>}
+      {order.estado === 'cotizando' && order.estimado?.respuesta === 'pendiente' && <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b' }}><Clock className="w-4 h-4 flex-shrink-0" /> Esperando respuesta del taller…</div>}
       {order.estimado?.respuesta && order.estimado.respuesta !== 'pendiente' && (
         <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: order.estimado.respuesta === 'aceptado' ? '#eafaf2' : '#fdecec', color: order.estimado.respuesta === 'aceptado' ? '#059669' : '#dc2626' }}>
           {order.estimado.respuesta === 'aceptado' ? <ThumbsUp className="w-4 h-4" /> : <ThumbsDown className="w-4 h-4" />}
@@ -3089,8 +3089,8 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
                 </div>
 
                 {order.notas && (
-                  <div className="rounded-[11px] p-3" style={{ background: '#fef9ec', border: '1px solid #f6ead0' }}>
-                    <p className="text-[10.5px] font-bold uppercase mb-1" style={{ color: '#b7791f', letterSpacing: '.05em' }}>Notas del taller</p>
+                  <div className="rounded-[11px] p-3" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                    <p className="text-[10.5px] font-bold uppercase mb-1" style={{ color: '#f59e0b', letterSpacing: '.05em' }}>Notas del taller</p>
                     <p className="text-[13px]" style={{ color: '#7c5a14' }}>{order.notas}</p>
                   </div>
                 )}
@@ -3177,7 +3177,7 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 {/* Solo mostrar estado de respuesta cuando el pedido está en cotizando */}
                 {order.estado === 'cotizando' && order.estimado?.respuesta === 'pendiente' && (
-                  <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: '#fef6e9', color: '#b7791f' }}><Clock className="w-4 h-4 flex-shrink-0" /> Esperando respuesta del taller…</div>
+                  <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b' }}><Clock className="w-4 h-4 flex-shrink-0" /> Esperando respuesta del taller…</div>
                 )}
                 {order.estimado?.respuesta && order.estimado.respuesta !== 'pendiente' && (
                   <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: order.estimado.respuesta === 'aceptado' ? '#eafaf2' : '#fdecec', color: order.estimado.respuesta === 'aceptado' ? '#059669' : '#dc2626' }}>
@@ -3608,7 +3608,7 @@ function ClientEstimados({ solicitudes, cotizaciones = [], onRespond }) {
                     <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{p.archivo.name}</span>
                   </a>
                 )}
-                <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-lg">
+                <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)' }}>
                   <Clock className="w-3.5 h-3.5" /> Esperando estimado · {formatDate(p.fecha)}
                 </div>
               </div>
