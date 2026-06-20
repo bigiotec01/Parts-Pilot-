@@ -2216,12 +2216,18 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
 
       {/* Tabla */}
       <div className="rounded-[16px] border" style={{ background: '#1a1d2e', borderColor: 'rgba(255,255,255,0.07)', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-        <table className="w-full" style={{ minWidth: 700 }}>
+        <table className="w-full">
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              {['Fecha factura', '# Factura', 'PO Tag', 'Valor', 'Pagado', 'Pendiente', '# Check', 'F. Pago', ''].map((h, i) => (
-                <th key={i} className={`${thCls} ${i === 0 ? 'pl-5 pr-2' : 'px-2'} ${i === 8 ? 'pr-4' : ''}`} style={thSt}>{h}</th>
-              ))}
+              <th className={`${thCls} pl-5 pr-2`} style={thSt}>Fecha</th>
+              <th className={`${thCls} px-2`} style={thSt}># Factura</th>
+              <th className={`${thCls} px-2 hidden sm:table-cell`} style={thSt}>PO Tag</th>
+              <th className={`${thCls} px-2`} style={thSt}>Valor</th>
+              <th className={`${thCls} px-2 hidden sm:table-cell`} style={thSt}>Pagado</th>
+              <th className={`${thCls} px-2`} style={thSt}>Pendiente</th>
+              <th className={`${thCls} px-2 hidden lg:table-cell`} style={thSt}># Check</th>
+              <th className={`${thCls} px-2 hidden lg:table-cell`} style={thSt}>F. Pago</th>
+              <th className={`${thCls} pr-4`} style={thSt}></th>
             </tr>
           </thead>
           <tbody>
@@ -2234,12 +2240,12 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
                 <tr key={f.id} onClick={() => startEdit(f)} className="cursor-pointer hover:bg-[#1e2235] transition-colors" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                   <td className={`${tdCls} pl-5 pr-2 whitespace-nowrap`} style={{ color: '#8a90a8' }}>{fmtDateDisp(f.fechaFactura)}</td>
                   <td className={`${tdCls} px-2 font-mono font-semibold`} style={{ color: '#e8eaee' }}>{f.numeroFactura}</td>
-                  <td className={`${tdCls} px-2 font-mono`} style={{ color: '#8a90a8' }}>{f.poTag || '—'}</td>
+                  <td className={`${tdCls} px-2 font-mono hidden sm:table-cell`} style={{ color: '#8a90a8' }}>{f.poTag || '—'}</td>
                   <td className={`${tdCls} px-2 font-semibold`} style={{ color: '#e8eaee' }}>{fmtCur(f.valor)}</td>
-                  <td className={`${tdCls} px-2 font-semibold`} style={{ color: Number(f.pagado) > 0 ? '#059669' : '#5a6078' }}>{Number(f.pagado) > 0 ? fmtCur(f.pagado) : '—'}</td>
-                  <td className={`${tdCls} px-2 font-semibold`} style={{ color: Number(f.pendiente) > 0 ? '#b7791f' : '#059669' }}>{fmtCur(f.pendiente)}</td>
-                  <td className={`${tdCls} px-2 font-mono`} style={{ color: '#8a90a8' }}>{f.numeroCheck || '—'}</td>
-                  <td className={`${tdCls} px-2 whitespace-nowrap`} style={{ color: '#8a90a8' }}>{fmtDateDisp(f.fechaPago)}</td>
+                  <td className={`${tdCls} px-2 font-semibold hidden sm:table-cell`} style={{ color: Number(f.pagado) > 0 ? '#34d399' : '#5a6078' }}>{Number(f.pagado) > 0 ? fmtCur(f.pagado) : '—'}</td>
+                  <td className={`${tdCls} px-2 font-semibold`} style={{ color: Number(f.pendiente) > 0 ? '#f59e0b' : '#34d399' }}>{fmtCur(f.pendiente)}</td>
+                  <td className={`${tdCls} px-2 font-mono hidden lg:table-cell`} style={{ color: '#8a90a8' }}>{f.numeroCheck || '—'}</td>
+                  <td className={`${tdCls} px-2 whitespace-nowrap hidden lg:table-cell`} style={{ color: '#8a90a8' }}>{fmtDateDisp(f.fechaPago)}</td>
                   <td className="py-2 pl-1 pr-4">
                     <button onClick={e => { e.stopPropagation(); if (window.confirm('¿Eliminar esta factura?')) onEliminar(f.id); }} className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ color: '#5a6078' }}>
                       <X className="w-3.5 h-3.5" />
@@ -2249,7 +2255,6 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
               )
             )}
             {addingRow && <FacturaInlineRow form={newForm} setForm={setNewForm} onSave={saveNew} onCancel={() => setAddingRow(false)} saving={saving} />}
-            {/* Fila de acción rápida al fondo */}
             {!addingRow && !readOnly && (
               <tr style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                 <td colSpan={9} className="py-2 pl-5">
@@ -2263,10 +2268,11 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
           {facturasFiltradas.length > 0 && (
             <tfoot>
               <tr style={{ borderTop: '2px solid rgba(255,255,255,0.06)', background: '#1e2235' }}>
-                <td colSpan={3} className="py-3 pl-5 text-[12.5px] font-bold" style={{ color: '#e8eaee' }}>TOTAL</td>
+                <td colSpan={2} className="py-3 pl-5 text-[12.5px] font-bold" style={{ color: '#e8eaee' }}>TOTAL</td>
+                <td className="py-3 px-2 text-[12.5px] font-bold hidden sm:table-cell" style={{ color: '#5a6078' }}></td>
                 <td className="py-3 px-2 text-[12.5px] font-bold" style={{ color: '#e8eaee' }}>{fmtCur(totals.valor)}</td>
-                <td className="py-3 px-2 text-[12.5px] font-bold" style={{ color: '#059669' }}>{fmtCur(totals.pagado)}</td>
-                <td className="py-3 px-2 text-[12.5px] font-bold" style={{ color: totals.pendiente > 0 ? '#b7791f' : '#059669' }}>{fmtCur(totals.pendiente)}</td>
+                <td className="py-3 px-2 text-[12.5px] font-bold hidden sm:table-cell" style={{ color: '#34d399' }}>{fmtCur(totals.pagado)}</td>
+                <td className="py-3 px-2 text-[12.5px] font-bold" style={{ color: totals.pendiente > 0 ? '#f59e0b' : '#34d399' }}>{fmtCur(totals.pendiente)}</td>
                 <td colSpan={3} />
               </tr>
             </tfoot>
