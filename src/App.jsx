@@ -2534,9 +2534,9 @@ const MODULOS_PERM = [
 ];
 
 const PERM_OPTS = [
-  { val: 'none', label: 'Sin acceso', bg: '#f1f3f5', color: '#909090' },
-  { val: 'view', label: 'Solo ver',   bg: '#eef4ff', color: '#2563eb' },
-  { val: 'edit', label: 'Editar',     bg: '#eafaf2', color: '#059669' },
+  { val: 'none', label: 'Sin acceso', bg: 'rgba(100,100,100,0.12)', color: '#585858' },
+  { val: 'view', label: 'Solo ver',   bg: 'rgba(160,160,160,0.12)', color: '#a0a0a0' },
+  { val: 'edit', label: 'Editar',     bg: 'rgba(200,200,200,0.14)', color: '#c0c0c0' },
 ];
 
 function PermBadge({ val }) {
@@ -2736,7 +2736,7 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
                 {MODULOS_PERM.map(({ id, label }) => (
                   <div key={id} className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#1e1e1e' }}>
                     <span className="text-[12px]" style={{ color: '#888888' }}>{label}</span>
-                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: '#eafaf2', color: '#059669' }}>Editar</span>
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: 'rgba(200,200,200,0.14)', color: '#c0c0c0' }}>Editar</span>
                   </div>
                 ))}
                 <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#1e1e1e' }}>
