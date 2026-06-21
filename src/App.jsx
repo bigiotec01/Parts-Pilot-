@@ -838,10 +838,10 @@ function AdminDashboard({ pedidos, solicitudes, talleres, getTaller, onSelect, o
     <div className="space-y-4">
       {/* KPIs */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Solicitudes nuevas" value={solicitudes.length} icon={FileText} iconBg="#fdeee7" iconColor="#c9491c" chipLabel="Atención" chipBg="#fdeee7" chipColor="#c9491c" highlight />
-        <StatCard label="En proceso" value={enProceso} icon={Clock} iconBg="#eef0fe" iconColor="#4f46e5" chipLabel="+2" chipBg="#eef0fe" chipColor="#4f46e5" />
-        <StatCard label="Total pedidos" value={total} icon={ClipboardList} iconBg="#f1f3f5" iconColor="#5b626e" chipLabel="Año" chipBg="#f1f3f5" chipColor="#767d8a" />
-        <StatCard label="Talleres activos" value={talleres.length} icon={Building2} iconBg="#e9faf7" iconColor="#0d9488" chipLabel="Todos" chipBg="#e9faf7" chipColor="#0d9488" />
+        <StatCard label="Solicitudes nuevas" value={solicitudes.length} icon={FileText} iconBg="rgba(200,200,200,0.1)" iconColor="#c0c0c0" chipLabel="Atención" chipBg="rgba(200,200,200,0.12)" chipColor="#c0c0c0" highlight />
+        <StatCard label="En proceso" value={enProceso} icon={Clock} iconBg="rgba(160,160,160,0.1)" iconColor="#a0a0a0" chipLabel="hoy" chipBg="rgba(160,160,160,0.1)" chipColor="#a0a0a0" />
+        <StatCard label="Total pedidos" value={total} icon={ClipboardList} iconBg="rgba(120,120,120,0.1)" iconColor="#888888" chipLabel="Año" chipBg="rgba(120,120,120,0.1)" chipColor="#888888" />
+        <StatCard label="Talleres activos" value={talleres.length} icon={Building2} iconBg="rgba(160,160,160,0.1)" iconColor="#a0a0a0" chipLabel="Todos" chipBg="rgba(160,160,160,0.1)" chipColor="#a0a0a0" />
       </div>
 
       {/* Chart + atención */}
