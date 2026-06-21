@@ -2661,7 +2661,7 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
                   {[{ val: true, label: 'Sí' }, { val: false, label: 'No' }].map(opt => (
                     <button key={String(opt.val)} type="button" onClick={() => setP('crearPedidos', opt.val)}
                       className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-all"
-                      style={{ background: form.permisos.crearPedidos === opt.val ? '#eafaf2' : '#1e1e1e', color: form.permisos.crearPedidos === opt.val ? '#059669' : '#888888', borderColor: form.permisos.crearPedidos === opt.val ? '#059669' + '40' : '#2a2a2a' }}>
+                      style={{ background: form.permisos.crearPedidos === opt.val ? 'rgba(200,200,200,0.14)' : '#1e1e1e', color: form.permisos.crearPedidos === opt.val ? '#c0c0c0' : '#888888', borderColor: form.permisos.crearPedidos === opt.val ? 'rgba(200,200,200,0.3)' : '#2a2a2a' }}>
                       {opt.label}
                     </button>
                   ))}
@@ -2741,11 +2741,11 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
                 ))}
                 <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#1e1e1e' }}>
                   <span className="text-[12px]" style={{ color: '#888888' }}>Crear pedidos</span>
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: '#eafaf2', color: '#059669' }}>Sí</span>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: 'rgba(200,200,200,0.14)', color: '#c0c0c0' }}>Sí</span>
                 </div>
                 <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: '#1e1e1e' }}>
                   <span className="text-[12px]" style={{ color: '#888888' }}>Equipo</span>
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: '#eafaf2', color: '#059669' }}>Sí</span>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: 'rgba(200,200,200,0.14)', color: '#c0c0c0' }}>Sí</span>
                 </div>
               </div>
             ) : editId === u.uid && isSuperadmin(u) ? (
@@ -2775,7 +2775,7 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
                     {[{ val: true, label: 'Sí' }, { val: false, label: 'No' }].map(opt => (
                       <button key={String(opt.val)} onClick={() => setEP('crearPedidos', opt.val)}
                         className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-all"
-                        style={{ background: editPermisos.crearPedidos === opt.val ? '#eafaf2' : '#1e1e1e', color: editPermisos.crearPedidos === opt.val ? '#059669' : '#888888', borderColor: editPermisos.crearPedidos === opt.val ? '#059669' + '40' : '#2a2a2a' }}>
+                        style={{ background: editPermisos.crearPedidos === opt.val ? 'rgba(200,200,200,0.14)' : '#1e1e1e', color: editPermisos.crearPedidos === opt.val ? '#c0c0c0' : '#888888', borderColor: editPermisos.crearPedidos === opt.val ? 'rgba(200,200,200,0.3)' : '#2a2a2a' }}>
                         {opt.label}
                       </button>
                     ))}
