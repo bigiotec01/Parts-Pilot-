@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import {
   CarFront, Package, Truck, CheckCircle2, Clock, FileText, LogOut, Plus, Search,
@@ -293,10 +293,10 @@ function NotificationPanel({ notifications, onSelect, onDismissAll }) {
 }
 
 function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo, notifications = [], onNotifSelect, onDismissAll }) {
-  const [showNotifs, setShowNotifs] = React.useState(false);
-  const bellRef = React.useRef(null);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const bellRef = useRef(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!showNotifs) return;
     const handler = (e) => { if (bellRef.current && !bellRef.current.contains(e.target)) setShowNotifs(false); };
     document.addEventListener('mousedown', handler);
@@ -3434,7 +3434,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
   };
 
   const allPedidos = pedidos;
-  const notifications = React.useMemo(() => getAdminNotifications(allPedidos, getTaller), [allPedidos, getTaller]);
+  const notifications = useMemo(() => getAdminNotifications(allPedidos, getTaller), [allPedidos, getTaller]);
 
   const handleNotifSelect = (orderId) => {
     selectOrder(orderId);
