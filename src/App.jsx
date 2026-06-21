@@ -74,6 +74,43 @@ function hasNewActivity(role, order) {
   return false;
 }
 
+function getAdminNotifications(pedidos, getTaller) {
+  const notifs = [];
+  for (const order of pedidos) {
+    try {
+      const tallerMsgs = (order.mensajes || []).filter(m => m.from === 'taller');
+      const tallerMsgCount = tallerMsgs.length;
+      const currentResp = order.estimado?.respuesta || '';
+      const raw = localStorage.getItem(lsActivityKey('admin', order.id));
+      const taller = getTaller?.(order.tallerId)?.nombre || '—';
+      const folio = order.folio || order.id?.slice(0, 8);
+
+      if (!raw) {
+        if (tallerMsgCount > 0) {
+          notifs.push({ orderId: order.id, folio, vehiculo: order.vehiculo, taller, type: 'message',
+            label: 'Mensaje nuevo', detail: tallerMsgs[tallerMsgs.length - 1]?.texto?.slice(0, 60) || '' });
+        } else if (currentResp && currentResp !== 'pendiente') {
+          notifs.push({ orderId: order.id, folio, vehiculo: order.vehiculo, taller, type: 'estimado',
+            label: currentResp === 'aceptado' ? 'Estimado aceptado' : 'Estimado rechazado', detail: '' });
+        }
+        continue;
+      }
+      const seen = JSON.parse(raw);
+      if (tallerMsgCount > (seen.tallerMsgs || 0)) {
+        const diff = tallerMsgCount - (seen.tallerMsgs || 0);
+        notifs.push({ orderId: order.id, folio, vehiculo: order.vehiculo, taller, type: 'message',
+          label: diff === 1 ? 'Mensaje nuevo' : `${diff} mensajes nuevos`,
+          detail: tallerMsgs[tallerMsgs.length - 1]?.texto?.slice(0, 60) || '' });
+      }
+      if (currentResp && currentResp !== 'pendiente' && seen.respuesta !== currentResp) {
+        notifs.push({ orderId: order.id, folio, vehiculo: order.vehiculo, taller, type: 'estimado',
+          label: currentResp === 'aceptado' ? 'Estimado aceptado' : 'Estimado rechazado', detail: '' });
+      }
+    } catch {}
+  }
+  return notifs;
+}
+
 const PEDIDOS_INICIAL = [
   { id: 'OP-2026-001', tallerId: 1, vehiculo: 'Toyota Corolla 2020', pieza: 'Fascia delantera', notas: '', fecha: '2026-05-20', estado: 'entregado',
     estimado: { notas: 'Pieza original, incluye soportes nuevos.', fecha: '2026-05-21', respuesta: 'aceptado' } },
@@ -223,7 +260,48 @@ function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onL
   );
 }
 
-function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo }) {
+function NotificationPanel({ notifications, onSelect, onDismissAll }) {
+  return (
+    <div className="absolute right-0 top-[calc(100%+8px)] w-[340px] rounded-[16px] border z-50" style={{ background: '#1a1a1a', borderColor: 'rgba(255,255,255,0.09)', boxShadow: '0 24px 48px rgba(0,0,0,0.6)' }}>
+      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <span className="text-[13px] font-bold" style={{ color: '#e8e8e8' }}>Notificaciones</span>
+        {notifications.length > 0 && (
+          <button onClick={onDismissAll} className="text-[11px] font-semibold hover:underline" style={{ color: '#888888' }}>Marcar todo leído</button>
+        )}
+      </div>
+      <div className="max-h-[380px] overflow-y-auto pp-scroll">
+        {notifications.length === 0 ? (
+          <div className="py-10 text-center text-[13px]" style={{ color: '#585858' }}>Sin notificaciones nuevas</div>
+        ) : notifications.map((n, i) => (
+          <button key={i} onClick={() => onSelect(n.orderId)} className="w-full text-left px-4 py-3 flex gap-3 items-start hover:bg-[#1e1e1e] transition-colors" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+            <div className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(160,160,160,0.1)' }}>
+              {n.type === 'message'
+                ? <MessageSquare className="w-[15px] h-[15px]" style={{ color: '#a0a0a0' }} />
+                : <FileText className="w-[15px] h-[15px]" style={{ color: '#c0c0c0' }} />}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[12.5px] font-bold" style={{ color: '#e8e8e8' }}>{n.label}</div>
+              <div className="text-[11.5px] truncate mt-0.5" style={{ color: '#888888' }}>{n.folio} · {n.vehiculo} · {n.taller}</div>
+              {n.detail && <div className="text-[11px] truncate mt-0.5 italic" style={{ color: '#585858' }}>"{n.detail}"</div>}
+            </div>
+            <ChevronRight className="w-3.5 h-3.5 flex-shrink-0 mt-1" style={{ color: '#585858' }} />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo, notifications = [], onNotifSelect, onDismissAll }) {
+  const [showNotifs, setShowNotifs] = React.useState(false);
+  const bellRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!showNotifs) return;
+    const handler = (e) => { if (bellRef.current && !bellRef.current.contains(e.target)) setShowNotifs(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showNotifs]);
   return (
     <header className="h-[70px] flex-shrink-0 flex items-center gap-[18px] px-[30px] sticky top-0 z-20 border-b" style={{ background: 'rgba(15,15,15,0.96)', backdropFilter: 'blur(12px)', borderColor: 'rgba(255,255,255,0.06)' }}>
       <div className="min-w-0">
@@ -235,11 +313,22 @@ function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo }) {
           <Search className="w-4 h-4 absolute left-3 pointer-events-none" style={{ color: '#585858' }} />
           <input placeholder="Buscar pedido, vehículo, folio…" className="pl-9 pr-3 py-[9px] rounded-[10px] text-[13px] border outline-none transition-[width] focus:w-[280px] focus:border-[#a0a0a0] focus:ring-2 focus:ring-[#a0a0a0]/10" style={{ width: 240, background: '#1e1e1e', borderColor: '#2a2a2a', color: '#e8e8e8' }} />
         </div>
-        <div className="relative">
-          <button className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center border transition-colors hover:bg-[#1e1e1e]" style={{ background: '#1e1e1e', borderColor: '#2a2a2a', color: '#888888' }} title="Notificaciones">
+        <div className="relative" ref={bellRef}>
+          <button onClick={() => setShowNotifs(v => !v)} className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center border transition-colors hover:bg-[#252525]" style={{ background: showNotifs ? '#252525' : '#1e1e1e', borderColor: showNotifs ? 'rgba(255,255,255,0.12)' : '#2a2a2a', color: '#888888' }} title="Notificaciones">
             <Bell className="w-[18px] h-[18px]" strokeWidth={1.8} />
           </button>
-          {solicitudesCount > 0 && <span className="absolute top-2 right-2.5 w-[7px] h-[7px] rounded-full border-2" style={{ background: '#a0a0a0', borderColor: '#0f0f0f' }} />}
+          {notifications.length > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: '#a0a0a0', color: '#0f0f0f' }}>
+              {notifications.length}
+            </span>
+          )}
+          {showNotifs && (
+            <NotificationPanel
+              notifications={notifications}
+              onSelect={(id) => { onNotifSelect(id); setShowNotifs(false); }}
+              onDismissAll={() => { onDismissAll(); setShowNotifs(false); }}
+            />
+          )}
         </div>
         <button onClick={onGoToNuevo} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#707070]" style={{ background: '#a0a0a0' }}>
           <Plus className="w-4 h-4" strokeWidth={2.2} /> Nuevo pedido
@@ -3344,6 +3433,19 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
     setSelectedId(id);
   };
 
+  const allPedidos = pedidos;
+  const notifications = React.useMemo(() => getAdminNotifications(allPedidos, getTaller), [allPedidos, getTaller]);
+
+  const handleNotifSelect = (orderId) => {
+    selectOrder(orderId);
+    const order = pedidos.find(p => p.id === orderId);
+    if (order) saveOrderSeen('admin', order);
+  };
+
+  const handleDismissAll = () => {
+    allPedidos.forEach(order => saveOrderSeen('admin', order));
+  };
+
   const mainContent = (
     <div className="flex-1 min-w-0 flex flex-col">
       {!isMobile && (
@@ -3352,6 +3454,9 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
           pageSub={PAGE_META[activeTab]?.sub || ''}
           solicitudesCount={enEstimados.length}
           onGoToNuevo={() => goTo('nuevo')}
+          notifications={notifications}
+          onNotifSelect={handleNotifSelect}
+          onDismissAll={handleDismissAll}
         />
       )}
       <main className="flex-1 overflow-y-auto px-4 py-5 pb-24" style={{ paddingLeft: isMobile ? 16 : 30, paddingRight: isMobile ? 16 : 30, paddingTop: isMobile ? 16 : 28 }}>
