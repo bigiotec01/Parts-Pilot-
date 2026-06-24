@@ -2,6 +2,112 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── CSS Variables ── */
+:root {
+  /* Fondos */
+  --pp-bg:           #0f0f0f;
+  --pp-nav:          #1a1a1a;
+  --pp-card:         #1e1e1e;
+  --pp-surface:      #2a2a2a;
+  --pp-hover:        #252525;
+  --pp-input-bg:     #101010;
+  --pp-topbar:       rgba(15,15,15,0.96);
+  --pp-topbar2:      rgba(18,20,31,0.97);
+  --pp-topbar3:      rgba(15,15,15,0.94);
+
+  /* Texto */
+  --pp-text:         #e8e8e8;
+  --pp-text2:        #888888;
+  --pp-text3:        #585858;
+  --pp-text4:        #6a7180;
+  --pp-text5:        #383838;
+  --pp-text6:        #c0c0c0;
+  --pp-text7:        #d0d0d0;
+  --pp-text8:        #a0a0a0;
+  --pp-text9:        #909090;
+  --pp-text10:       #aab0b9;
+  --pp-text11:       #4a505c;
+
+  /* Bordes */
+  --pp-border:       rgba(255,255,255,0.07);
+  --pp-border2:      rgba(255,255,255,0.06);
+  --pp-border3:      rgba(255,255,255,0.09);
+  --pp-border4:      #2a2a2a;
+
+  /* Acento */
+  --pp-accent:       #a0a0a0;
+  --pp-accent2:      #707070;
+
+  /* Estado activo nav */
+  --pp-active-bg:    rgba(200,200,200,0.1);
+  --pp-active-bg2:   rgba(200,200,200,0.14);
+  --pp-active-border:rgba(200,200,200,0.18);
+
+  /* Overlay */
+  --pp-overlay:      rgba(0,0,0,0.5);
+  --pp-overlay2:     rgba(0,0,0,0.45);
+
+  /* Stepper / progreso */
+  --pp-step-inactive: #2a2a2a;
+  --pp-progress-bg:   #1e1e1e;
+
+  /* Color scheme para inputs de fecha */
+  --pp-color-scheme: dark;
+}
+
+/* ── MODO CLARO ── */
+html.light {
+  /* Fondos */
+  --pp-bg:           #F4F6F8;
+  --pp-nav:          #EAEFF2;
+  --pp-card:         #FFFFFF;
+  --pp-surface:      #E8EDF1;
+  --pp-hover:        #DCE3E9;
+  --pp-input-bg:     #FFFFFF;
+  --pp-topbar:       rgba(234,239,242,0.97);
+  --pp-topbar2:      rgba(234,239,242,0.97);
+  --pp-topbar3:      rgba(234,239,242,0.96);
+
+  /* Texto */
+  --pp-text:         #1A202C;
+  --pp-text2:        #6B7280;
+  --pp-text3:        #9CA3AF;
+  --pp-text4:        #9CA3AF;
+  --pp-text5:        #C4CAD4;
+  --pp-text6:        #4B5563;
+  --pp-text7:        #374151;
+  --pp-text8:        #2B2D42;
+  --pp-text9:        #4B5563;
+  --pp-text10:       #6B7280;
+  --pp-text11:       #374151;
+
+  /* Bordes */
+  --pp-border:       rgba(0,0,0,0.08);
+  --pp-border2:      rgba(0,0,0,0.07);
+  --pp-border3:      rgba(0,0,0,0.10);
+  --pp-border4:      #D1D5DB;
+
+  /* Acento */
+  --pp-accent:       #2B2D42;
+  --pp-accent2:      #1e2433;
+
+  /* Estado activo nav */
+  --pp-active-bg:    rgba(43,45,66,0.08);
+  --pp-active-bg2:   rgba(43,45,66,0.12);
+  --pp-active-border:rgba(43,45,66,0.16);
+
+  /* Overlay */
+  --pp-overlay:      rgba(0,0,0,0.4);
+  --pp-overlay2:     rgba(0,0,0,0.35);
+
+  /* Stepper / progreso */
+  --pp-step-inactive: #D1D5DB;
+  --pp-progress-bg:   #E8EDF1;
+
+  /* Color scheme para inputs de fecha */
+  --pp-color-scheme: light;
+}
+
 html, body, #root {
   height: 100%;
 }
@@ -9,7 +115,7 @@ html, body, #root {
 body {
   margin: 0;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  background-color: #f4f5f7;
+  background-color: var(--pp-bg);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -24,6 +130,9 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 .pp-scroll::-webkit-scrollbar { width: 0; height: 0; }
 
+html.light ::-webkit-scrollbar-thumb { background: #C4CAD4; border: 3px solid transparent; background-clip: padding-box; }
+html.light ::-webkit-scrollbar-thumb:hover { background: #9CA3AF; background-clip: padding-box; border: 3px solid transparent; }
+
 /* Prevent iOS auto-zoom on inputs */
 input, textarea, select {
   font-size: 16px !important;
@@ -37,3 +146,74 @@ body { overflow-x: hidden; }
 @keyframes ppSlide { from { transform: translateX(24px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes ppRise  { from { transform: translateY(8px); opacity: 0; }  to { transform: translateY(0); opacity: 1; } }
 @keyframes ppSheet { from { transform: translateY(100%); }             to { transform: translateY(0); } }
+
+/* ── Overrides de clases Tailwind en modo claro ── */
+
+/* hover */
+html.light .hover\:bg-\[\#1e1e1e\]:hover,
+html.light .hover\:bg-\[\#252525\]:hover,
+html.light .hover\:bg-\[\#30343c\]:hover,
+html.light .hover\:bg-\[\#2a2a2a\]:hover,
+html.light .hover\:bg-\[\#1a1a1a\]:hover {
+  background-color: var(--pp-hover) !important;
+}
+html.light .hover\:bg-\[\#707070\]:hover {
+  background-color: var(--pp-accent2) !important;
+}
+
+/* focus */
+html.light .focus\:border-\[\#a0a0a0\]:focus {
+  border-color: var(--pp-accent) !important;
+}
+html.light .focus\:ring-\[\#a0a0a0\]\/10:focus {
+  --tw-ring-color: rgba(43,45,66,0.1) !important;
+}
+
+/* border */
+html.light .border-\[\#a0a0a0\] {
+  border-color: var(--pp-accent) !important;
+}
+html.light .border-\[\#2a2a2a\] {
+  border-color: var(--pp-border4) !important;
+}
+
+/* hover border */
+html.light .hover\:border-\[\#a0a0a0\]:hover {
+  border-color: var(--pp-accent) !important;
+}
+
+/* Input background y text color en modo claro */
+html.light .bg-\[\#101010\] {
+  background-color: var(--pp-input-bg) !important;
+}
+html.light .text-\[\#e8e8e8\] {
+  color: var(--pp-text) !important;
+}
+
+/* Placeholder color */
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: var(--pp-text3);
+}
+
+/* Select y textarea en modo claro */
+html.light select {
+  background-color: var(--pp-input-bg);
+  color: var(--pp-text);
+  border-color: var(--pp-border4);
+}
+
+/* hover text */
+html.light .hover\:text-\[\#a0a0a0\]:hover {
+  color: var(--pp-accent) !important;
+}
+
+/* text class */
+html.light .text-\[\#a0a0a0\] {
+  color: var(--pp-accent) !important;
+}
+
+/* bg overrides */
+html.light .bg-\[\#0f0f0f\] {
+  background-color: var(--pp-bg) !important;
+}
