@@ -5,7 +5,7 @@ import {
   Building2, Phone, X, ThumbsUp, ThumbsDown, ChevronRight, AlertCircle,
   LayoutDashboard, ClipboardList, Users, Calendar, Send, Eye, EyeOff, MessageSquare, Paperclip, Mail,
   Printer, Trash2, Pencil, History, UserCircle, CheckCheck, StickyNote, NotebookPen,
-  PackageCheck, Hourglass, ClipboardCheck, Bell, Receipt
+  PackageCheck, Hourglass, ClipboardCheck, Bell, Receipt, Share2
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -1634,6 +1634,15 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
     });
   };
 
+  const handleShareLink = () => {
+    const url = `${window.location.origin}${window.location.pathname}?order=${order.id}`;
+    const folio = order.folio || order.id.slice(0, 8);
+    const subject = encodeURIComponent(`Estado de tu pedido ${folio} – Parts Pilot`);
+    const body = encodeURIComponent(`Hola${taller?.contacto ? ` ${taller.contacto}` : ''},\n\nPuedes ver el estado de tu pedido "${order.vehiculo}" (${folio}) aquí:\n\n${url}\n\nSaludos.`);
+    const to = taller?.email ? `&to=${encodeURIComponent(taller.email)}` : '';
+    window.open(`https://mail.google.com/mail/?view=cm${to}&su=${subject}&body=${body}`, '_blank');
+  };
+
   return (
     <div className="space-y-4">
       {/* Taller + estado actual */}
@@ -1773,6 +1782,12 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
               })()}
             </div>
           )}
+
+          <button type="button" onClick={handleShareLink}
+            className="w-full py-[9px] rounded-[10px] text-[13px] font-semibold border flex items-center justify-center gap-2 hover:bg-[#1e1e1e] transition-colors"
+            style={{ borderColor: '#2a2a2a', color: '#888888' }}>
+            <Share2 className="w-4 h-4" /> Enviar link del pedido
+          </button>
 
           <button type="button" onClick={() => { if (window.confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.')) onDeleteOrder(order.id); }}
             className="w-full flex items-center justify-center gap-2 text-[13px] py-2.5 rounded-[10px] border border-dashed transition-colors hover:bg-red-50 hover:text-red-500" style={{ color: '#aab0b9', borderColor: '#f0b8b8' }}>
@@ -2062,7 +2077,9 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
 
   const startAdd = () => {
     setAddingRow(true); setEditId(null);
-    setNewForm({ fechaFactura: '', numeroFactura: '', poTag: '', valor: '', pagado: '', numeroCheck: '', fechaPago: '' });
+    const hoy = new Date();
+    const todayISO = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
+    setNewForm({ fechaFactura: todayISO, numeroFactura: '', poTag: '', valor: '', pagado: '', numeroCheck: '', fechaPago: '' });
   };
 
   const saveNew = async () => {
@@ -3245,6 +3262,22 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
               );
             })()}
 
+            <button
+              type="button"
+              onClick={() => {
+                const url = `${window.location.origin}${window.location.pathname}?order=${order.id}`;
+                const folio = order.folio || order.id.slice(0, 8);
+                const subject = encodeURIComponent(`Estado de tu pedido ${folio} – Parts Pilot`);
+                const body = encodeURIComponent(`Hola${taller?.contacto ? ` ${taller.contacto}` : ''},\n\nPuedes ver el estado de tu pedido "${order.vehiculo}" (${folio}) aquí:\n\n${url}\n\nSaludos.`);
+                const to = taller?.email ? `&to=${encodeURIComponent(taller.email)}` : '';
+                window.open(`https://mail.google.com/mail/?view=cm${to}&su=${subject}&body=${body}`, '_blank');
+              }}
+              className="w-full py-[11px] rounded-[11px] text-[13px] font-semibold border flex items-center justify-center gap-2 hover:bg-[#1e1e1e] transition-colors"
+              style={{ borderColor: '#2a2a2a', color: '#888888' }}
+            >
+              <Share2 className="w-4 h-4" /> Enviar link del pedido
+            </button>
+
             <div className="flex gap-3">
               <button onClick={handleSave} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:bg-[#707070] disabled:opacity-60" style={{ background: '#a0a0a0' }}>
                 {saving ? 'Guardando…' : 'Guardar cambios'}
@@ -3445,6 +3478,22 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
   const handleDismissAll = () => {
     allPedidos.forEach(order => saveOrderSeen('admin', order));
   };
+
+  // Deep linking: ?order=ID abre el pedido directamente al cargar
+  const deepLinkHandled = useRef(false);
+  useEffect(() => {
+    if (deepLinkHandled.current || pedidos.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const orderParam = params.get('order');
+    if (!orderParam) { deepLinkHandled.current = true; return; }
+    const found = pedidos.find(p => p.id === orderParam || p.folio === orderParam);
+    if (found) {
+      deepLinkHandled.current = true;
+      setActiveTab('pedidos');
+      selectOrder(found.id);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [pedidos]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const mainContent = (
     <div className="flex-1 min-w-0 flex flex-col">
@@ -4026,6 +4075,22 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
   const totalEstimados = solicitudes.length + cotizacionesPendientes.length;
 
   const goTab = (t) => { setActiveTab(t); setSelectedId(null); setSearch(''); };
+
+  // Deep linking: ?order=ID abre el pedido directamente al cargar
+  const deepLinkHandled = useRef(false);
+  useEffect(() => {
+    if (deepLinkHandled.current || pedidos.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const orderParam = params.get('order');
+    if (!orderParam) { deepLinkHandled.current = true; return; }
+    const found = pedidos.find(p => p.id === orderParam || p.folio === orderParam);
+    if (found) {
+      deepLinkHandled.current = true;
+      setActiveTab('pedidos');
+      handleSelect(found.id);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [pedidos]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768);
   useEffect(() => {
