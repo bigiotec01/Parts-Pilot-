@@ -2043,20 +2043,34 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
   const tallerActual = talleres.find(t => t.uid === tallerSel);
   const numeroCuenta = tallerActual?.numeroCuentas?.[marca] || '';
 
-  const facturasFiltradas = [...facturas]
+  const [filtroDesde, setFiltroDesde] = useState('');
+  const [filtroHasta, setFiltroHasta] = useState('');
+  const [showPagadas, setShowPagadas] = useState(false);
+
+  const todasNoArch = [...facturas]
     .filter(f => f.tallerId === tallerSel && f.marca === marca && !f.archivada)
     .sort((a, b) => (a.fechaFactura || '').localeCompare(b.fechaFactura || ''));
+
+  const facturasPendientes = todasNoArch.filter(f => Number(f.pendiente || 0) > 0);
+
+  const facturasPagadasVivas = todasNoArch.filter(f => Number(f.pendiente || 0) <= 0);
+
+  const facturasPagadasFiltradas = facturasPagadasVivas.filter(f => {
+    if (filtroDesde && (f.fechaFactura || '') < filtroDesde) return false;
+    if (filtroHasta && (f.fechaFactura || '') > filtroHasta) return false;
+    return true;
+  });
 
   const facturasArchivadas = [...facturas]
     .filter(f => f.tallerId === tallerSel && f.marca === marca && f.archivada)
     .sort((a, b) => (a.fechaFactura || '').localeCompare(b.fechaFactura || ''));
 
-  const totals = facturasFiltradas.reduce(
+  const totals = todasNoArch.reduce(
     (acc, f) => ({ valor: acc.valor + Number(f.valor || 0), pagado: acc.pagado + Number(f.pagado || 0), pendiente: acc.pendiente + Number(f.pendiente || 0) }),
     { valor: 0, pagado: 0, pendiente: 0 }
   );
 
-  const pagadasSinArch = facturasFiltradas.filter(f => Number(f.pendiente || 0) <= 0);
+  const pagadasSinArch = facturasPagadasVivas;
 
   const handleArchivarPagadas = async () => {
     if (!pagadasSinArch.length) return;
@@ -2338,10 +2352,10 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
             </tr>
           </thead>
           <tbody>
-            {facturasFiltradas.length === 0 && !addingRow && (
-              <tr><td colSpan={9} className="py-12 text-center text-[13px]" style={{ color: '#585858' }}>Sin facturas. Usa "+ Nueva factura" para agregar.</td></tr>
+            {facturasPendientes.length === 0 && !addingRow && (
+              <tr><td colSpan={9} className="py-12 text-center text-[13px]" style={{ color: '#585858' }}>Sin facturas pendientes. Usa "+ Nueva factura" para agregar.</td></tr>
             )}
-            {facturasFiltradas.map(f => editId === f.id
+            {facturasPendientes.map(f => editId === f.id
               ? <FacturaInlineRow key={f.id} form={editForm} setForm={setEditForm} onSave={saveEdit} onCancel={cancelEdit} saving={saving} />
               : (
                 <tr key={f.id} onClick={() => startEdit(f)} className="cursor-pointer hover:bg-[#1e1e1e] transition-colors" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
@@ -2372,7 +2386,7 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
               </tr>
             )}
           </tbody>
-          {facturasFiltradas.length > 0 && (
+          {facturasPendientes.length > 0 && (
             <tfoot>
               <tr style={{ borderTop: '2px solid rgba(255,255,255,0.06)', background: '#1e1e1e' }}>
                 <td colSpan={2} className="py-3 pl-5 text-[12.5px] font-bold" style={{ color: '#e8e8e8' }}>TOTAL</td>
@@ -2386,6 +2400,101 @@ function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar
           )}
         </table>
       </div>
+
+      {/* Facturas Pagadas — colapsable con filtro por fecha */}
+      {facturasPagadasVivas.length > 0 && (
+        <div className="mt-2">
+          <button
+            onClick={() => setShowPagadas(v => !v)}
+            className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#a0a0a0]"
+            style={{ color: '#34d399' }}
+          >
+            <ChevronRight className={`w-4 h-4 transition-transform ${showPagadas ? 'rotate-90' : ''}`} />
+            Facturas pagadas ({facturasPagadasVivas.length})
+          </button>
+          {showPagadas && (
+            <div className="mt-3 space-y-3">
+              {/* Filtros de fecha */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-[12.5px] font-semibold" style={{ color: '#888888' }}>Filtrar por fecha:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[12px]" style={{ color: '#585858' }}>Desde</span>
+                  <input
+                    type="date"
+                    value={filtroDesde}
+                    onChange={e => setFiltroDesde(e.target.value)}
+                    onClick={e => { try { e.target.showPicker(); } catch(_) {} }}
+                    className="px-2 py-1 rounded-[8px] border text-[13px] outline-none focus:border-[#a0a0a0] cursor-pointer"
+                    style={{ borderColor: '#2a2a2a', background: '#101010', color: '#e8e8e8', colorScheme: 'dark' }}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[12px]" style={{ color: '#585858' }}>Hasta</span>
+                  <input
+                    type="date"
+                    value={filtroHasta}
+                    onChange={e => setFiltroHasta(e.target.value)}
+                    onClick={e => { try { e.target.showPicker(); } catch(_) {} }}
+                    className="px-2 py-1 rounded-[8px] border text-[13px] outline-none focus:border-[#a0a0a0] cursor-pointer"
+                    style={{ borderColor: '#2a2a2a', background: '#101010', color: '#e8e8e8', colorScheme: 'dark' }}
+                  />
+                </div>
+                {(filtroDesde || filtroHasta) && (
+                  <button onClick={() => { setFiltroDesde(''); setFiltroHasta(''); }} className="text-[12px] hover:underline" style={{ color: '#585858' }}>
+                    Limpiar filtro
+                  </button>
+                )}
+                <span className="text-[12px]" style={{ color: '#585858' }}>
+                  {facturasPagadasFiltradas.length} de {facturasPagadasVivas.length} facturas
+                </span>
+              </div>
+
+              {/* Tabla pagadas */}
+              <div className="rounded-[16px] border overflow-x-auto" style={{ background: '#1a1a1a', borderColor: 'rgba(255,255,255,0.07)', opacity: 0.9 }}>
+                <table className="w-full" style={{ minWidth: 800 }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                      {['Fecha','# Factura','PO Tag','Valor','Pagado','# Check','F. Pago',''].map((h, i) => (
+                        <th key={i} className={`text-left py-2.5 text-[10.5px] font-bold uppercase ${i===0?'pl-5 pr-2':'px-2'}`} style={{ color: '#585858', letterSpacing: '.06em' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {facturasPagadasFiltradas.length === 0 ? (
+                      <tr><td colSpan={8} className="py-8 text-center text-[13px]" style={{ color: '#585858' }}>Sin facturas pagadas en ese rango de fechas.</td></tr>
+                    ) : facturasPagadasFiltradas.map(f => (
+                      <tr key={f.id} onClick={() => startEdit(f)} className="cursor-pointer hover:bg-[#1e1e1e] transition-colors" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                        <td className="py-3 pl-5 pr-2 text-[12px] whitespace-nowrap" style={{ color: '#888888' }}>{fmtDateDisp(f.fechaFactura)}</td>
+                        <td className="py-3 px-2 font-mono font-semibold text-[12px]" style={{ color: '#e8e8e8' }}>{f.numeroFactura}</td>
+                        <td className="py-3 px-2 font-mono text-[12px]" style={{ color: '#585858' }}>{f.poTag||'—'}</td>
+                        <td className="py-3 px-2 text-[12px] font-semibold" style={{ color: '#e8e8e8' }}>{fmtCur(f.valor)}</td>
+                        <td className="py-3 px-2 text-[12px] font-semibold" style={{ color: '#34d399' }}>{fmtCur(f.pagado)}</td>
+                        <td className="py-3 px-2 font-mono text-[12px]" style={{ color: '#585858' }}>{f.numeroCheck||'—'}</td>
+                        <td className="py-3 px-2 text-[12px] whitespace-nowrap" style={{ color: '#585858' }}>{fmtDateDisp(f.fechaPago)}</td>
+                        <td className="py-3 pr-4">
+                          <button onClick={e => { e.stopPropagation(); if (window.confirm('¿Eliminar esta factura?')) onEliminar(f.id); }} className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ color: '#585858' }}>
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  {facturasPagadasFiltradas.length > 0 && (
+                    <tfoot>
+                      <tr style={{ borderTop: '2px solid rgba(255,255,255,0.06)', background: '#1e1e1e' }}>
+                        <td colSpan={3} className="py-2.5 pl-5 text-[12px] font-bold" style={{ color: '#585858' }}>TOTAL PAGADAS</td>
+                        <td className="py-2.5 px-2 text-[12px] font-bold" style={{ color: '#e8e8e8' }}>{fmtCur(facturasPagadasFiltradas.reduce((s,f)=>s+Number(f.valor||0),0))}</td>
+                        <td className="py-2.5 px-2 text-[12px] font-bold" style={{ color: '#34d399' }}>{fmtCur(facturasPagadasFiltradas.reduce((s,f)=>s+Number(f.pagado||0),0))}</td>
+                        <td colSpan={3} />
+                      </tr>
+                    </tfoot>
+                  )}
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Historial de archivadas */}
       {facturasArchivadas.length > 0 && (
