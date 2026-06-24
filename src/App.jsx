@@ -14,6 +14,8 @@ import {
 
 // Firebase maneja autenticación y datos - ver useAuth.js y firestore.js
 
+const APP_VERSION = '1.0.0';
+
 const STATUS_ORDER = ['pendiente', 'cotizando', 'pedido_fabrica', 'ordenadas', 'esperando_piezas', 'en_transito', 'recibido', 'entregado'];
 
 const STATUS_CONFIG = {
@@ -255,6 +257,7 @@ function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onL
             <LogOut className="w-3.5 h-3.5" />
           </button>
         </div>
+        <div className="text-center mt-2 text-[10px]" style={{ color: '#383838' }}>v{APP_VERSION}</div>
       </div>
     </aside>
   );
@@ -4424,6 +4427,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
                 <LogOut className="w-3.5 h-3.5" />
               </button>
             </div>
+            <div className="text-center mt-2 text-[10px]" style={{ color: '#383838' }}>v{APP_VERSION}</div>
           </div>
         </aside>
 
