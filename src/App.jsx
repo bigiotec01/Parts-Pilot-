@@ -45,7 +45,7 @@ const ThemeContext = createContext({ theme: 'dark', toggleTheme: () => {}, statu
 
 function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    try { return localStorage.getItem('pp_theme') || 'dark'; } catch { return 'dark'; }
+    try { return localStorage.getItem('pp_theme') || 'light'; } catch { return 'light'; }
   });
 
   useEffect(() => {
