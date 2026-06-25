@@ -14,7 +14,7 @@ import {
 
 // Firebase maneja autenticación y datos - ver useAuth.js y firestore.js
 
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.2.0';
 
 const STATUS_ORDER = ['pendiente', 'cotizando', 'pedido_fabrica', 'ordenadas', 'esperando_piezas', 'en_transito', 'recibido', 'entregado'];
 
@@ -4152,6 +4152,7 @@ function ClientPerfil({ taller, onUpdate, isSubUser = false }) {
             <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> Cambios guardados.
           </div>
         )}
+
         <form onSubmit={handleSubmit} className="rounded-[16px] p-[18px] space-y-4 border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
           {isSubUser ? (
             /* Sub-usuario: solo edita su propio nombre */
@@ -4177,6 +4178,7 @@ function ClientPerfil({ taller, onUpdate, isSubUser = false }) {
             {saving ? 'Guardando…' : 'Guardar cambios'}
           </button>
         </form>
+        <p className="text-center mt-4 text-[10px]" style={{ color: 'var(--pp-text5)' }}>Parts Pilot v{APP_VERSION}</p>
       </div>
     </div>
   );
