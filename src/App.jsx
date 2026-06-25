@@ -876,7 +876,7 @@ function LoginScreen({ onLogin, error }) {
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--pp-bg)' }}>
       <div className="w-full max-w-[400px]" style={{ animation: 'ppRise .5s ease both' }}>
         <div className="text-center mb-7">
-          <div className="inline-flex items-center justify-center rounded-[16px] mb-[18px]" style={{ width: 60, height: 60, background: 'linear-gradient(160deg, #c0c0c0, #808080)', boxShadow: '0 12px 30px -8px rgba(160,160,160,0.4)' }}>
+          <div className="inline-flex items-center justify-center rounded-[16px] mb-[18px]" style={{ width: 60, height: 60, background: 'linear-gradient(160deg, #f97316, #ea580c)', boxShadow: '0 12px 30px -8px rgba(249,115,22,0.4)' }}>
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
           </div>
           <h1 className="font-extrabold text-[26px] tracking-tight" style={{ color: 'var(--pp-text)', letterSpacing: '-.02em' }}>Parts Pilot</h1>
@@ -900,7 +900,7 @@ function LoginScreen({ onLogin, error }) {
               <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
             </div>
           )}
-          <button type="submit" className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14.5px] transition-all hover:brightness-105" style={{ background: 'linear-gradient(160deg, #c0c0c0, #808080)', boxShadow: '0 10px 22px -10px rgba(160,160,160,0.5)' }}>
+          <button type="submit" className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14.5px] transition-all hover:brightness-105" style={{ background: 'linear-gradient(160deg, #f97316, #ea580c)', boxShadow: '0 10px 22px -10px rgba(249,115,22,0.5)' }}>
             Iniciar sesión
           </button>
         </form>
@@ -1140,7 +1140,7 @@ function TallerSubUsuarios({ tallerId, usuarios, onCrear, onEliminar, onActualiz
 
       {/* Cuenta principal */}
       <div className="flex items-center gap-2 py-1.5 px-2 rounded-[8px] mb-1" style={{ background: 'var(--pp-card)' }}>
-        <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #c0c0c0, #808080)', color: '#fff' }}>P</div>
+        <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #f97316, #ea580c)', color: '#fff' }}>P</div>
         <span className="text-[12px] font-semibold flex-1" style={{ color: 'var(--pp-text)' }}>Cuenta principal</span>
         <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-[6px]" style={{ background: 'var(--pp-active-bg)', color: 'var(--pp-text8)' }}>Admin taller</span>
       </div>
@@ -3029,7 +3029,7 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
             <div className="flex items-start justify-between gap-3 mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-[10px] flex items-center justify-center text-[14px] font-extrabold flex-shrink-0"
-                  style={{ background: isSuperadmin(u) ? 'linear-gradient(160deg, #c0c0c0, #808080)' : 'var(--pp-surface)', color: '#fff', ...(isSuperadmin(u) ? {} : { color: 'var(--pp-text2)' }) }}>
+                  style={{ background: isSuperadmin(u) ? 'linear-gradient(160deg, #f97316, #ea580c)' : 'var(--pp-surface)', color: '#fff', ...(isSuperadmin(u) ? {} : { color: 'var(--pp-text2)' }) }}>
                   {(u.nombre || u.email || 'A')[0].toUpperCase()}
                 </div>
                 <div className="min-w-0">
@@ -4438,7 +4438,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
         {/* Sidebar */}
         <aside className="w-[230px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: 'var(--pp-nav)' }}>
           <div className="px-5 py-[22px] flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #c0c0c0, #808080)', boxShadow: '0 6px 16px -6px rgba(160,160,160,0.4)' }}>
+            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #f97316, #ea580c)', boxShadow: '0 6px 16px -6px rgba(249,115,22,0.4)' }}>
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
             </div>
             <div className="min-w-0">
@@ -4522,7 +4522,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
       <div style={{ minHeight: '100vh', background: 'var(--pp-bg)' }}>
         <div className="safe-top" style={{ background: 'var(--pp-nav)' }}>
           <div className="px-5 py-[18px] pb-4 flex items-center gap-2.5">
-            <div className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #c0c0c0, #808080)', boxShadow: '0 6px 16px -6px rgba(160,160,160,0.4)' }}>
+            <div className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #f97316, #ea580c)', boxShadow: '0 6px 16px -6px rgba(249,115,22,0.4)' }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
             </div>
             <div className="flex-1 min-w-0">
@@ -4547,7 +4547,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
               const active = activeTab === id;
               if (center) return (
                 <button key={id} onClick={() => goTab(id)} className="flex flex-col items-center gap-1 flex-1">
-                  <div className="w-[46px] h-[46px] -mt-4 rounded-[15px] flex items-center justify-center" style={{ background: 'linear-gradient(160deg, #c0c0c0, #808080)', boxShadow: '0 10px 20px -8px rgba(160,160,160,0.4)' }}>
+                  <div className="w-[46px] h-[46px] -mt-4 rounded-[15px] flex items-center justify-center" style={{ background: 'linear-gradient(160deg, #f97316, #ea580c)', boxShadow: '0 10px 20px -8px rgba(249,115,22,0.4)' }}>
                     <Plus className="w-6 h-6 text-white" strokeWidth={2.4} />
                   </div>
                   <span className="text-[10px] font-semibold" style={{ color: active ? 'var(--pp-text6)' : 'var(--pp-text3)' }}>{label}</span>
@@ -4594,7 +4594,7 @@ function NotifToast({ toast, onClose }) {
     >
       <div style={{
         width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-        background: 'linear-gradient(160deg, #c0c0c0, #808080)',
+        background: 'linear-gradient(160deg, #f97316, #ea580c)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <Bell className="w-5 h-5 text-white" />
@@ -4663,7 +4663,7 @@ function AppContent() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--pp-bg)' }}>
         <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl inline-flex items-center justify-center mb-4 animate-pulse" style={{ background: 'linear-gradient(160deg, #c0c0c0, #808080)' }}>
+          <div className="w-16 h-16 rounded-2xl inline-flex items-center justify-center mb-4 animate-pulse" style={{ background: 'linear-gradient(160deg, #f97316, #ea580c)' }}>
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
           </div>
           <p className="text-sm" style={{ color: 'var(--pp-text4)' }}>Cargando Parts Pilot…</p>
