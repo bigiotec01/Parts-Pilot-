@@ -4577,7 +4577,48 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
 /* ------------------------------------------------------------------ */
 
 import { useAuth } from './useAuth';
-import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura, actualizarFactura, eliminarFactura, archivarFactura, useAdminEquipo, crearAdminUsuario, actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario, eliminarTallerUsuario, actualizarTallerUsuario } from './firestore';
+import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura, actualizarFactura, eliminarFactura, archivarFactura, useAdminEquipo, crearAdminUsuario, actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario, eliminarTallerUsuario, actualizarTallerUsuario, guardarFCMToken, eliminarFCMToken } from './firestore';
+
+/* ── Toast de notificación push en foreground ── */
+function NotifToast({ toast, onClose }) {
+  return (
+    <div
+      style={{
+        position: 'fixed', top: 16, right: 16, zIndex: 9999,
+        maxWidth: 340, width: 'calc(100vw - 32px)',
+        background: 'var(--pp-card)', border: '1px solid var(--pp-border)',
+        borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.22)',
+        display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 16px',
+        animation: 'pp-slide-in 0.25s ease',
+      }}
+    >
+      <div style={{
+        width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+        background: 'linear-gradient(160deg, #c0c0c0, #808080)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <Bell className="w-5 h-5 text-white" />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--pp-text1)', marginBottom: 2 }}>
+          {toast.title}
+        </p>
+        {toast.body && (
+          <p style={{ fontSize: 12, color: 'var(--pp-text3)', lineHeight: 1.4 }}>{toast.body}</p>
+        )}
+      </div>
+      <button onClick={onClose} style={{ color: 'var(--pp-text4)', flexShrink: 0, paddingTop: 2 }}>
+        <X className="w-4 h-4" />
+      </button>
+      <style>{`
+        @keyframes pp-slide-in {
+          from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 function AppContent() {
   const { user, perfil, cargando, error, login, logout, setError } = useAuth();
@@ -4586,6 +4627,37 @@ function AppContent() {
   const facturas       = useFacturas(user);
   const equipo         = useAdminEquipo(user);
   const tallerUsuarios = useTallerUsuarios(user);
+
+  const [notifToast, setNotifToast] = useState(null);
+  const notifTimerRef = useRef(null);
+
+  useEffect(() => {
+    if (!user) return;
+    let unsub;
+    (async () => {
+      try {
+        const { requestNotificationPermission, getFCMToken, listenForeground } = await import('./notifications');
+        const granted = await requestNotificationPermission();
+        if (!granted) return;
+        const token = await getFCMToken();
+        if (token) await guardarFCMToken(user.uid, token, user.role, user.tallerId || null);
+        unsub = listenForeground((payload) => {
+          setNotifToast({
+            title: payload.notification?.title || 'Parts Pilot',
+            body:  payload.notification?.body  || '',
+          });
+          clearTimeout(notifTimerRef.current);
+          notifTimerRef.current = setTimeout(() => setNotifToast(null), 6000);
+        });
+      } catch (err) {
+        console.error('[Notifications] init:', err);
+      }
+    })();
+    return () => {
+      unsub?.();
+      clearTimeout(notifTimerRef.current);
+    };
+  }, [user?.uid]);
 
   if (cargando) {
     return (
@@ -4611,36 +4683,39 @@ function AppContent() {
 
   if (user.role === 'admin') {
     return (
-      <AdminApp
-        pedidos={pedidos}
-        talleres={talleres}
-        facturas={facturas}
-        equipo={equipo}
-        tallerUsuarios={tallerUsuarios}
-        perfil={perfil}
-        currentUid={user.uid}
-        onLogout={logout}
-        onChangeStatus={(id, estado, fechaEntrega) => cambiarEstatus(id, estado, fechaEntrega)}
-        onSendEstimate={(id, data) => enviarEstimado(id, data)}
-        onCreateOrder={(data) => crearPedido({ ...data, tipo: 'pedido' })}
-        onCreateCotizacion={(data) => crearCotizacion(data)}
-        onSendMessage={(id, texto, from, attachment) => enviarMensaje(id, texto, from, attachment)}
-        onCreateTaller={(data) => crearTaller(data)}
-        onDeleteTaller={(uid) => eliminarTaller(uid)}
-        onDeleteOrder={async (id) => { await eliminarPedido(id); }}
-        onUpdateTaller={(uid, data) => actualizarTaller(uid, data)}
-        onUpdateNotes={(id, notas) => actualizarNotasInternas(id, notas)}
-        onUpdateReferencias={(id, refs) => actualizarReferencias(id, refs)}
-        onAgregarFactura={(data) => agregarFactura(data)}
-        onActualizarFactura={(id, data) => actualizarFactura(id, data)}
-        onEliminarFactura={(id) => eliminarFactura(id)}
-        onCrearAdmin={(data) => crearAdminUsuario(data)}
-        onActualizarAdmin={(uid, data) => actualizarPermisosAdmin(uid, data)}
-        onEliminarAdmin={(uid) => eliminarAdminUsuario(uid)}
-        onCrearSubUsuario={(tallerId, data) => crearTallerUsuario(tallerId, data)}
-        onEliminarSubUsuario={(uid) => eliminarTallerUsuario(uid)}
-        onActualizarSubUsuario={(uid, data) => actualizarTallerUsuario(uid, data)}
-      />
+      <>
+        {notifToast && <NotifToast toast={notifToast} onClose={() => setNotifToast(null)} />}
+        <AdminApp
+          pedidos={pedidos}
+          talleres={talleres}
+          facturas={facturas}
+          equipo={equipo}
+          tallerUsuarios={tallerUsuarios}
+          perfil={perfil}
+          currentUid={user.uid}
+          onLogout={logout}
+          onChangeStatus={(id, estado, fechaEntrega) => cambiarEstatus(id, estado, fechaEntrega)}
+          onSendEstimate={(id, data) => enviarEstimado(id, data)}
+          onCreateOrder={(data) => crearPedido({ ...data, tipo: 'pedido' })}
+          onCreateCotizacion={(data) => crearCotizacion(data)}
+          onSendMessage={(id, texto, from, attachment) => enviarMensaje(id, texto, from, attachment)}
+          onCreateTaller={(data) => crearTaller(data)}
+          onDeleteTaller={(uid) => eliminarTaller(uid)}
+          onDeleteOrder={async (id) => { await eliminarPedido(id); }}
+          onUpdateTaller={(uid, data) => actualizarTaller(uid, data)}
+          onUpdateNotes={(id, notas) => actualizarNotasInternas(id, notas)}
+          onUpdateReferencias={(id, refs) => actualizarReferencias(id, refs)}
+          onAgregarFactura={(data) => agregarFactura(data)}
+          onActualizarFactura={(id, data) => actualizarFactura(id, data)}
+          onEliminarFactura={(id) => eliminarFactura(id)}
+          onCrearAdmin={(data) => crearAdminUsuario(data)}
+          onActualizarAdmin={(uid, data) => actualizarPermisosAdmin(uid, data)}
+          onEliminarAdmin={(uid) => eliminarAdminUsuario(uid)}
+          onCrearSubUsuario={(tallerId, data) => crearTallerUsuario(tallerId, data)}
+          onEliminarSubUsuario={(uid) => eliminarTallerUsuario(uid)}
+          onActualizarSubUsuario={(uid, data) => actualizarTallerUsuario(uid, data)}
+        />
+      </>
     );
   }
 
@@ -4649,18 +4724,21 @@ function AppContent() {
   const taller = mainTaller || { nombre: perfil?.nombre, contacto: perfil?.contacto, uid: user.tallerId || user.uid };
 
   return (
-    <ClientApp
-      taller={{ ...taller, id: user.uid, tallerId: user.tallerId || user.uid, isSubUser,
-        contacto: isSubUser ? (perfil?.contacto || taller.contacto) : taller.contacto }}
-      pedidos={pedidos}
-      facturas={facturas}
-      onLogout={logout}
-      onCreateOrder={(data) => crearPedido({ ...data, tallerId: user.tallerId || user.uid, tipo: 'solicitud' })}
-      onRespondEstimate={(id, respuesta) => responderEstimado(id, respuesta)}
-      onSendMessage={(id, texto, from, attachment) => enviarMensaje(id, texto, from, attachment)}
-      onUpdateTaller={(uid, data) => actualizarTaller(uid, data)}
-      onUpdateSubUsuario={(uid, data) => actualizarTallerUsuario(uid, data)}
-    />
+    <>
+      {notifToast && <NotifToast toast={notifToast} onClose={() => setNotifToast(null)} />}
+      <ClientApp
+        taller={{ ...taller, id: user.uid, tallerId: user.tallerId || user.uid, isSubUser,
+          contacto: isSubUser ? (perfil?.contacto || taller.contacto) : taller.contacto }}
+        pedidos={pedidos}
+        facturas={facturas}
+        onLogout={logout}
+        onCreateOrder={(data) => crearPedido({ ...data, tallerId: user.tallerId || user.uid, tipo: 'solicitud' })}
+        onRespondEstimate={(id, respuesta) => responderEstimado(id, respuesta)}
+        onSendMessage={(id, texto, from, attachment) => enviarMensaje(id, texto, from, attachment)}
+        onUpdateTaller={(uid, data) => actualizarTaller(uid, data)}
+        onUpdateSubUsuario={(uid, data) => actualizarTallerUsuario(uid, data)}
+      />
+    </>
   );
 }
 

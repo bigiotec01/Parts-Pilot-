@@ -333,6 +333,22 @@ export async function archivarFactura(id, archivada = true) {
   await updateDoc(doc(db, 'facturas', id), { archivada });
 }
 
+// ── FCM Tokens ─────────────────────────────────────────────────────
+
+export async function guardarFCMToken(uid, token, role, tallerId = null) {
+  await setDoc(doc(db, 'fcmTokens', uid), {
+    token,
+    uid,
+    role,
+    tallerId,
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+}
+
+export async function eliminarFCMToken(uid) {
+  try { await deleteDoc(doc(db, 'fcmTokens', uid)); } catch {}
+}
+
 // ── Crear taller (admin) ────────────────────────────────────────────
 export async function crearTaller({ nombre, contacto, telefono, email, usuario, password }) {
   let uid;
