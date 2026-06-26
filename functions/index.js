@@ -45,7 +45,12 @@ async function enviar(tokens, notification, data = {}) {
       data: stringData,
       android: { priority: 'high' },
       webpush: {
-        notification: { icon: '/pwa-192x192.png', badge: '/pwa-64x64.png' },
+        notification: {
+          icon:  '/pwa-192x192.png',
+          badge: '/pwa-64x64.png',
+          tag:   data.pedidoId || 'pp-notif',
+          renotify: false,
+        },
         fcmOptions: { link: '/' },
       },
     });
