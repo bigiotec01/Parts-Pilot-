@@ -64,9 +64,10 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Tokens FCM: cada usuario solo puede leer/escribir su propio token
-    match /fcmTokens/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+    // Tokens FCM: clave = token sanitizado; el uid en el doc debe coincidir
+    match /fcmTokens/{tokenId} {
+      allow create, update: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow read, delete:   if request.auth != null && resource.data.uid == request.auth.uid;
     }
   }
 }

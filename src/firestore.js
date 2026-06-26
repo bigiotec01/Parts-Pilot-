@@ -334,19 +334,26 @@ export async function archivarFactura(id, archivada = true) {
 }
 
 // ── FCM Tokens ─────────────────────────────────────────────────────
+// El ID del documento es el token mismo (sanitizado) para que un
+// mismo dispositivo nunca tenga 2 entradas aunque cambien de cuenta.
 
 export async function guardarFCMToken(uid, token, role, tallerId = null) {
-  await setDoc(doc(db, 'fcmTokens', uid), {
+  const tokenId = token.replace(/\//g, '_');
+  await setDoc(doc(db, 'fcmTokens', tokenId), {
     token,
     uid,
     role,
     tallerId,
     updatedAt: serverTimestamp(),
-  }, { merge: true });
+  });
 }
 
 export async function eliminarFCMToken(uid) {
-  try { await deleteDoc(doc(db, 'fcmTokens', uid)); } catch {}
+  try {
+    const { getDocs, query: q, where: w } = await import('firebase/firestore');
+    const snap = await getDocs(q(collection(db, 'fcmTokens'), w('uid', '==', uid)));
+    await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+  } catch {}
 }
 
 // ── Crear taller (admin) ────────────────────────────────────────────
