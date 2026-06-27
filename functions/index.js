@@ -17,59 +17,57 @@ const STATUS_LABELS = {
   entregado:        'Orden Completa',
 };
 
-// Obtiene tokens FCM de todos los admins (sin duplicados)
-async function tokensAdmin() {
+const TOPIC_ADMINS = 'pp_admins_v1';
+const topicTaller  = (id) => `pp_taller_${id.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+
+// Suscribe todos los tokens de admins al topic y retorna la cantidad
+async function suscribirAdmins() {
   const snap = await db.collection('fcmTokens').where('role', '==', 'admin').get();
-  const tokens = snap.docs.map(d => d.data().token).filter(Boolean);
-  return [...new Set(tokens)];
+  const tokens = [...new Set(snap.docs.map(d => d.data().token).filter(Boolean))];
+  if (tokens.length) await admin.messaging().subscribeToTopic(tokens, TOPIC_ADMINS);
+  console.log(`[Topic] ${tokens.length} tokens admin → ${TOPIC_ADMINS}`);
+  return tokens.length;
 }
 
-// Obtiene tokens FCM del taller (cuenta principal + sub-usuarios, sin duplicados)
-async function tokensTaller(tallerId) {
-  const snap = await db.collection('fcmTokens').where('tallerId', '==', tallerId).get();
-  const tokens = snap.docs.map(d => d.data().token).filter(Boolean);
-  return [...new Set(tokens)];
+// Suscribe todos los tokens del taller al topic y retorna el topic
+async function suscribirTaller(tallerId) {
+  const topic = topicTaller(tallerId);
+  const snap  = await db.collection('fcmTokens').where('tallerId', '==', tallerId).get();
+  const tokens = [...new Set(snap.docs.map(d => d.data().token).filter(Boolean))];
+  if (tokens.length) await admin.messaging().subscribeToTopic(tokens, topic);
+  console.log(`[Topic] ${tokens.length} tokens taller → ${topic}`);
+  return topic;
 }
 
-// Envía notificación push a una lista de tokens
-async function enviar(tokens, notification, data = {}) {
-  if (!tokens.length) return;
+// Envía a un topic — FCM garantiza 1 entrega por dispositivo aunque tenga varios tokens
+async function enviar(topic, notification, data = {}) {
   const stringData = Object.fromEntries(
     Object.entries(data).map(([k, v]) => [k, String(v)])
   );
-  for (let i = 0; i < tokens.length; i += 500) {
-    const chunk = tokens.slice(i, i + 500);
-    const res = await admin.messaging().sendEachForMulticast({
-      tokens: chunk,
-      notification,
-      data: stringData,
-      android: { priority: 'high' },
-      webpush: {
-        notification: {
-          icon:  '/pwa-192x192.png',
-          badge: '/pwa-64x64.png',
-          tag:   data.pedidoId || 'pp-notif',
-          renotify: false,
-        },
-        fcmOptions: { link: '/' },
+  const msgId = await admin.messaging().send({
+    topic,
+    notification,
+    data: stringData,
+    android: { priority: 'high' },
+    webpush: {
+      notification: {
+        icon:     '/pwa-192x192.png',
+        badge:    '/pwa-64x64.png',
+        tag:      data.pedidoId || 'pp-notif',
+        renotify: false,
       },
-    });
-    res.responses.forEach((r, idx) => {
-      if (r.success) {
-        console.log(`[FCM] token[${idx}] enviado OK, messageId=${r.messageId}`);
-      } else {
-        console.error(`[FCM] token[${idx}] error: ${r.error?.code} — ${r.error?.message}`);
-      }
-    });
-  }
+      fcmOptions: { link: '/' },
+    },
+  });
+  console.log(`[FCM] topic=${topic} OK, messageId=${msgId}`);
 }
 
 // ── Nuevo pedido → notificar admins ────────────────────────────────
 exports.onNuevoPedido = onDocumentCreated('pedidos/{pedidoId}', async (event) => {
   const pedido = event.data.data();
-  const tokens = await tokensAdmin();
+  await suscribirAdmins();
   await enviar(
-    tokens,
+    TOPIC_ADMINS,
     {
       title: `Nuevo pedido — ${pedido.tallerNombre || 'Taller'}`,
       body:  `${pedido.folio} · ${pedido.pieza || pedido.vehiculo || 'Solicitud nueva'}`,
@@ -78,29 +76,25 @@ exports.onNuevoPedido = onDocumentCreated('pedidos/{pedidoId}', async (event) =>
   );
 });
 
-// ── Cambios en pedido → notificar según el evento ─────────────────
+// ── Cambios en pedido ───────────────────────────────────────────────
 exports.onPedidoUpdate = onDocumentUpdated('pedidos/{pedidoId}', async (event) => {
-  const before    = event.data.before.data();
-  const after     = event.data.after.data();
-  const pedidoId  = event.params.pedidoId;
-  const tallerId  = after.tallerId;
-  const ref       = after.numeroPO || after.folio; // PO si existe, folio como fallback
+  const before   = event.data.before.data();
+  const after    = event.data.after.data();
+  const pedidoId = event.params.pedidoId;
+  const tallerId = after.tallerId;
+  const ref      = after.numeroPO || after.folio;
 
   console.log(`[onPedidoUpdate] pedidoId=${pedidoId} tallerId=${tallerId}`);
-  console.log(`[onPedidoUpdate] estado: ${before.estado} → ${after.estado}`);
   const msgsBefore = before.mensajes || [];
   const msgsAfter  = after.mensajes  || [];
-  console.log(`[onPedidoUpdate] mensajes: ${msgsBefore.length} → ${msgsAfter.length}`);
+  console.log(`[onPedidoUpdate] estado: ${before.estado}→${after.estado} msgs: ${msgsBefore.length}→${msgsAfter.length}`);
 
   // 1. Cambio de estado → taller
   if (before.estado !== after.estado) {
-    const tokens = await tokensTaller(tallerId);
+    const topic = await suscribirTaller(tallerId);
     await enviar(
-      tokens,
-      {
-        title: `PO ${ref} actualizado`,
-        body:  STATUS_LABELS[after.estado] || after.estado,
-      },
+      topic,
+      { title: `PO ${ref} actualizado`, body: STATUS_LABELS[after.estado] || after.estado },
       { pedidoId, tipo: 'cambio_estado', estado: after.estado }
     );
   }
@@ -109,39 +103,31 @@ exports.onPedidoUpdate = onDocumentUpdated('pedidos/{pedidoId}', async (event) =
   if (msgsAfter.length > msgsBefore.length) {
     const nuevo = msgsAfter[msgsAfter.length - 1];
     const texto = nuevo.texto || (nuevo.attachment ? '📎 Archivo adjunto' : 'Mensaje nuevo');
-    console.log(`[onPedidoUpdate] nuevo mensaje from="${nuevo.from}" texto="${texto}"`);
+    console.log(`[onPedidoUpdate] mensaje from="${nuevo.from}" texto="${texto}"`);
 
     if (nuevo.from === 'admin') {
-      const tokens = await tokensTaller(tallerId);
-      console.log(`[onPedidoUpdate] enviando a taller, tokens=${tokens.length}`);
+      const topic = await suscribirTaller(tallerId);
       await enviar(
-        tokens,
+        topic,
         { title: `Mensaje — PO ${ref}`, body: texto },
         { pedidoId, tipo: 'mensaje', remitente: 'admin' }
       );
     } else {
-      const tokens = await tokensAdmin();
-      console.log(`[onPedidoUpdate] enviando a admins, tokens=${tokens.length}`);
+      await suscribirAdmins();
       await enviar(
-        tokens,
-        {
-          title: `${after.tallerNombre || 'Taller'} — PO ${ref}`,
-          body:  texto,
-        },
+        TOPIC_ADMINS,
+        { title: `${after.tallerNombre || 'Taller'} — PO ${ref}`, body: texto },
         { pedidoId, tipo: 'mensaje', remitente: 'taller' }
       );
     }
   }
 
-  // 3. Estimado nuevo enviado por admin → taller
+  // 3. Estimado nuevo → taller
   if (!before.estimado && after.estimado) {
-    const tokens = await tokensTaller(tallerId);
+    const topic = await suscribirTaller(tallerId);
     await enviar(
-      tokens,
-      {
-        title: `Cotización disponible — PO ${ref}`,
-        body:  'Tienes una cotización lista para revisar.',
-      },
+      topic,
+      { title: `Cotización disponible — PO ${ref}`, body: 'Tienes una cotización lista para revisar.' },
       { pedidoId, tipo: 'estimado_nuevo' }
     );
   }
@@ -150,14 +136,11 @@ exports.onPedidoUpdate = onDocumentUpdated('pedidos/{pedidoId}', async (event) =
   const rBefore = before.estimado?.respuesta;
   const rAfter  = after.estimado?.respuesta;
   if (rBefore === 'pendiente' && rAfter && rAfter !== 'pendiente') {
-    const tokens = await tokensAdmin();
-    const verbo  = rAfter === 'aceptado' ? 'aceptó' : 'rechazó';
+    await suscribirAdmins();
+    const verbo = rAfter === 'aceptado' ? 'aceptó' : 'rechazó';
     await enviar(
-      tokens,
-      {
-        title: `${after.tallerNombre || 'Taller'} ${verbo} la cotización`,
-        body:  `PO ${ref}`,
-      },
+      TOPIC_ADMINS,
+      { title: `${after.tallerNombre || 'Taller'} ${verbo} la cotización`, body: `PO ${ref}` },
       { pedidoId, tipo: 'respuesta_estimado', respuesta: rAfter }
     );
   }
