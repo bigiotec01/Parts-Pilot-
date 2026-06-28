@@ -20,10 +20,22 @@ const STATUS_LABELS = {
 const TOPIC_ADMINS = 'pp_admins_v1';
 const topicTaller  = (id) => `pp_taller_${id.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
 
+// Devuelve 1 token por uid (el más reciente según updatedAt) — evita duplicados en mismo dispositivo
+function tokensPorUid(snap) {
+  const byUid = {};
+  snap.docs.forEach(d => {
+    const data = d.data();
+    const uid = data.uid || d.id;
+    const ts = data.updatedAt?.toMillis?.() ?? 0;
+    if (!byUid[uid] || ts > byUid[uid].ts) byUid[uid] = { token: data.token, ts };
+  });
+  return Object.values(byUid).map(e => e.token).filter(Boolean);
+}
+
 // Suscribe todos los tokens de admins al topic y retorna la cantidad
 async function suscribirAdmins() {
   const snap = await db.collection('fcmTokens').where('role', '==', 'admin').get();
-  const tokens = [...new Set(snap.docs.map(d => d.data().token).filter(Boolean))];
+  const tokens = tokensPorUid(snap);
   if (tokens.length) await admin.messaging().subscribeToTopic(tokens, TOPIC_ADMINS);
   console.log(`[Topic] ${tokens.length} tokens admin → ${TOPIC_ADMINS}`);
   return tokens.length;
@@ -33,46 +45,71 @@ async function suscribirAdmins() {
 async function suscribirTaller(tallerId) {
   const topic = topicTaller(tallerId);
   const snap  = await db.collection('fcmTokens').where('tallerId', '==', tallerId).get();
-  const tokens = [...new Set(snap.docs.map(d => d.data().token).filter(Boolean))];
+  const tokens = tokensPorUid(snap);
   if (tokens.length) await admin.messaging().subscribeToTopic(tokens, topic);
   console.log(`[Topic] ${tokens.length} tokens taller → ${topic}`);
   return topic;
 }
 
-// Envía a un topic — FCM garantiza 1 entrega por dispositivo aunque tenga varios tokens
+// Envía a un topic como mensaje data-only (sin campo notification).
+// Esto evita que iOS muestre la notificación dos veces:
+// una desde el payload APNs y otra desde el handler onBackgroundMessage del SW.
 async function enviar(topic, notification, data = {}) {
   const stringData = Object.fromEntries(
-    Object.entries(data).map(([k, v]) => [k, String(v)])
+    Object.entries({ ...data, title: notification.title || '', body: notification.body || '' })
+      .map(([k, v]) => [k, String(v)])
   );
   const msgId = await admin.messaging().send({
     topic,
-    notification,
     data: stringData,
-    android: { priority: 'high' },
-    webpush: {
+    android: {
+      priority: 'high',
       notification: {
-        icon:     '/pwa-192x192.png',
-        badge:    '/pwa-64x64.png',
-        tag:      data.pedidoId || 'pp-notif',
-        renotify: false,
+        // Solo para Android nativo: muestra la notificación en el system tray
+        title: notification.title,
+        body:  notification.body,
+        icon:  'ic_notification',
       },
+    },
+    apns: {
+      payload: { aps: { 'content-available': 1 } },
+    },
+    webpush: {
       fcmOptions: { link: '/' },
     },
   });
   console.log(`[FCM] topic=${topic} OK, messageId=${msgId}`);
 }
 
+// Garantiza que una notificación se envíe exactamente una vez aunque la función se ejecute doble.
+// key debe ser única por evento lógico (ej: "{pedidoId}_msg_5").
+async function enviarOnce(key, topic, notification, data = {}) {
+  const ref = db.collection('notifSent').doc(key);
+  try {
+    await ref.create({ ts: admin.firestore.FieldValue.serverTimestamp() });
+  } catch (e) {
+    if (e.code === 6 || e.code === 'already-exists') {
+      console.log(`[notifSent] duplicado ignorado key=${key}`);
+      return;
+    }
+    throw e;
+  }
+  await enviar(topic, notification, data);
+}
+
 // ── Nuevo pedido → notificar admins ────────────────────────────────
 exports.onNuevoPedido = onDocumentCreated('pedidos/{pedidoId}', async (event) => {
-  const pedido = event.data.data();
+  const pedido    = event.data.data();
+  const pedidoId  = event.params.pedidoId;
   await suscribirAdmins();
-  await enviar(
+  await enviarOnce(
+    `${pedidoId}_nuevo`,
     TOPIC_ADMINS,
     {
       title: `Nuevo pedido — ${pedido.tallerNombre || 'Taller'}`,
       body:  `${pedido.folio} · ${pedido.pieza || pedido.vehiculo || 'Solicitud nueva'}`,
     },
-    { pedidoId: event.params.pedidoId, tipo: 'nuevo_pedido' }
+    { pedidoId, tipo: 'nuevo_pedido' }
   );
 });
 
@@ -92,7 +129,8 @@ exports.onPedidoUpdate = onDocumentUpdated('pedidos/{pedidoId}', async (event) =
   // 1. Cambio de estado → taller
   if (before.estado !== after.estado) {
     const topic = await suscribirTaller(tallerId);
-    await enviar(
+    await enviarOnce(
+      `${pedidoId}_estado_${after.estado}`,
       topic,
       { title: `PO ${ref} actualizado`, body: STATUS_LABELS[after.estado] || after.estado },
       { pedidoId, tipo: 'cambio_estado', estado: after.estado }
@@ -107,14 +145,16 @@ exports.onPedidoUpdate = onDocumentUpdated('pedidos/{pedidoId}', async (event) =
 
     if (nuevo.from === 'admin') {
       const topic = await suscribirTaller(tallerId);
-      await enviar(
+      await enviarOnce(
+        `${pedidoId}_msg_${msgsAfter.length}`,
         topic,
         { title: `Mensaje — PO ${ref}`, body: texto },
         { pedidoId, tipo: 'mensaje', remitente: 'admin' }
       );
     } else {
       await suscribirAdmins();
-      await enviar(
+      await enviarOnce(
+        `${pedidoId}_msg_${msgsAfter.length}`,
         TOPIC_ADMINS,
         { title: `${after.tallerNombre || 'Taller'} — PO ${ref}`, body: texto },
         { pedidoId, tipo: 'mensaje', remitente: 'taller' }
@@ -125,7 +165,8 @@ exports.onPedidoUpdate = onDocumentUpdated('pedidos/{pedidoId}', async (event) =
   // 3. Estimado nuevo → taller
   if (!before.estimado && after.estimado) {
     const topic = await suscribirTaller(tallerId);
-    await enviar(
+    await enviarOnce(
+      `${pedidoId}_estimado_nuevo`,
       topic,
       { title: `Cotización disponible — PO ${ref}`, body: 'Tienes una cotización lista para revisar.' },
       { pedidoId, tipo: 'estimado_nuevo' }
@@ -138,7 +179,8 @@ exports.onPedidoUpdate = onDocumentUpdated('pedidos/{pedidoId}', async (event) =
   if (rBefore === 'pendiente' && rAfter && rAfter !== 'pendiente') {
     await suscribirAdmins();
     const verbo = rAfter === 'aceptado' ? 'aceptó' : 'rechazó';
-    await enviar(
+    await enviarOnce(
+      `${pedidoId}_respuesta_${rAfter}`,
       TOPIC_ADMINS,
       { title: `${after.tallerNombre || 'Taller'} ${verbo} la cotización`, body: `PO ${ref}` },
       { pedidoId, tipo: 'respuesta_estimado', respuesta: rAfter }

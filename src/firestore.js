@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { db, storage } from './firebase';
 import {
   collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot,
-  query, where, orderBy, serverTimestamp, arrayUnion, runTransaction, Timestamp
+  query, where, orderBy, serverTimestamp, arrayUnion, runTransaction, Timestamp,
+  getDocs, writeBatch,
 } from 'firebase/firestore';
 import {
   ref, uploadBytes, getDownloadURL
@@ -339,19 +340,17 @@ export async function archivarFactura(id, archivada = true) {
 
 export async function guardarFCMToken(uid, token, role, tallerId = null) {
   const tokenId = token.replace(/\//g, '_');
-  await setDoc(doc(db, 'fcmTokens', tokenId), {
-    token,
-    uid,
-    role,
-    tallerId,
-    updatedAt: serverTimestamp(),
-  });
+  // Borrar tokens viejos del mismo uid para que el dispositivo no quede con múltiples tokens activos
+  const viejos = await getDocs(query(collection(db, 'fcmTokens'), where('uid', '==', uid)));
+  const batch = writeBatch(db);
+  viejos.docs.forEach(d => { if (d.id !== tokenId) batch.delete(d.ref); });
+  batch.set(doc(db, 'fcmTokens', tokenId), { token, uid, role, tallerId, updatedAt: serverTimestamp() });
+  await batch.commit();
 }
 
 export async function eliminarFCMToken(uid) {
   try {
-    const { getDocs, query: q, where: w } = await import('firebase/firestore');
-    const snap = await getDocs(q(collection(db, 'fcmTokens'), w('uid', '==', uid)));
+    const snap = await getDocs(query(collection(db, 'fcmTokens'), where('uid', '==', uid)));
     await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
   } catch {}
 }

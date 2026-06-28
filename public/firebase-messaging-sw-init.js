@@ -15,10 +15,12 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Mensajes recibidos cuando la app está cerrada o en background
+// Mensajes recibidos cuando la app está cerrada o en background.
+// Usamos payload.data porque los mensajes se envían como data-only
+// para evitar que iOS muestre la notificación dos veces (APNs + SW).
 messaging.onBackgroundMessage((payload) => {
-  const title = payload.notification?.title || 'Parts Pilot';
-  const body  = payload.notification?.body  || '';
+  const title = payload.data?.title || payload.notification?.title || 'Parts Pilot';
+  const body  = payload.data?.body  || payload.notification?.body  || '';
 
   return self.registration.showNotification(title, {
     body,
