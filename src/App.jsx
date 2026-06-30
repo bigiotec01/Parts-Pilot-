@@ -3914,7 +3914,7 @@ function EstimateActions({ order, onRespond }) {
   );
 }
 
-function ClientEstimados({ solicitudes, cotizaciones = [], onRespond }) {
+function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onSelect }) {
   const total = solicitudes.length + cotizaciones.length;
   if (total === 0) return (
     <div className="text-center py-14" style={{ color: 'var(--pp-text3)' }}>
@@ -3934,35 +3934,45 @@ function ClientEstimados({ solicitudes, cotizaciones = [], onRespond }) {
           </p>
           <div className="grid sm:grid-cols-2 gap-3">
             {cotizaciones.map(p => (
-              <div key={p.id} className="rounded-xl p-4 space-y-3 border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-accent)', boxShadow: '0 0 0 1px rgba(200,200,200,0.07)' }}>
-                <div>
-                  <h3 className="font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</h3>
-                  {(p.numeroPO || p.numeroOrden) && (
-                    <div className="flex gap-1.5 mt-1 flex-wrap">
-                      {p.numeroPO && <span className="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md font-medium">PO# {p.numeroPO}</span>}
-                      {p.numeroOrden && <span className="text-[11px] bg-violet-50 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-md font-medium">Orden {p.numeroOrden}</span>}
-                    </div>
-                  )}
-                  {p.referencia && !p.numeroPO && !p.numeroOrden && (
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--pp-text3)' }}>{p.referencia}</p>
+              <div key={p.id} onClick={() => onSelect?.(p.id)} className="rounded-xl p-4 space-y-3 border cursor-pointer hover:border-[#a0a0a0] transition-colors" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-accent)', boxShadow: '0 0 0 1px rgba(200,200,200,0.07)' }}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <h3 className="font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</h3>
+                    {(p.numeroPO || p.numeroOrden) && (
+                      <div className="flex gap-1.5 mt-1 flex-wrap">
+                        {p.numeroPO && <span className="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md font-medium">PO# {p.numeroPO}</span>}
+                        {p.numeroOrden && <span className="text-[11px] bg-violet-50 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-md font-medium">Orden {p.numeroOrden}</span>}
+                      </div>
+                    )}
+                    {p.referencia && !p.numeroPO && !p.numeroOrden && (
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--pp-text3)' }}>{p.referencia}</p>
+                    )}
+                  </div>
+                  {(p.mensajes?.length > 0) && (
+                    <span className="flex items-center gap-1 text-[11px] flex-shrink-0" style={{ color: 'var(--pp-text3)' }}>
+                      <MessageSquare className="w-3.5 h-3.5" />{p.mensajes.length}
+                    </span>
                   )}
                 </div>
                 {p.estimado?.notas && (
                   <p className="text-sm rounded-lg p-2.5" style={{ color: 'var(--pp-text2)', background: 'var(--pp-card)' }}>{p.estimado.notas}</p>
                 )}
                 {p.estimado?.archivo && (
-                  <a href={p.estimado.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
+                  <a href={p.estimado.archivo.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
                     <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{p.estimado.archivo.name}</span>
                   </a>
                 )}
                 <div className="flex gap-2">
-                  <button onClick={() => onRespond(p.id, 'aceptado')} className="flex-1 py-[11px] rounded-[11px] text-white text-[13px] font-bold flex items-center justify-center gap-1.5 transition-colors hover:brightness-105" style={{ background: '#10b981' }}>
+                  <button onClick={e => { e.stopPropagation(); onRespond(p.id, 'aceptado'); }} className="flex-1 py-[11px] rounded-[11px] text-white text-[13px] font-bold flex items-center justify-center gap-1.5 transition-colors hover:brightness-105" style={{ background: '#10b981' }}>
                     <ThumbsUp className="w-4 h-4" /> Aceptar
                   </button>
-                  <button onClick={() => onRespond(p.id, 'rechazado')} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold border flex items-center justify-center gap-1.5 transition-colors hover:bg-[#1e1e1e]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+                  <button onClick={e => { e.stopPropagation(); onRespond(p.id, 'rechazado'); }} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold border flex items-center justify-center gap-1.5 transition-colors hover:bg-[#1e1e1e]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
                     <ThumbsDown className="w-4 h-4" /> Rechazar
                   </button>
                 </div>
+                <p className="flex items-center justify-center gap-1.5 text-[11px] font-medium pt-0.5" style={{ color: 'var(--pp-text3)' }}>
+                  <MessageSquare className="w-3.5 h-3.5" /> Toca para ver detalle y mensajes
+                </p>
               </div>
             ))}
           </div>
@@ -3980,7 +3990,7 @@ function ClientEstimados({ solicitudes, cotizaciones = [], onRespond }) {
               const t = f => f?.toDate ? f.toDate().getTime() : new Date(f + 'T00:00:00').getTime();
               return t(b.fecha) - t(a.fecha);
             }).map(p => (
-              <div key={p.id} className="rounded-xl border p-4" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+              <div key={p.id} onClick={() => onSelect?.(p.id)} className="rounded-xl border p-4 cursor-pointer hover:border-[#a0a0a0] transition-colors" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="min-w-0">
                     <h3 className="font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</h3>
@@ -3989,12 +3999,13 @@ function ClientEstimados({ solicitudes, cotizaciones = [], onRespond }) {
                 </div>
                 {p.notas && <p className="text-sm rounded-lg p-2.5 mb-2.5" style={{ color: 'var(--pp-text2)', background: 'var(--pp-card)' }}>{p.notas}</p>}
                 {p.archivo && (
-                  <a href={p.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors mb-2.5 border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
+                  <a href={p.archivo.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors mb-2.5 border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
                     <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{p.archivo.name}</span>
                   </a>
                 )}
-                <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)' }}>
-                  <Clock className="w-3.5 h-3.5" /> Esperando estimado · {formatDate(p.fecha)}
+                <div className="flex items-center justify-between gap-1.5 text-xs px-3 py-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)' }}>
+                  <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Esperando estimado · {formatDate(p.fecha)}</span>
+                  {(p.mensajes?.length > 0) && <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" />{p.mensajes.length}</span>}
                 </div>
               </div>
             ))}
@@ -4396,7 +4407,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
         </div>
       )}
       {activeTab === 'historial' && <ClientHistorial pedidos={pedidosHistorial} onSelect={handleSelect} />}
-      {activeTab === 'estimados' && <ClientEstimados solicitudes={solicitudes} cotizaciones={cotizacionesPendientes} onRespond={onRespondEstimate} />}
+      {activeTab === 'estimados' && <ClientEstimados solicitudes={solicitudes} cotizaciones={cotizacionesPendientes} onRespond={onRespondEstimate} onSelect={handleSelect} />}
       {activeTab === 'nueva' && (
         <ClientNuevaSolicitud onCreate={(data) => { onCreateOrder({ ...data, tallerId: taller.id }); goTab('estimados'); }} />
       )}
