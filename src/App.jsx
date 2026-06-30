@@ -3890,7 +3890,7 @@ function EstimateActions({ order, onRespond }) {
     return (
       <div className="flex gap-2">
         <button onClick={() => onRespond(order.id, 'aceptado')} className="flex-1 py-[11px] rounded-[11px] text-white text-[13px] font-bold flex items-center justify-center gap-1.5 transition-colors" style={{ background: '#10b981' }}>
-          <ThumbsUp className="w-4 h-4" /> Aceptar
+          <ThumbsUp className="w-4 h-4" /> Aprobar Estimado
         </button>
         <button onClick={() => onRespond(order.id, 'rechazado')} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold flex items-center justify-center gap-1.5 border transition-colors hover:bg-[#1e1e1e]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
           <ThumbsDown className="w-4 h-4" /> Rechazar
@@ -3964,15 +3964,15 @@ function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onSelect }
                 )}
                 <div className="flex gap-2">
                   <button onClick={e => { e.stopPropagation(); onRespond(p.id, 'aceptado'); }} className="flex-1 py-[11px] rounded-[11px] text-white text-[13px] font-bold flex items-center justify-center gap-1.5 transition-colors hover:brightness-105" style={{ background: '#10b981' }}>
-                    <ThumbsUp className="w-4 h-4" /> Aceptar
+                    <ThumbsUp className="w-4 h-4" /> Aprobar Estimado
                   </button>
                   <button onClick={e => { e.stopPropagation(); onRespond(p.id, 'rechazado'); }} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold border flex items-center justify-center gap-1.5 transition-colors hover:bg-[#1e1e1e]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
                     <ThumbsDown className="w-4 h-4" /> Rechazar
                   </button>
                 </div>
-                <p className="flex items-center justify-center gap-1.5 text-[11px] font-medium pt-0.5" style={{ color: 'var(--pp-text3)' }}>
-                  <MessageSquare className="w-3.5 h-3.5" /> Toca para ver detalle y mensajes
-                </p>
+                <button onClick={e => { e.stopPropagation(); onSelect?.(p.id); }} className="w-full flex items-center justify-center gap-1.5 text-[11.5px] font-semibold py-1.5 rounded-[9px] border transition-colors hover:bg-[#1e1e1e]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+                  <MessageSquare className="w-3.5 h-3.5" /> Preguntar al Vendedor
+                </button>
               </div>
             ))}
           </div>
