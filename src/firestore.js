@@ -3,7 +3,7 @@ import { db, storage } from './firebase';
 import {
   collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot,
   query, where, orderBy, serverTimestamp, arrayUnion, runTransaction, Timestamp,
-  getDocs, writeBatch,
+  getDocs, writeBatch, getDoc, limit,
 } from 'firebase/firestore';
 import {
   ref, uploadBytes, getDownloadURL
@@ -64,6 +64,22 @@ export function useTalleres(user) {
     return unsub;
   }, [user]);
   return talleres;
+}
+
+// ── Auditoría en tiempo real (solo superadmin) ───────────────────────
+export function useAuditLogs(enabled) {
+  const [logs, setLogs] = useState([]);
+  useEffect(() => {
+    if (!enabled) { setLogs([]); return; }
+    const q = query(collection(db, 'auditLogs'), orderBy('timestamp', 'desc'), limit(300));
+    const unsub = onSnapshot(
+      q,
+      (snap) => setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      (err) => console.error('useAuditLogs error:', err.code)
+    );
+    return unsub;
+  }, [enabled]);
+  return logs;
 }
 
 // ── Crear pedido ────────────────────────────────────────────────────
@@ -142,12 +158,28 @@ export async function crearCotizacion(data) {
   }
 }
 
+// ── Auditoría de acciones de admin (solo superadmin puede leerla) ────
+async function registrarAuditoria(pedidoId, accion, detalle) {
+  try {
+    await addDoc(collection(db, 'auditLogs'), {
+      adminUid: auth.currentUser?.uid || null,
+      pedidoId,
+      accion,
+      detalle,
+      timestamp: serverTimestamp(),
+    });
+  } catch (e) {
+    console.error('registrarAuditoria error:', e.code || e.message);
+  }
+}
+
 // ── Cambiar estatus ─────────────────────────────────────────────────
 export async function cambiarEstatus(pedidoId, estado, fechaEntrega) {
   const ref = doc(db, 'pedidos', pedidoId);
   const data = { estado };
   if (fechaEntrega !== undefined) data.fechaEntrega = fechaEntrega;
   await updateDoc(ref, data);
+  registrarAuditoria(pedidoId, 'estado', `Estado → ${estado}${fechaEntrega ? ` (entrega: ${fechaEntrega})` : ''}`);
 }
 
 // ── Enviar estimado ─────────────────────────────────────────────────
@@ -172,6 +204,7 @@ export async function enviarEstimado(pedidoId, { notas, archivo }) {
     estado: 'cotizando',
     tipo: 'pedido',
   });
+  registrarAuditoria(pedidoId, 'estimado', 'Estimado enviado');
 }
 
 // ── Responder estimado ──────────────────────────────────────────────
@@ -203,23 +236,32 @@ export async function enviarMensaje(pedidoId, texto, from, adjunto) {
 
 // ── Eliminar mensaje de chat (admin) ────────────────────────────────
 export async function eliminarMensaje(pedidoId, mensajesActuales, index) {
+  const borrado = (mensajesActuales || [])[index];
   const mensajes = (mensajesActuales || []).filter((_, i) => i !== index);
   await updateDoc(doc(db, 'pedidos', pedidoId), { mensajes });
+  const snippet = (borrado?.texto || (borrado?.attachment ? '[adjunto]' : '')).slice(0, 80);
+  registrarAuditoria(pedidoId, 'mensaje_eliminado', `Mensaje de ${borrado?.from || '?'} eliminado: "${snippet}"`);
 }
 
 // ── Notas internas (admin) ─────────────────────────────────────────
 export async function actualizarNotasInternas(pedidoId, notas) {
   await updateDoc(doc(db, 'pedidos', pedidoId), { notasInternas: notas });
+  const snippet = (notas || '').slice(0, 80) + ((notas || '').length > 80 ? '…' : '');
+  registrarAuditoria(pedidoId, 'notas', `Notas internas actualizadas: "${snippet}"`);
 }
 
 // ── Referencias PO / Orden (admin) ────────────────────────────────
 export async function actualizarReferencias(pedidoId, { numeroPO, numeroOrden }) {
   await updateDoc(doc(db, 'pedidos', pedidoId), { numeroPO, numeroOrden });
+  registrarAuditoria(pedidoId, 'referencias', `PO: ${numeroPO || '—'}, Orden: ${numeroOrden || '—'}`);
 }
 
 // ── Eliminar pedido (admin) ─────────────────────────────────────────
 export async function eliminarPedido(pedidoId) {
+  const snap = await getDoc(doc(db, 'pedidos', pedidoId));
+  const data = snap.data();
   await deleteDoc(doc(db, 'pedidos', pedidoId));
+  registrarAuditoria(pedidoId, 'pedido_eliminado', `Pedido eliminado: ${data?.folio || pedidoId} — ${data?.vehiculo || '—'}`);
 }
 
 // ── Actualizar taller (admin) ───────────────────────────────────────

@@ -5,7 +5,7 @@ import {
   Building2, Phone, X, ThumbsUp, ThumbsDown, ChevronRight, AlertCircle,
   LayoutDashboard, ClipboardList, Users, Calendar, Send, Eye, EyeOff, MessageSquare, Paperclip, Mail,
   Printer, Trash2, Pencil, History, UserCircle, CheckCheck, StickyNote, NotebookPen,
-  PackageCheck, Hourglass, ClipboardCheck, Bell, Receipt, Share2, Sun, Moon
+  PackageCheck, Hourglass, ClipboardCheck, Bell, Receipt, Share2, Sun, Moon, ShieldCheck
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -237,7 +237,7 @@ function ThemeToggleBtn({ small = false }) {
   );
 }
 
-function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onLogout, canView, canEdit, canManageEquipo }) {
+function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onLogout, canView, canEdit, canManageEquipo, isSuperadmin }) {
   const primaryItems = [
     { id: 'dashboard',                     label: 'Resumen',    icon: LayoutDashboard },
     canView('pedidos')   && { id: 'pedidos',    label: 'Pedidos',    icon: ClipboardList, badge: pedidosCount },
@@ -250,6 +250,7 @@ function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onL
     canEdit('estimados') && { id: 'cotizacion', label: 'Nueva cotización', icon: ClipboardCheck },
     canView('facturas')  && { id: 'facturas',   label: 'Facturas',         icon: Receipt },
     canManageEquipo      && { id: 'equipo',     label: 'Equipo',           icon: Users },
+    isSuperadmin         && { id: 'auditoria',  label: 'Auditoría',        icon: ShieldCheck },
   ].filter(Boolean);
 
   const NavBtn = ({ id, label, icon: Icon, badge, accent }) => {
@@ -3673,7 +3674,71 @@ function AdminHistorial({ pedidos, talleres, getTaller, onSelect }) {
   );
 }
 
-function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, currentUid, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onDeleteMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onAgregarFactura, onActualizarFactura, onEliminarFactura, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario }) {
+const ACCION_META = {
+  estado:            { label: 'Cambio de estado', icon: Truck },
+  referencias:       { label: 'PO / Orden',        icon: ClipboardCheck },
+  notas:             { label: 'Notas internas',    icon: StickyNote },
+  estimado:          { label: 'Estimado enviado',  icon: FileText },
+  mensaje_eliminado: { label: 'Mensaje eliminado', icon: Trash2 },
+  pedido_eliminado:  { label: 'Pedido eliminado',  icon: X },
+};
+
+function AdminAuditoria({ logs, equipo, pedidos }) {
+  const getAdminNombre = (uid) => {
+    const a = equipo.find(a => a.uid === uid);
+    return a?.nombre || a?.email || 'Admin desconocido';
+  };
+  const fmtFecha = (ts) => {
+    if (!ts?.toDate) return '—';
+    return ts.toDate().toLocaleString('es-PR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  if (logs.length === 0) return (
+    <div className="text-center py-16" style={{ color: 'var(--pp-text9)' }}>
+      <ShieldCheck className="w-10 h-10 mx-auto mb-2 opacity-40" />
+      <p className="text-sm">Todavía no hay actividad registrada.</p>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      <p className="text-[13px]" style={{ color: 'var(--pp-text2)' }}>
+        <strong style={{ color: 'var(--pp-text)' }}>{logs.length}</strong> cambio{logs.length !== 1 ? 's' : ''} registrado{logs.length !== 1 ? 's' : ''}
+      </p>
+      <div className="rounded-[16px] overflow-hidden border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+        <table className="w-full border-collapse">
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--pp-border2)' }}>
+              {['Fecha', 'Admin', 'Acción', 'Detalle', 'Pedido'].map((h, i) => (
+                <th key={h} className={`text-left py-3 text-[10.5px] font-bold uppercase ${i === 0 ? 'pl-6' : 'px-3'} ${i === 4 ? 'pr-6' : ''}`} style={{ color: 'var(--pp-text3)', letterSpacing: '.06em' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {logs.map(log => {
+              const meta = ACCION_META[log.accion] || { label: log.accion, icon: History };
+              const Icon = meta.icon;
+              const pedido = pedidos.find(p => p.id === log.pedidoId);
+              return (
+                <tr key={log.id} style={{ borderTop: '1px solid var(--pp-border2)' }}>
+                  <td className="py-3.5 pl-6 pr-3 text-[12.5px] whitespace-nowrap" style={{ color: 'var(--pp-text2)' }}>{fmtFecha(log.timestamp)}</td>
+                  <td className="py-3.5 px-3 text-[13px] font-semibold whitespace-nowrap" style={{ color: 'var(--pp-text)' }}>{getAdminNombre(log.adminUid)}</td>
+                  <td className="py-3.5 px-3 text-[12.5px] whitespace-nowrap">
+                    <span className="flex items-center gap-1.5" style={{ color: 'var(--pp-text2)' }}><Icon className="w-3.5 h-3.5" />{meta.label}</span>
+                  </td>
+                  <td className="py-3.5 px-3 text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>{log.detalle}</td>
+                  <td className="py-3.5 pr-6 px-3 font-mono text-[12px] whitespace-nowrap" style={{ color: 'var(--pp-text3)' }}>{pedido?.folio || log.pedidoId?.slice(0, 8) || '—'}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, currentUid, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onDeleteMessage, onCreateTaller, auditLogs, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onAgregarFactura, onActualizarFactura, onEliminarFactura, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
@@ -3720,6 +3785,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
     facturas:   { title: 'Facturas',           sub: 'Cuentas corrientes por taller y marca' },
     equipo:     { title: 'Equipo',             sub: 'Usuarios y permisos de acceso' },
     historial:  { title: 'Historial',          sub: 'Órdenes completadas' },
+    auditoria:  { title: 'Auditoría',          sub: 'Historial de cambios (solo superadmin)' },
   };
   const meta = PAGE_META[activeTab] || PAGE_META.dashboard;
 
@@ -3784,6 +3850,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
           {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} isSuperadmin={isSuperadmin} />}
           {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
           {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} />}
+          {activeTab === 'auditoria' && isSuperadmin && <AdminAuditoria logs={auditLogs} equipo={equipo} pedidos={pedidos} />}
         </div>
       </main>
     </div>
@@ -3829,6 +3896,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
             {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} isSuperadmin={isSuperadmin} />}
             {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
           {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} />}
+          {activeTab === 'auditoria' && isSuperadmin && <AdminAuditoria logs={auditLogs} equipo={equipo} pedidos={pedidos} />}
           </div>
         </main>
 
@@ -3880,6 +3948,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
         canView={canView}
         canEdit={canEdit}
         canManageEquipo={canManageEquipo}
+        isSuperadmin={isSuperadmin}
       />
       {mainContent}
       {selectedOrder && (
@@ -4632,7 +4701,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
 /* ------------------------------------------------------------------ */
 
 import { useAuth } from './useAuth';
-import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, eliminarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura, actualizarFactura, eliminarFactura, archivarFactura, useAdminEquipo, crearAdminUsuario, actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario, eliminarTallerUsuario, actualizarTallerUsuario, guardarFCMToken, eliminarFCMToken } from './firestore';
+import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, eliminarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura, actualizarFactura, eliminarFactura, archivarFactura, useAdminEquipo, crearAdminUsuario, actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario, eliminarTallerUsuario, actualizarTallerUsuario, guardarFCMToken, eliminarFCMToken, useAuditLogs } from './firestore';
 
 /* ── Toast de notificación push en foreground ── */
 function NotifToast({ toast, onClose }) {
@@ -4682,6 +4751,8 @@ function AppContent() {
   const facturas       = useFacturas(user);
   const equipo         = useAdminEquipo(user);
   const tallerUsuarios = useTallerUsuarios(user);
+  const isSuperadmin   = user?.role === 'admin' && !perfil?.permisos;
+  const auditLogs      = useAuditLogs(isSuperadmin);
 
   const [notifToast, setNotifToast] = useState(null);
   const notifTimerRef = useRef(null);
@@ -4770,6 +4841,7 @@ function AppContent() {
           onCrearSubUsuario={(tallerId, data) => crearTallerUsuario(tallerId, data)}
           onEliminarSubUsuario={(uid) => eliminarTallerUsuario(uid)}
           onActualizarSubUsuario={(uid, data) => actualizarTallerUsuario(uid, data)}
+          auditLogs={auditLogs}
         />
       </>
     );
