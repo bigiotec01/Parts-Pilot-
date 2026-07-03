@@ -201,6 +201,12 @@ export async function enviarMensaje(pedidoId, texto, from, adjunto) {
   });
 }
 
+// ── Eliminar mensaje de chat (admin) ────────────────────────────────
+export async function eliminarMensaje(pedidoId, mensajesActuales, index) {
+  const mensajes = (mensajesActuales || []).filter((_, i) => i !== index);
+  await updateDoc(doc(db, 'pedidos', pedidoId), { mensajes });
+}
+
 // ── Notas internas (admin) ─────────────────────────────────────────
 export async function actualizarNotasInternas(pedidoId, notas) {
   await updateDoc(doc(db, 'pedidos', pedidoId), { notasInternas: notas });

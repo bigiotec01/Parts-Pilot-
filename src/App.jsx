@@ -719,11 +719,25 @@ function ChatAttachment({ attachment, isMine }) {
   );
 }
 
-function OrderChat({ order, role, otherPartyName, onSendMessage }) {
+function OrderChat({ order, role, otherPartyName, onSendMessage, onDeleteMessage }) {
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [chatError, setChatError] = useState('');
+  const [deletingIndex, setDeletingIndex] = useState(null);
   const mensajes = order.mensajes || [];
+
+  const handleDelete = async (index) => {
+    if (!window.confirm('¿Borrar este mensaje? Esta acción no se puede deshacer.')) return;
+    setDeletingIndex(index);
+    setChatError('');
+    try {
+      await onDeleteMessage(mensajes, index);
+    } catch (err) {
+      setChatError('No se pudo borrar: ' + (err.message || err.code));
+    } finally {
+      setDeletingIndex(null);
+    }
+  };
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -762,20 +776,45 @@ function OrderChat({ order, role, otherPartyName, onSendMessage }) {
           </div>
         ) : mensajes.map((m, i) => {
           const isMine = m.from === role;
+          const canDelete = role === 'admin' && onDeleteMessage;
           return (
-            <div key={i} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+            <div key={i} className={`group flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
               {!isMine && <span className="text-[11px] mb-0.5 px-1" style={{ color: 'var(--pp-text3)' }}>{otherPartyName}</span>}
-              <div
-                className="max-w-[82%] rounded-[14px] px-3.5 py-2.5 text-[13px] leading-snug space-y-1.5"
-                style={{
-                  background: isMine ? 'var(--pp-surface)' : 'var(--pp-card)',
-                  color: isMine ? 'var(--pp-text)' : 'var(--pp-text)',
-                  borderBottomRightRadius: isMine ? 5 : 14,
-                  borderBottomLeftRadius: isMine ? 14 : 5,
-                }}
-              >
-                {m.attachment && <ChatAttachment attachment={m.attachment} isMine={isMine} />}
-                {m.texto && <p>{m.texto}</p>}
+              <div className="flex items-center gap-1.5">
+                {canDelete && isMine && (
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(i)}
+                    disabled={deletingIndex === i}
+                    title="Borrar mensaje"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-red-500/10 text-red-500 disabled:opacity-60 flex-shrink-0"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                <div
+                  className="max-w-[82%] rounded-[14px] px-3.5 py-2.5 text-[13px] leading-snug space-y-1.5"
+                  style={{
+                    background: isMine ? 'var(--pp-surface)' : 'var(--pp-card)',
+                    color: isMine ? 'var(--pp-text)' : 'var(--pp-text)',
+                    borderBottomRightRadius: isMine ? 5 : 14,
+                    borderBottomLeftRadius: isMine ? 14 : 5,
+                  }}
+                >
+                  {m.attachment && <ChatAttachment attachment={m.attachment} isMine={isMine} />}
+                  {m.texto && <p>{m.texto}</p>}
+                </div>
+                {canDelete && !isMine && (
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(i)}
+                    disabled={deletingIndex === i}
+                    title="Borrar mensaje"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-red-500/10 text-red-500 disabled:opacity-60 flex-shrink-0"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
               <span className="text-[10.5px] mt-1 px-1" style={{ color: 'var(--pp-text3)' }}>{m.hora}</span>
             </div>
@@ -3156,7 +3195,7 @@ function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onElim
   );
 }
 
-function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstimate, onDeleteOrder, onUpdateNotes, onUpdateReferencias, onSendMessage }) {
+function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstimate, onDeleteOrder, onUpdateNotes, onUpdateReferencias, onSendMessage, onDeleteMessage }) {
   const [tab, setTab] = useState('detalles');
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   useEffect(() => {
@@ -3337,7 +3376,7 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
           <div className="p-5 pb-10" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
             {tab === 'detalles' && detallesContent}
             {tab === 'estimado' && estimadoContent}
-            {tab === 'mensajes' && <OrderChat order={order} role="admin" otherPartyName={taller?.nombre} onSendMessage={(id, texto, att) => onSendMessage(id, texto, 'admin', att)} />}
+            {tab === 'mensajes' && <OrderChat order={order} role="admin" otherPartyName={taller?.nombre} onSendMessage={(id, texto, att) => onSendMessage(id, texto, 'admin', att)} onDeleteMessage={(mensajes, index) => onDeleteMessage(order.id, mensajes, index)} />}
           </div>
         </div>
       </div>
@@ -3572,7 +3611,8 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
             {tab === 'mensajes' && (
               <div className="flex-1 overflow-y-auto px-6 py-4">
                 <OrderChat order={order} role="admin" otherPartyName={taller?.nombre}
-                  onSendMessage={(orderId, texto, attachment) => onSendMessage(orderId, texto, 'admin', attachment)} />
+                  onSendMessage={(orderId, texto, attachment) => onSendMessage(orderId, texto, 'admin', attachment)}
+                  onDeleteMessage={(mensajes, index) => onDeleteMessage(order.id, mensajes, index)} />
               </div>
             )}
           </div>
@@ -3633,7 +3673,7 @@ function AdminHistorial({ pedidos, talleres, getTaller, onSelect }) {
   );
 }
 
-function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, currentUid, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onAgregarFactura, onActualizarFactura, onEliminarFactura, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario }) {
+function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, currentUid, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onDeleteMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onAgregarFactura, onActualizarFactura, onEliminarFactura, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
@@ -3821,6 +3861,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
             onUpdateNotes={onUpdateNotes}
             onUpdateReferencias={onUpdateReferencias}
             onSendMessage={onSendMessage}
+            onDeleteMessage={onDeleteMessage}
           />
         )}
         {showReporte && <ReporteModal pedidos={pedidos} talleres={talleres} onClose={() => setShowReporte(false)} />}
@@ -3852,6 +3893,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
           onUpdateNotes={onUpdateNotes}
           onUpdateReferencias={onUpdateReferencias}
           onSendMessage={onSendMessage}
+          onDeleteMessage={onDeleteMessage}
         />
       )}
       {showReporte && <ReporteModal pedidos={pedidos} talleres={talleres} onClose={() => setShowReporte(false)} />}
@@ -4590,7 +4632,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
 /* ------------------------------------------------------------------ */
 
 import { useAuth } from './useAuth';
-import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura, actualizarFactura, eliminarFactura, archivarFactura, useAdminEquipo, crearAdminUsuario, actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario, eliminarTallerUsuario, actualizarTallerUsuario, guardarFCMToken, eliminarFCMToken } from './firestore';
+import { usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado, responderEstimado, enviarMensaje, eliminarMensaje, crearTaller, eliminarTaller, eliminarPedido, actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura, actualizarFactura, eliminarFactura, archivarFactura, useAdminEquipo, crearAdminUsuario, actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario, eliminarTallerUsuario, actualizarTallerUsuario, guardarFCMToken, eliminarFCMToken } from './firestore';
 
 /* ── Toast de notificación push en foreground ── */
 function NotifToast({ toast, onClose }) {
@@ -4712,6 +4754,7 @@ function AppContent() {
           onCreateOrder={(data) => crearPedido({ ...data, tipo: 'pedido' })}
           onCreateCotizacion={(data) => crearCotizacion(data)}
           onSendMessage={(id, texto, from, attachment) => enviarMensaje(id, texto, from, attachment)}
+          onDeleteMessage={(id, mensajes, index) => eliminarMensaje(id, mensajes, index)}
           onCreateTaller={(data) => crearTaller(data)}
           onDeleteTaller={(uid) => eliminarTaller(uid)}
           onDeleteOrder={async (id) => { await eliminarPedido(id); }}
