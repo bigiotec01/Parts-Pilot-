@@ -292,11 +292,18 @@ function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onL
         </div>
       </div>
 
-      <div className="px-3 flex-1 overflow-y-auto">
+      <div className="px-3 flex-1 overflow-y-auto relative">
         <div className="text-[10.5px] font-bold uppercase px-2.5 py-2 mb-1" style={{ color: 'var(--pp-text5)', letterSpacing: '.08em' }}>Operación</div>
         {primaryItems.map(item => <NavBtn key={item.id} {...item} />)}
         <div className="my-3" style={{ borderTop: '1px solid var(--pp-border2)' }} />
         {secondaryItems.map(item => <NavBtn key={item.id} {...item} />)}
+
+        {/* Watermark decorativo */}
+        <div className="absolute inset-x-0 bottom-3 flex justify-center pointer-events-none select-none" aria-hidden="true">
+          <svg width="120" height="120" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.05, filter: 'drop-shadow(0 1px 0 rgba(255,255,255,0.06))' }}>
+            <path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="var(--pp-text)" />
+          </svg>
+        </div>
       </div>
 
       <div className="p-3.5">
@@ -4571,7 +4578,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
             </div>
           </div>
 
-          <div className="px-3 flex-1">
+          <div className="px-3 flex-1 relative">
             <div className="text-[10.5px] font-bold uppercase px-2.5 py-2 mb-1" style={{ color: 'var(--pp-text5)', letterSpacing: '.08em' }}>Menú</div>
             {sideNavItems.map(({ id, label, icon: Icon, badge, accent }) => {
               const active = activeTab === id;
@@ -4599,6 +4606,13 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
               <Plus className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.8} />
               Solicitar estimado
             </button>
+
+            {/* Watermark decorativo */}
+            <div className="absolute inset-x-0 bottom-3 flex justify-center pointer-events-none select-none" aria-hidden="true">
+              <svg width="120" height="120" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.05, filter: 'drop-shadow(0 1px 0 rgba(255,255,255,0.06))' }}>
+                <path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="var(--pp-text)" />
+              </svg>
+            </div>
           </div>
 
           <div className="p-3.5">
