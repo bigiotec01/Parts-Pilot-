@@ -3786,6 +3786,8 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
   const enEstimados  = [...solicitudes, ...cotizando];
   const todosPedidos = pedidos.filter(p => p.tipo === 'pedido' || !p.tipo);
   const solosPedidos = todosPedidos.filter(p => p.estado !== 'entregado' && p.estado !== 'cotizando');
+  const pedidosCount     = solosPedidos.filter(p => hasNewActivity('admin', p)).length;
+  const solicitudesCount = enEstimados.filter(p => hasNewActivity('admin', p)).length;
 
   const filteredPedidos = solosPedidos.filter(p => {
     if (filterTaller !== 'todos' && String(p.tallerId) !== filterTaller) return false;
@@ -3851,7 +3853,7 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
         <AdminTopbar
           pageTitle={PAGE_META[activeTab]?.title || 'Resumen'}
           pageSub={PAGE_META[activeTab]?.sub || ''}
-          solicitudesCount={enEstimados.length}
+          solicitudesCount={solicitudesCount}
           onGoToNuevo={() => goTo('nuevo')}
           notifications={notifications}
           onNotifSelect={handleNotifSelect}
@@ -3879,8 +3881,8 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
   if (isMobile) {
     const mobileNav = [
       { id: 'dashboard', label: 'Resumen',   icon: LayoutDashboard },
-      canView('pedidos')   && { id: 'pedidos',  label: 'Pedidos',   icon: ClipboardList, badge: solosPedidos.length },
-      canView('estimados') && { id: 'estimados',label: 'Estimados', icon: FileText, badge: solicitudes.length, accent: true },
+      canView('pedidos')   && { id: 'pedidos',  label: 'Pedidos',   icon: ClipboardList, badge: pedidosCount },
+      canView('estimados') && { id: 'estimados',label: 'Estimados', icon: FileText, badge: solicitudesCount, accent: true },
       canView('facturas')  && { id: 'facturas',  label: 'Facturas',  icon: Receipt },
       canView('pedidos')   && { id: 'historial', label: 'Historial', icon: History },
     ].filter(Boolean);
@@ -3961,8 +3963,8 @@ function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil,
       <AdminSidebar
         activeTab={activeTab}
         onChange={goTo}
-        solicitudesCount={enEstimados.length}
-        pedidosCount={solosPedidos.length}
+        solicitudesCount={solicitudesCount}
+        pedidosCount={pedidosCount}
         onLogout={onLogout}
         canView={canView}
         canEdit={canEdit}
@@ -4465,6 +4467,8 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
   };
 
   const totalEstimados = solicitudes.length + cotizacionesPendientes.length;
+  const pedidosCount = pedidosActivos.filter(p => hasNewActivity('taller', p)).length;
+  const estimadosCount = [...solicitudes, ...cotizacionesPendientes].filter(p => hasNewActivity('taller', p)).length;
 
   const goTab = (t) => { setActiveTab(t); setSelectedId(null); setSearch(''); };
 
@@ -4492,8 +4496,8 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
   }, []);
 
   const bottomNav = [
-    { id: 'pedidos',   label: 'Pedidos',   icon: ClipboardList },
-    { id: 'estimados', label: 'Estimados', icon: FileText, badge: totalEstimados },
+    { id: 'pedidos',   label: 'Pedidos',   icon: ClipboardList, badge: pedidosCount },
+    { id: 'estimados', label: 'Estimados', icon: FileText, badge: estimadosCount },
     { id: 'nueva',     label: 'Solicitar', icon: Plus, center: true },
     { id: 'historial', label: 'Historial', icon: History },
     { id: 'perfil',    label: 'Perfil',    icon: UserCircle },
@@ -4502,8 +4506,8 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
   const initials = (n) => (n || '').split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'T';
 
   const sideNavItems = [
-    { id: 'pedidos',   label: 'Mis pedidos', icon: ClipboardList, badge: 0 },
-    { id: 'estimados', label: 'Estimados',   icon: FileText,      badge: totalEstimados, accent: true },
+    { id: 'pedidos',   label: 'Mis pedidos', icon: ClipboardList, badge: pedidosCount },
+    { id: 'estimados', label: 'Estimados',   icon: FileText,      badge: estimadosCount, accent: true },
     { id: 'facturas',  label: 'Facturas',    icon: Receipt },
     { id: 'historial', label: 'Historial',   icon: History },
     { id: 'perfil',    label: 'Mi Perfil',   icon: UserCircle },
