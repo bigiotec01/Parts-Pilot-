@@ -1,12 +1,12 @@
 import { useState, useRef } from 'react';
 import {
-  CheckCircle2, Plus, X, ChevronRight
+  CheckCircle2, Plus, X, ChevronRight, Archive, RotateCcw, Trash2
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Modal } from '../shared/Modal';
 import { inputClass } from '../../constants/styles';
 import { MARCAS_FACTURA } from '../../constants/facturas';
-import { fmtCur, fmtDateDisp } from '../../utils/format';
+import { fmtCur, fmtDateDisp, formatDate } from '../../utils/format';
 
 export function FacturaInlineRow({ form, setForm, onSave, onCancel, saving }) {
   const inp = "px-2 py-1 rounded-[8px] border text-[16px] outline-none focus:border-[#a0a0a0]";
@@ -30,7 +30,7 @@ export function FacturaInlineRow({ form, setForm, onSave, onCancel, saving }) {
   );
 }
 
-export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar, onUpdateTaller, readOnly = false, isSuperadmin = false }) {
+export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar, onUpdateTaller, readOnly = false, isSuperadmin = false, backups = [], onCrearBackup, onRestaurarBackup, onEliminarBackup }) {
   const [tallerSel, setTallerSel] = useState(talleres[0]?.uid || '');
   const [marca, setMarca] = useState('KIA');
   const [editId, setEditId] = useState(null);
@@ -51,6 +51,53 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
   const [showPagadas, setShowPagadas] = useState(false);
   const [filtroArchDesde, setFiltroArchDesde] = useState('');
   const [filtroArchHasta, setFiltroArchHasta] = useState('');
+
+  const [showBackups, setShowBackups] = useState(false);
+  const [creatingBackup, setCreatingBackup] = useState(false);
+  const [restoringId, setRestoringId] = useState(null);
+  const [backupError, setBackupError] = useState('');
+
+  const handleCrearBackup = async () => {
+    setCreatingBackup(true);
+    setBackupError('');
+    try {
+      await onCrearBackup();
+    } catch (err) {
+      setBackupError('No se pudo crear el backup: ' + (err.message || err.code));
+    } finally {
+      setCreatingBackup(false);
+    }
+  };
+
+  const handleRestore = async (b) => {
+    const paso1 = window.confirm(
+      `¿Restaurar el backup del ${formatDate(b.fecha)}?\n\nEsto BORRARÁ las ${facturas.length} facturas actuales de TODOS los talleres y marcas, y las reemplazará por las ${b.count} facturas guardadas en ese backup.\n\nEsta acción no se puede deshacer.`
+    );
+    if (!paso1) return;
+    const paso2 = window.confirm(
+      'Confirmación final: se perderán todos los cambios hechos después de ese backup. ¿Continuar con la restauración?'
+    );
+    if (!paso2) return;
+    setRestoringId(b.id);
+    setBackupError('');
+    try {
+      await onRestaurarBackup(b.id);
+    } catch (err) {
+      setBackupError('No se pudo restaurar: ' + (err.message || err.code));
+    } finally {
+      setRestoringId(null);
+    }
+  };
+
+  const handleDeleteBackup = async (backupId) => {
+    if (!window.confirm('¿Eliminar este backup? No vas a poder restaurarlo después.')) return;
+    setBackupError('');
+    try {
+      await onEliminarBackup(backupId);
+    } catch (err) {
+      setBackupError('No se pudo eliminar el backup: ' + (err.message || err.code));
+    }
+  };
 
   const todasNoArch = [...facturas]
     .filter(f => f.tallerId === tallerSel && f.marca === marca && !f.archivada)
@@ -600,6 +647,74 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
           </div>
         );
       })()}
+
+      {/* Respaldo de facturas — solo superadmin */}
+      {isSuperadmin && (
+        <div className="mt-2">
+          <button
+            onClick={() => setShowBackups(v => !v)}
+            className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#a0a0a0]"
+            style={{ color: 'var(--pp-text3)' }}
+          >
+            <ChevronRight className={`w-4 h-4 transition-transform ${showBackups ? 'rotate-90' : ''}`} />
+            Respaldo de facturas ({backups.length})
+          </button>
+          {showBackups && (
+            <div className="mt-3 space-y-3 rounded-[16px] border p-4" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-[12.5px] max-w-md" style={{ color: 'var(--pp-text2)' }}>
+                  Guarda una copia con fecha de las {facturas.length} facturas actuales (todos los talleres y marcas). Podés usarla más adelante para restaurar si algo sale mal.
+                </p>
+                <button
+                  onClick={handleCrearBackup}
+                  disabled={creatingBackup}
+                  className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:bg-[#707070] disabled:opacity-60 flex-shrink-0"
+                  style={{ background: 'var(--pp-accent)' }}
+                >
+                  <Archive className="w-4 h-4" /> {creatingBackup ? 'Creando backup…' : 'Crear backup ahora'}
+                </button>
+              </div>
+
+              {backupError && (
+                <div className="text-[12.5px] px-3 py-2 rounded-lg" style={{ background: 'rgba(220,38,38,0.1)', color: '#dc2626' }}>
+                  {backupError}
+                </div>
+              )}
+
+              <div className="rounded-[12px] border overflow-hidden" style={{ borderColor: 'var(--pp-border2)' }}>
+                {backups.length === 0 ? (
+                  <div className="py-6 text-center text-[13px]" style={{ color: 'var(--pp-text3)' }}>Todavía no hay backups.</div>
+                ) : backups.map(b => (
+                  <div key={b.id} className="flex items-center justify-between gap-3 px-4 py-3" style={{ borderTop: '1px solid var(--pp-border2)' }}>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-semibold" style={{ color: 'var(--pp-text)' }}>{formatDate(b.fecha)}</p>
+                      <p className="text-[11.5px]" style={{ color: 'var(--pp-text3)' }}>{b.count} factura{b.count !== 1 ? 's' : ''}</p>
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => handleRestore(b)}
+                        disabled={restoringId === b.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] border text-[12.5px] font-semibold transition-colors disabled:opacity-60"
+                        style={{ borderColor: '#a0a0a0', color: 'var(--pp-text)' }}
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" /> {restoringId === b.id ? 'Restaurando…' : 'Restaurar'}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteBackup(b.id)}
+                        className="w-8 h-8 rounded-[9px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors"
+                        style={{ color: 'var(--pp-text3)' }}
+                        title="Eliminar backup"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,10 +1,10 @@
 import {
-  FileText, LogOut, Plus, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt, ShieldCheck
+  FileText, LogOut, Plus, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt
 } from 'lucide-react';
 import { APP_VERSION } from '../../constants/app';
 import { ThemeToggleBtn } from '../shared/ThemeToggleBtn';
 
-export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onLogout, canView, canEdit, canManageEquipo, isSuperadmin }) {
+export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onLogout, canView, canEdit, canManageEquipo }) {
   const primaryItems = [
     { id: 'dashboard',                     label: 'Resumen',    icon: LayoutDashboard },
     canView('pedidos')   && { id: 'pedidos',    label: 'Pedidos',    icon: ClipboardList, badge: pedidosCount },
@@ -17,7 +17,6 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
     canEdit('estimados') && { id: 'cotizacion', label: 'Nueva cotización', icon: ClipboardCheck },
     canView('facturas')  && { id: 'facturas',   label: 'Facturas',         icon: Receipt },
     canManageEquipo      && { id: 'equipo',     label: 'Equipo',           icon: Users },
-    isSuperadmin         && { id: 'auditoria',  label: 'Auditoría',        icon: ShieldCheck },
   ].filter(Boolean);
 
   const NavBtn = ({ id, label, icon: Icon, badge, accent }) => {

@@ -64,17 +64,20 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Backups de facturas: solo el superadmin puede crear, leer, restaurar o borrar.
+    match /facturaBackups/{backupId} {
+      allow read, create, update, delete: if isAdmin() && isSuperAdmin();
+
+      match /items/{itemId} {
+        allow read, create, update, delete: if isAdmin() && isSuperAdmin();
+      }
+    }
+
     // Tokens FCM: clave = token sanitizado; el uid en el doc debe coincidir
     match /fcmTokens/{tokenId} {
       allow create, update: if request.auth != null && request.resource.data.uid == request.auth.uid;
       allow read, delete:   if request.auth != null && resource.data.uid == request.auth.uid;
     }
 
-    // Auditoría: cualquier admin puede generar entradas, solo el superadmin puede leerlas.
-    // Inmutable: no se permite update ni delete.
-    match /auditLogs/{logId} {
-      allow read:   if isAdmin() && isSuperAdmin();
-      allow create: if isAdmin();
-    }
   }
 }

@@ -6,7 +6,8 @@ import {
   actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura,
   actualizarFactura, eliminarFactura, archivarFactura, useAdminEquipo, crearAdminUsuario,
   actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario,
-  eliminarTallerUsuario, actualizarTallerUsuario, guardarFCMToken, eliminarFCMToken, useAuditLogs
+  eliminarTallerUsuario, actualizarTallerUsuario, guardarFCMToken, eliminarFCMToken,
+  useFacturaBackups, crearBackupFacturas, restaurarBackupFacturas, eliminarBackupFacturas
 } from './firestore';
 import { ThemeProvider } from './theme/ThemeContext';
 import { LoginScreen } from './components/shared/LoginScreen';
@@ -22,7 +23,7 @@ function AppContent() {
   const equipo         = useAdminEquipo(user);
   const tallerUsuarios = useTallerUsuarios(user);
   const isSuperadmin   = user?.role === 'admin' && !perfil?.permisos;
-  const auditLogs      = useAuditLogs(isSuperadmin);
+  const backups        = useFacturaBackups(isSuperadmin);
 
   const [notifToast, setNotifToast] = useState(null);
   const notifTimerRef = useRef(null);
@@ -111,7 +112,10 @@ function AppContent() {
           onCrearSubUsuario={(tallerId, data) => crearTallerUsuario(tallerId, data)}
           onEliminarSubUsuario={(uid) => eliminarTallerUsuario(uid)}
           onActualizarSubUsuario={(uid, data) => actualizarTallerUsuario(uid, data)}
-          auditLogs={auditLogs}
+          backups={backups}
+          onCrearBackup={() => crearBackupFacturas(facturas)}
+          onRestaurarBackup={(backupId) => restaurarBackupFacturas(backupId)}
+          onEliminarBackup={(backupId) => eliminarBackupFacturas(backupId)}
         />
       </>
     );
