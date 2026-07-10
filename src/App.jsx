@@ -271,8 +271,8 @@ function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onL
         <Icon className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={1.8} />
         {label}
         {badge > 0 && (
-          <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-[7px] leading-tight"
-            style={{ background: active ? 'rgba(255,255,255,.18)' : 'var(--pp-surface)', color: active ? '#fff' : 'var(--pp-text2)' }}>
+          <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-[7px] leading-tight text-white"
+            style={{ background: 'var(--pp-accent)' }}>
             {badge}
           </span>
         )}
@@ -531,13 +531,16 @@ function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0, activi
   return (
     <button
       onClick={onClick}
-      className="w-full text-left rounded-[15px] p-[17px] border transition-all hover:border-[#a0a0a0] hover:shadow-[0_8px_24px_-14px_rgba(160,160,160,0.15)] relative"
-      style={{ background: 'var(--pp-card)', borderColor: hasActivity ? 'var(--pp-accent)' : 'var(--pp-border)', boxShadow: hasActivity ? '0 0 0 2px var(--pp-active-bg)' : 'none' }}
+      className="w-full text-left rounded-[15px] p-[17px] border-2 transition-all hover:border-[#a0a0a0] hover:shadow-[0_8px_24px_-14px_rgba(160,160,160,0.15)] relative"
+      style={{ background: hasActivity ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasActivity ? '#f59e0b' : 'var(--pp-border)', boxShadow: hasActivity ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : 'none' }}
     >
       {hasActivity && (
-        <span className="absolute top-3 right-3 flex h-2.5 w-2.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: 'var(--pp-accent)' }} />
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ background: 'var(--pp-accent)' }} />
+        <span className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-md" style={{ background: '#f59e0b' }}>
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+          </span>
+          Actualizado
         </span>
       )}
       <div className="flex items-start justify-between gap-3 mb-3">
@@ -1695,7 +1698,7 @@ function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate, onDel
   const handleActualizar = async () => {
     setSaving(true);
     try {
-      await onChangeStatus(order.id, estado, fechaEntrega || undefined);
+      await onChangeStatus(order.id, estado, fechaEntrega);
       await onUpdateReferencias(order.id, { numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim() });
       await onUpdateNotes(order.id, notasInt);
       setSaved(true);
@@ -2036,11 +2039,14 @@ function AdminEstimados({ solicitudes, getTaller, onSelect }) {
     const isCotizando = p.estado === 'cotizando';
     const hasAct = hasNewActivity('admin', p);
     return (
-      <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[15px] p-[17px] border transition-all hover:border-[#a0a0a0] hover:shadow-[0_8px_24px_-14px_rgba(160,160,160,0.25)] relative" style={{ background: 'var(--pp-card)', borderColor: hasAct ? 'var(--pp-accent)' : isCotizando ? 'rgba(160,160,160,0.25)' : 'var(--pp-border)', boxShadow: hasAct ? '0 0 0 2px var(--pp-active-bg)' : 'none' }}>
+      <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[15px] p-[17px] border-2 transition-all hover:border-[#a0a0a0] hover:shadow-[0_8px_24px_-14px_rgba(160,160,160,0.25)] relative" style={{ background: hasAct ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasAct ? '#f59e0b' : isCotizando ? 'rgba(160,160,160,0.25)' : 'var(--pp-border)', boxShadow: hasAct ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : 'none' }}>
       {hasAct && (
-        <span className="absolute top-3 right-3 flex h-2.5 w-2.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: 'var(--pp-accent)' }} />
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ background: 'var(--pp-accent)' }} />
+        <span className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-md" style={{ background: '#f59e0b' }}>
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+          </span>
+          Actualizado
         </span>
       )}
         <div className="flex items-start justify-between gap-3">
@@ -2050,6 +2056,12 @@ function AdminEstimados({ solicitudes, getTaller, onSelect }) {
             </p>
             <h3 className="text-[14.5px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</h3>
             {p.pieza && <p className="text-[12.5px] mt-0.5" style={{ color: 'var(--pp-text2)' }}>{p.pieza}</p>}
+            {(p.numeroPO || p.numeroOrden) && (
+              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                {p.numeroPO && <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: 'rgba(180,180,180,0.1)', color: 'var(--pp-text6)', border: '1px solid rgba(180,180,180,0.2)' }}>PO# {p.numeroPO}</span>}
+                {p.numeroOrden && <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: 'rgba(140,140,140,0.1)', color: 'var(--pp-text8)', border: '1px solid rgba(140,140,140,0.2)' }}>Orden {p.numeroOrden}</span>}
+              </div>
+            )}
           </div>
           {isCotizando ? (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0" style={{ background: '#eef4ff', color: '#2563eb' }}>
@@ -3237,7 +3249,7 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
   const handleSave = async () => {
     setSaving(true);
     try {
-      await onChangeStatus(order.id, estado, fechaEntrega || undefined);
+      await onChangeStatus(order.id, estado, fechaEntrega);
       await onUpdateReferencias(order.id, { numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim() });
       await onUpdateNotes(order.id, notasInt);
       setSaved(true); setTimeout(() => setSaved(false), 2500);
@@ -3306,7 +3318,7 @@ function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstima
       </div>
       {saved && <div className="flex items-center gap-2 px-3 py-2.5 rounded-[11px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}><CheckCircle2 className="w-4 h-4" /> Cambios guardados.</div>}
       <div className="flex gap-3">
-        <button onClick={async () => { setSaving(true); try { await onChangeStatus(order.id, estado, fechaEntrega || undefined); await onUpdateReferencias(order.id, { numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim() }); await onUpdateNotes(order.id, notasInt); setSaved(true); setTimeout(() => setSaved(false), 2500); } finally { setSaving(false); } }} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
+        <button onClick={async () => { setSaving(true); try { await onChangeStatus(order.id, estado, fechaEntrega); await onUpdateReferencias(order.id, { numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim() }); await onUpdateNotes(order.id, notasInt); setSaved(true); setTimeout(() => setSaved(false), 2500); } finally { setSaving(false); } }} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
           {saving ? 'Guardando…' : 'Guardar cambios'}
         </button>
         <button onClick={() => { if (window.confirm('¿Eliminar este pedido?')) onDeleteOrder(order.id); }} className="px-4 py-[13px] rounded-[11px] border text-[13px] font-semibold hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text3)' }}>
@@ -4051,8 +4063,19 @@ function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onSelect }
             Cotizaciones por responder · {cotizaciones.length}
           </p>
           <div className="grid sm:grid-cols-2 gap-3">
-            {cotizaciones.map(p => (
-              <div key={p.id} onClick={() => onSelect?.(p.id)} className="rounded-xl p-4 space-y-3 border cursor-pointer hover:border-[#a0a0a0] transition-colors" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-accent)', boxShadow: '0 0 0 1px rgba(200,200,200,0.07)' }}>
+            {cotizaciones.map(p => {
+              const hasAct = hasNewActivity('taller', p);
+              return (
+              <div key={p.id} onClick={() => onSelect?.(p.id)} className="rounded-xl p-4 space-y-3 border-2 cursor-pointer hover:border-[#a0a0a0] transition-colors relative" style={{ background: hasAct ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasAct ? '#f59e0b' : 'var(--pp-accent)', boxShadow: hasAct ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : '0 0 0 1px rgba(200,200,200,0.07)' }}>
+                {hasAct && (
+                  <span className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-md" style={{ background: '#f59e0b' }}>
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                    </span>
+                    Actualizado
+                  </span>
+                )}
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <h3 className="font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</h3>
@@ -4092,7 +4115,8 @@ function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onSelect }
                   <MessageSquare className="w-3.5 h-3.5" /> Preguntar al Vendedor
                 </button>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -4107,8 +4131,19 @@ function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onSelect }
             {[...solicitudes].sort((a, b) => {
               const t = f => f?.toDate ? f.toDate().getTime() : new Date(f + 'T00:00:00').getTime();
               return t(b.fecha) - t(a.fecha);
-            }).map(p => (
-              <div key={p.id} onClick={() => onSelect?.(p.id)} className="rounded-xl border p-4 cursor-pointer hover:border-[#a0a0a0] transition-colors" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+            }).map(p => {
+              const hasAct = hasNewActivity('taller', p);
+              return (
+              <div key={p.id} onClick={() => onSelect?.(p.id)} className="rounded-xl border-2 p-4 cursor-pointer hover:border-[#a0a0a0] transition-colors relative" style={{ background: hasAct ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasAct ? '#f59e0b' : 'var(--pp-border)', boxShadow: hasAct ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : 'none' }}>
+                {hasAct && (
+                  <span className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-md" style={{ background: '#f59e0b' }}>
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                    </span>
+                    Actualizado
+                  </span>
+                )}
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="min-w-0">
                     <h3 className="font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</h3>
@@ -4126,7 +4161,8 @@ function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onSelect }
                   {(p.mensajes?.length > 0) && <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" />{p.mensajes.length}</span>}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -4590,8 +4626,8 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
                   <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.8} />
                   {label}
                   {badge > 0 && (
-                    <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-[7px]"
-                      style={{ background: active ? 'rgba(255,255,255,.18)' : (accent ? 'var(--pp-accent)' : 'var(--pp-surface)'), color: active ? '#fff' : (accent ? '#fff' : 'var(--pp-text2)') }}>
+                    <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-[7px] text-white"
+                      style={{ background: 'var(--pp-accent)' }}>
                       {badge}
                     </span>
                   )}

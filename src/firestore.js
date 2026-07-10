@@ -3,7 +3,7 @@ import { db, storage } from './firebase';
 import {
   collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot,
   query, where, orderBy, serverTimestamp, arrayUnion, runTransaction, Timestamp,
-  getDocs, writeBatch, getDoc, limit,
+  getDocs, writeBatch, getDoc, limit, deleteField,
 } from 'firebase/firestore';
 import {
   ref, uploadBytes, getDownloadURL
@@ -177,7 +177,7 @@ async function registrarAuditoria(pedidoId, accion, detalle) {
 export async function cambiarEstatus(pedidoId, estado, fechaEntrega) {
   const ref = doc(db, 'pedidos', pedidoId);
   const data = { estado };
-  if (fechaEntrega !== undefined) data.fechaEntrega = fechaEntrega;
+  if (fechaEntrega !== undefined) data.fechaEntrega = fechaEntrega === '' ? deleteField() : fechaEntrega;
   await updateDoc(ref, data);
   registrarAuditoria(pedidoId, 'estado', `Estado → ${estado}${fechaEntrega ? ` (entrega: ${fechaEntrega})` : ''}`);
 }
