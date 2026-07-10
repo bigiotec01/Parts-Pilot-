@@ -272,7 +272,7 @@ function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onL
         {label}
         {badge > 0 && (
           <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-[7px] leading-tight text-white"
-            style={{ background: 'var(--pp-accent)' }}>
+            style={{ background: '#dc2626' }}>
             {badge}
           </span>
         )}
@@ -4627,7 +4627,7 @@ function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespo
                   {label}
                   {badge > 0 && (
                     <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-[7px] text-white"
-                      style={{ background: 'var(--pp-accent)' }}>
+                      style={{ background: '#dc2626' }}>
                       {badge}
                     </span>
                   )}
