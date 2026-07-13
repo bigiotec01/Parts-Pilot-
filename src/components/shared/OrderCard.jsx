@@ -1,20 +1,26 @@
 import {
-  Truck, Clock, Building2, Calendar, MessageSquare, StickyNote
+  Truck, Clock, Building2, Calendar, MessageSquare, StickyNote, Eye, ArrowRightCircle
 } from 'lucide-react';
 import { hasNewActivity } from '../../utils/activity';
 import { formatDate } from '../../utils/format';
 import { StatusBadge } from './StatusBadge';
+import { QuickActionsMenu } from './QuickActionsMenu';
+import { STATUS_CONFIG, getNextStatus } from '../../constants/status';
 
-export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0, activityRole }) {
+export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0, activityRole, onChangeStatus }) {
   const hasActivity = activityRole ? hasNewActivity(activityRole, order) : false;
   const hasNewIds = order.numeroPO || order.numeroOrden;
   const cardTitle = !hasNewIds ? (order.referencia || order.vehiculo) : order.vehiculo;
   const cardSub = !hasNewIds && order.referencia ? order.vehiculo : null;
+  const next = getNextStatus(order.estado);
 
   return (
-    <button
+    <div
       onClick={onClick}
-      className="w-full text-left rounded-[15px] p-[17px] border-2 transition-all hover:border-[#a0a0a0] hover:shadow-[0_8px_24px_-14px_rgba(160,160,160,0.15)] relative"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
+      className="w-full text-left rounded-[15px] p-[17px] border-2 transition-all hover:border-[#a0a0a0] hover:shadow-[0_8px_24px_-14px_rgba(160,160,160,0.15)] relative cursor-pointer"
       style={{ background: hasActivity ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasActivity ? '#f59e0b' : 'var(--pp-border)', boxShadow: hasActivity ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : 'none' }}
     >
       {hasActivity && (
@@ -46,7 +52,17 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
             </div>
           )}
         </div>
-        <StatusBadge estado={order.estado} />
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <StatusBadge estado={order.estado} />
+          {onChangeStatus && (
+            <div onClick={(e) => e.stopPropagation()}>
+              <QuickActionsMenu size="sm" items={[
+                { label: 'Ver detalles', icon: Eye, onClick },
+                next && { label: `Avanzar a: ${STATUS_CONFIG[next].short}`, icon: ArrowRightCircle, onClick: () => onChangeStatus(order.id, next, order.fechaEntrega || '') },
+              ]} />
+            </div>
+          )}
+        </div>
       </div>
       <div className="flex items-center justify-between gap-2 pt-3" style={{ borderTop: '1px dashed var(--pp-border)' }}>
         <div className="flex items-center gap-3 text-[11.5px] min-w-0" style={{ color: 'var(--pp-text2)' }}>
@@ -57,7 +73,11 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
           <span className="flex items-center gap-1 flex-shrink-0"><Calendar className="w-3 h-3 flex-shrink-0" />{formatDate(order.fecha)}</span>
         </div>
         <div className="flex items-center gap-2.5 flex-shrink-0 text-[11.5px]" style={{ color: 'var(--pp-text2)' }}>
-          {order.mensajes?.length > 0 && <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" />{order.mensajes.length}</span>}
+          {order.mensajes?.length > 0 && (
+            <span className="flex items-center gap-1 font-semibold" style={hasActivity ? { color: '#f59e0b' } : undefined}>
+              <MessageSquare className="w-3.5 h-3.5" />{order.mensajes.length}
+            </span>
+          )}
           {order.estado === 'cotizando' && order.estimado?.respuesta === 'pendiente' && <span className="flex items-center gap-1 font-semibold" style={{ color: '#b7791f' }}><Clock className="w-3.5 h-3.5" />Esperando</span>}
           {showTaller && order.notasInternas && <StickyNote className="w-3.5 h-3.5" style={{ color: 'var(--pp-text3)' }} />}
         </div>
@@ -67,6 +87,6 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
           <Truck className="w-3.5 h-3.5 flex-shrink-0" /> Entrega est.: {formatDate(order.fechaEntrega)}
         </div>
       )}
-    </button>
+    </div>
   );
 }

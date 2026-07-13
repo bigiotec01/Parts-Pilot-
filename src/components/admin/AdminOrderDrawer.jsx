@@ -1,15 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
-  CheckCircle2, Clock, FileText, X, ThumbsUp, ThumbsDown, AlertCircle, ClipboardList, Calendar, Send, MessageSquare, Paperclip, Mail, Trash2, Share2
+  CheckCircle2, Clock, FileText, X, ThumbsUp, ThumbsDown, AlertCircle, ClipboardList, Calendar, Send, MessageSquare, Paperclip, Mail, Trash2, Share2, MessageCircle, ChevronDown, ChevronUp, Sparkles
 } from 'lucide-react';
 import { STATUS_CONFIG, STATUS_ORDER } from '../../constants/status';
 import { Header } from '../shared/Header';
 import { StatusBadge, StatusStepper } from '../shared/StatusBadge';
 import { OrderChat } from '../shared/OrderChat';
 import { FormField } from '../shared/FormField';
+import { Modal } from '../shared/Modal';
 import { inputClass } from '../../constants/styles';
+import { avgDeliveryLeadDays, suggestDeliveryDate } from '../../utils/format';
 
-export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstimate, onDeleteOrder, onUpdateNotes, onUpdateReferencias, onSendMessage, onDeleteMessage }) {
+const AUTO_DATE_STATES = ['en_transito', 'recibido'];
+
+function TallerNotes({ text }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = (text || '').length > 160;
+  return (
+    <div className="rounded-[11px] p-3" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
+      <p className="text-[10.5px] font-bold uppercase mb-1" style={{ color: '#f59e0b', letterSpacing: '.05em' }}>Notas del taller</p>
+      <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#7c5a14' }}>{isLong && !expanded ? text.slice(0, 160) + '…' : text}</p>
+      {isLong && (
+        <button type="button" onClick={() => setExpanded(v => !v)} className="mt-1 flex items-center gap-1 text-[11.5px] font-bold" style={{ color: '#b7791f' }}>
+          {expanded ? <>Ver menos <ChevronUp className="w-3 h-3" /></> : <>Ver más <ChevronDown className="w-3 h-3" /></>}
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstimate, onDeleteOrder, onUpdateNotes, onUpdateReferencias, onSendMessage, onDeleteMessage, pedidos = [] }) {
   const [tab, setTab] = useState('detalles');
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   useEffect(() => {
@@ -19,6 +39,7 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
   }, []);
   const [estado, setEstado]             = useState(order.estado);
   const [fechaEntrega, setFechaEntrega] = useState(order.fechaEntrega || '');
+  const [fechaSugerida, setFechaSugerida] = useState(false);
   const [numeroPO, setNumeroPO]         = useState(order.numeroPO ?? '');
   const [numeroOrden, setNumeroOrden]   = useState(order.numeroOrden ?? '');
   const [notasInt, setNotasInt]         = useState(order.notasInternas ?? '');
@@ -31,10 +52,55 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
   const [sendError, setSendError]       = useState('');
   const [showEmail, setShowEmail]       = useState(false);
   const [copied, setCopied]             = useState(false);
+  const [showNotify, setShowNotify]     = useState(false);
   const msgCount = (order.mensajes || []).length;
 
+  const avgLeadDays = useMemo(() => avgDeliveryLeadDays(pedidos), [pedidos]);
+
+  const handleEstadoChange = (newEstado) => {
+    setEstado(newEstado);
+    if (AUTO_DATE_STATES.includes(newEstado) && !fechaEntrega) {
+      setFechaEntrega(suggestDeliveryDate(newEstado, avgLeadDays));
+      setFechaSugerida(true);
+    }
+  };
+
+  const handleFechaChange = (value) => {
+    setFechaEntrega(value);
+    setFechaSugerida(false);
+  };
+
+  const buildShareLink = () => {
+    const url = `${window.location.origin}${window.location.pathname}?order=${order.id}`;
+    const folio = order.folio || order.id.slice(0, 8);
+    const ref = order.numeroPO || folio;
+    const subject = encodeURIComponent(`Estado de tu pedido ${ref} – Parts Pilot`);
+    const body = encodeURIComponent(`Hola${taller?.contacto ? ` ${taller.contacto}` : ''},\n\nPuedes ver el estado de tu pedido "${order.vehiculo}" (${ref}) aquí:\n\n${url}\n\nSaludos.`);
+    const to = taller?.email ? `&to=${encodeURIComponent(taller.email)}` : '';
+    window.open(`https://mail.google.com/mail/?view=cm${to}&su=${subject}&body=${body}`, '_blank');
+  };
+
+  const whatsappNumber = (() => {
+    const digits = (taller?.telefono || '').replace(/\D/g, '');
+    if (digits.length < 10) return null;
+    return digits.length === 10 ? `52${digits}` : digits;
+  })();
+
+  const [notifyBody, setNotifyBody] = useState('');
+  const buildNotifyMessage = () =>
+    `Hola ${taller?.contacto || ''},\n\n` +
+    `Te informamos que las piezas de tu pedido están listas en nuestra tienda y esperando la fecha de entrega.\n\n` +
+    `Detalles del pedido:\n` +
+    `• Vehículo: ${order.vehiculo || '—'}\n` +
+    (order.pieza ? `• Pieza: ${order.pieza}\n` : '') +
+    (order.numeroPO ? `• No. PO: ${order.numeroPO}\n` : '') +
+    (order.numeroOrden ? `• No. Orden: ${order.numeroOrden}\n` : '') +
+    `\nPor favor contáctanos para coordinar la fecha y hora de entrega.\n\n` +
+    `Saludos,\nDepartamento de Piezas — Parts Pilot`;
+  const openNotify = () => { setNotifyBody(buildNotifyMessage()); setShowNotify(true); };
+
   useEffect(() => {
-    setEstado(order.estado); setFechaEntrega(order.fechaEntrega || '');
+    setEstado(order.estado); setFechaEntrega(order.fechaEntrega || ''); setFechaSugerida(false);
     setNumeroPO(order.numeroPO ?? ''); setNumeroOrden(order.numeroOrden ?? '');
     setNotasInt(order.notasInternas ?? ''); setNotasEst(order.estimado?.notas ?? '');
     setArchivo(order.estimado?.archivo ?? null);
@@ -76,31 +142,30 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
           <div className="text-[13.5px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{taller?.nombre}</div>
           <div className="text-[12px]" style={{ color: 'var(--pp-text2)' }}>{taller?.contacto}</div>
         </div>
+        <button onClick={buildShareLink} title="Enviar link del pedido" className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0 transition-colors hover:bg-[#252525]" style={{ color: 'var(--pp-text3)' }}>
+          <Share2 className="w-4 h-4" />
+        </button>
       </div>
       <FormField label="Estado del pedido">
-        <select value={estado} onChange={e => setEstado(e.target.value)} className={inputClass}>
+        <select value={estado} onChange={e => handleEstadoChange(e.target.value)} className={inputClass}>
           {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
         </select>
       </FormField>
       <div>
-        <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: 'var(--pp-text9)', letterSpacing: '.06em' }}>Progreso</p>
-        <StatusStepper estado={estado} />
+        <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: 'var(--pp-text9)', letterSpacing: '.06em' }}>Progreso <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>· toca un paso para cambiar el estado</span></p>
+        <StatusStepper estado={estado} onSelect={handleEstadoChange} />
       </div>
       {['pedido_fabrica','ordenadas','esperando_piezas','en_transito','recibido','entregado'].includes(estado) && (
         <FormField label="Fecha estimada de entrega">
-          <input type="date" value={fechaEntrega} onChange={e => setFechaEntrega(e.target.value)} className={inputClass} />
+          <input type="date" value={fechaEntrega} onChange={e => handleFechaChange(e.target.value)} className={inputClass} />
+          {fechaSugerida && <p className="text-[11px] mt-1 flex items-center gap-1" style={{ color: '#a78bfa' }}><Sparkles className="w-3 h-3" /> Sugerida automáticamente{avgLeadDays ? ` (promedio histórico: ${avgLeadDays} días)` : ''}. Puedes ajustarla.</p>}
         </FormField>
       )}
       <div className="grid grid-cols-2 gap-3">
         <FormField label="No. PO"><input value={numeroPO} onChange={e => setNumeroPO(e.target.value)} placeholder="ej. Emma" className={inputClass} /></FormField>
         <FormField label="No. Orden"><input value={numeroOrden} onChange={e => setNumeroOrden(e.target.value)} placeholder="ej. M26243" className={inputClass} /></FormField>
       </div>
-      {order.notas && (
-        <div className="rounded-[11px] p-3" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
-          <p className="text-[10.5px] font-bold uppercase mb-1" style={{ color: '#f59e0b' }}>Notas del taller</p>
-          <p className="text-[13px]" style={{ color: '#7c5a14' }}>{order.notas}</p>
-        </div>
-      )}
+      {order.notas && <TallerNotes text={order.notas} />}
       <div>
         <div className="flex items-center gap-2 mb-2">
           <p className="text-[12.5px] font-semibold" style={{ color: 'var(--pp-text2)' }}>Notas internas</p>
@@ -111,11 +176,11 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
           style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }} />
       </div>
       {saved && <div className="flex items-center gap-2 px-3 py-2.5 rounded-[11px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}><CheckCircle2 className="w-4 h-4" /> Cambios guardados.</div>}
-      <div className="flex gap-3">
-        <button onClick={async () => { setSaving(true); try { await onChangeStatus(order.id, estado, fechaEntrega); await onUpdateReferencias(order.id, { numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim() }); await onUpdateNotes(order.id, notasInt); setSaved(true); setTimeout(() => setSaved(false), 2500); } finally { setSaving(false); } }} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
+      <div className="flex items-center gap-3">
+        <button onClick={handleSave} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
           {saving ? 'Guardando…' : 'Guardar cambios'}
         </button>
-        <button onClick={() => { if (window.confirm('¿Eliminar este pedido?')) onDeleteOrder(order.id); }} className="px-4 py-[13px] rounded-[11px] border text-[13px] font-semibold hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text3)' }}>
+        <button onClick={() => { if (window.confirm('¿Eliminar este pedido?')) onDeleteOrder(order.id); }} title="Eliminar pedido" className="w-[46px] h-[46px] flex-shrink-0 rounded-[11px] flex items-center justify-center transition-colors" style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)', color: '#f87171' }}>
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
@@ -232,6 +297,9 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
                   <Mail className="w-3.5 h-3.5" /> Correo
                 </button>
               )}
+              <button onClick={buildShareLink} title="Enviar link del pedido" className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0 transition-colors hover:bg-[#1a1a1a]" style={{ color: 'var(--pp-text3)' }}>
+                <Share2 className="w-4 h-4" />
+              </button>
             </div>
 
             {/* Email expandido */}
@@ -255,20 +323,22 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
               <p className="text-[10.5px] font-bold uppercase mb-3" style={{ color: 'var(--pp-text9)', letterSpacing: '.08em' }}>Detalles del pedido</p>
               <div className="space-y-3">
                 <FormField label="Estado del pedido">
-                  <select value={estado} onChange={e => setEstado(e.target.value)} className={inputClass}>
+                  <select value={estado} onChange={e => handleEstadoChange(e.target.value)} className={inputClass}>
                     {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
                   </select>
                 </FormField>
 
                 <div>
-                  <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: 'var(--pp-text9)', letterSpacing: '.06em' }}>Progreso</p>
-                  <StatusStepper estado={estado} />
+                  <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: 'var(--pp-text9)', letterSpacing: '.06em' }}>Progreso <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>· clic en un paso para cambiar el estado</span></p>
+                  <StatusStepper estado={estado} onSelect={handleEstadoChange} />
                 </div>
 
                 {['pedido_fabrica','ordenadas','esperando_piezas','en_transito','recibido','entregado'].includes(estado) && (
                   <FormField label="Fecha estimada de entrega">
-                    <input type="date" value={fechaEntrega} onChange={e => setFechaEntrega(e.target.value)} className={inputClass} />
-                    {fechaEntrega && <p className="text-[11px] mt-1 flex items-center gap-1" style={{ color: '#2563eb' }}><Calendar className="w-3 h-3" /> El taller verá esta fecha en su portal.</p>}
+                    <input type="date" value={fechaEntrega} onChange={e => handleFechaChange(e.target.value)} className={inputClass} />
+                    {fechaSugerida ? (
+                      <p className="text-[11px] mt-1 flex items-center gap-1" style={{ color: '#a78bfa' }}><Sparkles className="w-3 h-3" /> Sugerida automáticamente{avgLeadDays ? ` (promedio histórico: ${avgLeadDays} días)` : ''}. Puedes ajustarla.</p>
+                    ) : fechaEntrega && <p className="text-[11px] mt-1 flex items-center gap-1" style={{ color: '#2563eb' }}><Calendar className="w-3 h-3" /> El taller verá esta fecha en su portal.</p>}
                   </FormField>
                 )}
 
@@ -277,12 +347,7 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
                   <FormField label="No. Orden"><input value={numeroOrden} onChange={e => setNumeroOrden(e.target.value)} placeholder="ej. M26243" className={inputClass} /></FormField>
                 </div>
 
-                {order.notas && (
-                  <div className="rounded-[11px] p-3" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                    <p className="text-[10.5px] font-bold uppercase mb-1" style={{ color: '#f59e0b', letterSpacing: '.05em' }}>Notas del taller</p>
-                    <p className="text-[13px]" style={{ color: '#7c5a14' }}>{order.notas}</p>
-                  </div>
-                )}
+                {order.notas && <TallerNotes text={order.notas} />}
 
                 {order.archivo && (
                   <div>
@@ -311,56 +376,24 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
 
             {saved && <div className="flex items-center gap-2 px-3 py-2.5 rounded-[11px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}><CheckCircle2 className="w-4 h-4" /> Cambios guardados.</div>}
 
-            {/* Notificación piezas listas — solo cuando estado = recibido y taller tiene email */}
-            {estado === 'recibido' && taller?.email && (() => {
-              const subject = encodeURIComponent(`✅ Piezas listas para entrega — ${order.vehiculo || ''}${order.pieza ? ` (${order.pieza})` : ''}`);
-              const body = encodeURIComponent(
-                `Hola ${taller.contacto || ''},\n\n` +
-                `Te informamos que las piezas de tu pedido están listas en nuestra tienda y esperando la fecha de entrega.\n\n` +
-                `📋 Detalles del pedido:\n` +
-                `• Vehículo: ${order.vehiculo || '—'}\n` +
-                (order.pieza ? `• Pieza: ${order.pieza}\n` : '') +
-                (order.numeroPO ? `• No. PO: ${order.numeroPO}\n` : '') +
-                (order.numeroOrden ? `• No. Orden: ${order.numeroOrden}\n` : '') +
-                `\nPor favor contáctanos para coordinar la fecha y hora de entrega.\n\n` +
-                `Saludos,\nDepartamento de Piezas — Parts Pilot`
-              );
-              return (
-                <a
-                  href={`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(taller.email)}&su=${subject}&body=${body}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:brightness-105 transition-all"
-                  style={{ background: 'linear-gradient(160deg, #059669, #047857)', boxShadow: '0 8px 18px -8px rgba(5,150,105,.4)' }}
-                >
-                  <Mail className="w-4 h-4" />
-                  Notificar al taller — piezas listas
-                </a>
-              );
-            })()}
+            {/* Notificación piezas listas — solo cuando estado = recibido y hay un canal de contacto */}
+            {estado === 'recibido' && (taller?.email || whatsappNumber) && (
+              <button
+                type="button"
+                onClick={openNotify}
+                className="flex items-center justify-center gap-2 w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:brightness-105 transition-all"
+                style={{ background: 'linear-gradient(160deg, #059669, #047857)', boxShadow: '0 8px 18px -8px rgba(5,150,105,.4)' }}
+              >
+                <Mail className="w-4 h-4" />
+                Notificar al taller — piezas listas
+              </button>
+            )}
 
-            <button
-              type="button"
-              onClick={() => {
-                const url = `${window.location.origin}${window.location.pathname}?order=${order.id}`;
-                const folio = order.folio || order.id.slice(0, 8);
-                const ref = order.numeroPO || folio;
-                const subject = encodeURIComponent(`Estado de tu pedido ${ref} – Parts Pilot`);
-                const body = encodeURIComponent(`Hola${taller?.contacto ? ` ${taller.contacto}` : ''},\n\nPuedes ver el estado de tu pedido "${order.vehiculo}" (${ref}) aquí:\n\n${url}\n\nSaludos.`);
-                const to = taller?.email ? `&to=${encodeURIComponent(taller.email)}` : '';
-                window.open(`https://mail.google.com/mail/?view=cm${to}&su=${subject}&body=${body}`, '_blank');
-              }}
-              className="w-full py-[11px] rounded-[11px] text-[13px] font-semibold border flex items-center justify-center gap-2 hover:bg-[#1e1e1e] transition-colors"
-              style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}
-            >
-              <Share2 className="w-4 h-4" /> Enviar link del pedido
-            </button>
-
-            <div className="flex gap-3">
+            <div className="flex items-center gap-3">
               <button onClick={handleSave} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
                 {saving ? 'Guardando…' : 'Guardar cambios'}
               </button>
-              <button onClick={() => { if (window.confirm('¿Eliminar este pedido?')) onDeleteOrder(order.id); }} className="flex items-center gap-2 px-4 py-[13px] rounded-[11px] border text-[13px] font-semibold hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text3)' }}>
+              <button onClick={() => { if (window.confirm('¿Eliminar este pedido?')) onDeleteOrder(order.id); }} title="Eliminar pedido" className="flex items-center gap-2 px-4 py-[13px] rounded-[11px] text-[13px] font-semibold transition-colors hover:brightness-110" style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)', color: '#f87171' }}>
                 <Trash2 className="w-4 h-4" /> Eliminar
               </button>
             </div>
@@ -432,6 +465,46 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
           </div>
         </div>
       </div>
+
+      {showNotify && (
+        <Modal title="Notificar al taller · Piezas listas" onClose={() => setShowNotify(false)}>
+          <div className="space-y-4">
+            <p className="text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>Revisa y edita el mensaje antes de enviarlo por el canal que prefieras.</p>
+            <FormField label="Mensaje">
+              <textarea value={notifyBody} onChange={e => setNotifyBody(e.target.value)} rows={9} className={`${inputClass} resize-none`} />
+            </FormField>
+            <div className="grid gap-2.5" style={{ gridTemplateColumns: taller?.email && whatsappNumber ? '1fr 1fr' : '1fr' }}>
+              {taller?.email && (
+                <a
+                  href={`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(taller.email)}&su=${encodeURIComponent(`Piezas listas para entrega — ${order.vehiculo || ''}${order.pieza ? ` (${order.pieza})` : ''}`)}&body=${encodeURIComponent(notifyBody)}`}
+                  target="_blank" rel="noreferrer"
+                  className="flex items-center justify-center gap-2 py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:brightness-105 transition-all"
+                  style={{ background: 'linear-gradient(160deg, #059669, #047857)' }}
+                >
+                  <Mail className="w-4 h-4" /> Abrir en correo
+                </a>
+              )}
+              {whatsappNumber && (
+                <a
+                  href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(notifyBody)}`}
+                  target="_blank" rel="noreferrer"
+                  className="flex items-center justify-center gap-2 py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:brightness-105 transition-all"
+                  style={{ background: 'linear-gradient(160deg, #25D366, #1DA851)' }}
+                >
+                  <MessageCircle className="w-4 h-4" /> Abrir en WhatsApp
+                </a>
+              )}
+            </div>
+            <button
+              onClick={() => navigator.clipboard.writeText(notifyBody).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); })}
+              className="w-full py-2.5 rounded-[11px] text-[13px] font-semibold border flex items-center justify-center gap-2 hover:bg-[#1e1e1e] transition-colors"
+              style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}
+            >
+              {copied ? <><CheckCircle2 className="w-4 h-4" /> ¡Copiado!</> : <><Paperclip className="w-4 h-4" /> Copiar mensaje</>}
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

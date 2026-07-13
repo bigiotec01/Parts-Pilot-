@@ -15,7 +15,7 @@ export function StatusBadge({ estado }) {
   );
 }
 
-export function StatusStepper({ estado }) {
+export function StatusStepper({ estado, onSelect }) {
   const { statusConfig } = useTheme();
   const currentIndex = STATUS_ORDER.indexOf(estado);
   const pct = Math.round((currentIndex / (STATUS_ORDER.length - 1)) * 100);
@@ -36,11 +36,17 @@ export function StatusStepper({ estado }) {
           const isDone = i < currentIndex;
           const isCurrent = i === currentIndex;
           const active = isDone || isCurrent;
+          const Node = onSelect ? 'button' : 'div';
           return (
             <div key={status} className="flex items-center">
-              <div className="flex flex-col items-center gap-1.5 w-14 sm:w-16">
+              <Node
+                type={onSelect ? 'button' : undefined}
+                onClick={onSelect ? () => onSelect(status) : undefined}
+                className={`flex flex-col items-center gap-1.5 w-14 sm:w-16 ${onSelect ? 'cursor-pointer group' : ''}`}
+                title={onSelect ? `Cambiar a: ${scfg.label}` : undefined}
+              >
                 <div
-                  className="w-3.5 h-3.5 rounded-full"
+                  className={onSelect ? 'w-3.5 h-3.5 rounded-full transition-transform group-hover:scale-125' : 'w-3.5 h-3.5 rounded-full'}
                   style={{
                     background: active ? scfg.dot : 'var(--pp-step-inactive)',
                     boxShadow: isCurrent ? `0 0 0 4px ${scfg.bg}` : 'none',
@@ -52,7 +58,7 @@ export function StatusStepper({ estado }) {
                 >
                   {scfg.short}
                 </span>
-              </div>
+              </Node>
               {i < STATUS_ORDER.length - 1 && (
                 <div
                   className="h-0.5 w-6 sm:w-10 -mt-4"

@@ -26,4 +26,15 @@ export const STATUS_CONFIG_LIGHT = {
   entregado:        { ...STATUS_CONFIG.entregado,        bg: '#F0FDFA',  dot: '#0D9488', tx: '#0D9488' },
 };
 
+/* ── Avance rápido de estado ── */
+// Solo se puede "avanzar" con un clic desde estados operativos internos;
+// 'pendiente' y 'cotizando' dependen de acciones externas (cotizar / respuesta del taller).
+const ADVANCEABLE = ['pedido_fabrica', 'ordenadas', 'esperando_piezas', 'en_transito', 'recibido'];
+
+export function getNextStatus(estado) {
+  if (!ADVANCEABLE.includes(estado)) return null;
+  const idx = STATUS_ORDER.indexOf(estado);
+  return STATUS_ORDER[idx + 1] || null;
+}
+
 /* ── Tema ── */

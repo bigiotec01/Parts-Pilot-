@@ -1,5 +1,5 @@
 import {
-  FileText, LogOut, Plus, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt
+  FileText, LogOut, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt
 } from 'lucide-react';
 import { APP_VERSION } from '../../constants/app';
 import { ThemeToggleBtn } from '../shared/ThemeToggleBtn';
@@ -13,7 +13,6 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
     canView('pedidos')   && { id: 'historial',  label: 'Historial',  icon: History },
   ].filter(Boolean);
   const secondaryItems = [
-    canEdit('pedidos')   && { id: 'nuevo',      label: 'Nuevo pedido',    icon: Plus },
     canEdit('estimados') && { id: 'cotizacion', label: 'Nueva cotización', icon: ClipboardCheck },
     canView('facturas')  && { id: 'facturas',   label: 'Facturas',         icon: Receipt },
     canManageEquipo      && { id: 'equipo',     label: 'Equipo',           icon: Users },
@@ -32,7 +31,7 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
           color: 'var(--pp-text)',
-        } : { background: 'transparent', border: '1px solid transparent', color: 'var(--pp-text2)' }}
+        } : { background: 'transparent', border: '1px solid transparent', color: 'var(--pp-text7)' }}
       >
         <Icon className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={1.8} />
         {label}

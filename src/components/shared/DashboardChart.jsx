@@ -10,7 +10,18 @@ export function DashboardChart({ pedidos }) {
     if (m) { m.total++; if (p.estado === 'entregado') m.entregados++; }
   });
   const max = Math.max(...months.map(m => m.total), 1);
+  const totalPedidos = months.reduce((s, m) => s + m.total, 0);
   const H = 150;
+
+  if (totalPedidos === 0) {
+    return (
+      <div className="mt-5 flex flex-col items-center justify-center gap-1.5 text-center" style={{ height: H + 40 }}>
+        <p className="text-[13px] font-semibold" style={{ color: 'var(--pp-text2)' }}>Sin pedidos en los últimos 6 meses</p>
+        <p className="text-[11.5px]" style={{ color: 'var(--pp-text3)' }}>El gráfico se llenará conforme registres pedidos.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-5">
       <div className="flex items-end gap-3.5" style={{ height: H }}>
@@ -20,8 +31,8 @@ export function DashboardChart({ pedidos }) {
           const procPx = totalPx - donePx;
           return (
             <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-              {m.total > 0 && <span className="text-[11.5px] font-bold" style={{ color: 'var(--pp-text3)' }}>{m.total}</span>}
-              <div className="w-full max-w-[46px] rounded-[7px] overflow-hidden flex flex-col justify-end" style={{ height: totalPx || 0 }}>
+              <span className="text-[11.5px] font-bold" style={{ color: m.total > 0 ? 'var(--pp-text3)' : 'var(--pp-text5)' }}>{m.total}</span>
+              <div className="w-full max-w-[46px] rounded-[7px] overflow-hidden flex flex-col justify-end" style={{ height: totalPx || 2, background: totalPx ? undefined : 'var(--pp-border2)' }}>
                 {procPx > 0 && <div style={{ background: 'var(--pp-accent)', height: procPx }} />}
                 {donePx > 0 && <div style={{ background: '#14b8a6', height: donePx }} />}
               </div>
