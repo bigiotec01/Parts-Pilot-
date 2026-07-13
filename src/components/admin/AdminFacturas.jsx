@@ -10,16 +10,23 @@ import { fmtCur, fmtDateDisp, formatDate } from '../../utils/format';
 
 export function FacturaInlineRow({ form, setForm, onSave, onCancel, saving }) {
   const inp = "px-2 py-1 rounded-[8px] border text-[16px] outline-none focus:border-[#a0a0a0]";
+  // Si aún no hay monto pagado, asumimos que un # de cheque o fecha de pago
+  // significa que se liquidó completa; el admin puede corregirlo si fue parcial.
+  const autoFillPagado = (patch) => setForm(f => {
+    const next = { ...f, ...patch };
+    if (!Number(f.pagado) && Number(f.valor) > 0) next.pagado = f.valor;
+    return next;
+  });
   return (
-    <tr style={{ background: 'var(--pp-card)', borderTop: '1px solid var(--pp-border2)' }}>
+    <tr style={{ background: 'var(--pp-active-bg)', boxShadow: 'inset 3px 0 0 var(--pp-accent)', borderTop: '1px solid var(--pp-active-border)', borderBottom: '1px solid var(--pp-active-border)' }}>
       <td className="py-2 pl-5 pr-1"><input type="date" value={form.fechaFactura || ''} onChange={e => setForm(f => ({ ...f, fechaFactura: e.target.value }))} onClick={e => { try { e.target.showPicker(); } catch(_) {} }} className={`w-[130px] cursor-pointer ${inp}`} style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)', colorScheme: 'var(--pp-color-scheme)' }} /></td>
       <td className="py-2 px-1"><input value={form.numeroFactura || ''} onChange={e => setForm(f => ({ ...f, numeroFactura: e.target.value }))} placeholder="# Factura" className={`w-[88px] font-mono ${inp}`} style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)' }} /></td>
       <td className="py-2 px-1"><input value={form.poTag || ''} onChange={e => setForm(f => ({ ...f, poTag: e.target.value }))} placeholder="PO Tag" className={`w-[88px] font-mono ${inp}`} style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)' }} /></td>
       <td className="py-2 px-1"><input type="number" step="0.01" value={form.valor || ''} onChange={e => setForm(f => ({ ...f, valor: e.target.value }))} placeholder="0.00" className={`w-[90px] ${inp}`} style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)' }} /></td>
       <td className="py-2 px-1"><input type="number" step="0.01" value={form.pagado || ''} onChange={e => setForm(f => ({ ...f, pagado: e.target.value }))} placeholder="0.00" className={`w-[90px] ${inp}`} style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)' }} /></td>
       <td className="py-2 px-2 text-[12.5px] font-semibold" style={{ color: '#b7791f' }}>{fmtCur(Number(form.valor || 0) - Number(form.pagado || 0))}</td>
-      <td className="py-2 px-1"><input value={form.numeroCheck || ''} onChange={e => setForm(f => ({ ...f, numeroCheck: e.target.value }))} placeholder="Check" className={`w-[80px] font-mono ${inp}`} style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)' }} /></td>
-      <td className="py-2 px-1"><input type="date" value={form.fechaPago || ''} onChange={e => setForm(f => ({ ...f, fechaPago: e.target.value }))} onClick={e => { try { e.target.showPicker(); } catch(_) {} }} className={`w-[130px] cursor-pointer ${inp}`} style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)', colorScheme: 'var(--pp-color-scheme)' }} /></td>
+      <td className="py-2 px-1"><input value={form.numeroCheck || ''} onChange={e => autoFillPagado({ numeroCheck: e.target.value })} placeholder="Check" className={`w-[80px] font-mono ${inp}`} style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)' }} /></td>
+      <td className="py-2 px-1"><input type="date" value={form.fechaPago || ''} onChange={e => autoFillPagado({ fechaPago: e.target.value })} onClick={e => { try { e.target.showPicker(); } catch(_) {} }} className={`w-[130px] cursor-pointer ${inp}`} style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)', colorScheme: 'var(--pp-color-scheme)' }} /></td>
       <td className="py-2 pl-1 pr-4">
         <div className="flex gap-1">
           <button onClick={onSave} disabled={saving} className="w-7 h-7 rounded-[8px] flex items-center justify-center text-white text-[13px] font-bold" style={{ background: '#10b981' }}>✓</button>
@@ -56,6 +63,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
   const [creatingBackup, setCreatingBackup] = useState(false);
   const [restoringId, setRestoringId] = useState(null);
   const [backupError, setBackupError] = useState('');
+  const [cuentaGuardada, setCuentaGuardada] = useState(false);
 
   const handleCrearBackup = async () => {
     setCreatingBackup(true);
@@ -168,6 +176,8 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
   const saveCuenta = async (num) => {
     if (!tallerSel) return;
     await onUpdateTaller(tallerSel, { [`numeroCuentas.${marca}`]: num });
+    setCuentaGuardada(true);
+    setTimeout(() => setCuentaGuardada(false), 2000);
   };
 
   const toDateStr = (val) => {
@@ -285,8 +295,10 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
           </select>
           <div className="flex gap-1 p-1 rounded-[10px]" style={{ background: 'var(--pp-card)' }}>
             {MARCAS_FACTURA.map(m => (
-              <button key={m} onClick={() => setMarca(m)} className="px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all"
-                style={{ background: marca === m ? 'var(--pp-surface)' : 'transparent', color: marca === m ? 'var(--pp-text)' : 'var(--pp-text3)', boxShadow: marca === m ? '0 1px 4px rgba(0,0,0,.2)' : 'none' }}>
+              <button key={m} onClick={() => setMarca(m)} className="px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all border"
+                style={marca === m
+                  ? { background: 'var(--pp-accent)', color: '#fff', borderColor: 'var(--pp-accent)', boxShadow: '0 2px 8px -2px rgba(0,0,0,.35)' }
+                  : { background: 'transparent', color: 'var(--pp-text3)', borderColor: 'transparent' }}>
                 {m}
               </button>
             ))}
@@ -377,7 +389,13 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
               className="px-3 py-1.5 rounded-[9px] border text-[13px] font-mono w-36 outline-none focus:border-[#a0a0a0]"
               style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)' }}
             />
-            <span className="text-[11.5px]" style={{ color: 'var(--pp-text3)' }}>Se guarda al salir del campo</span>
+            {cuentaGuardada ? (
+              <span className="flex items-center gap-1 text-[11.5px] font-semibold" style={{ color: '#34d399', animation: 'ppRise .2s ease both' }}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> Guardado
+              </span>
+            ) : (
+              <span className="text-[11.5px]" style={{ color: 'var(--pp-text3)' }}>Se guarda al salir del campo</span>
+            )}
           </>
         ) : (
           <span className="px-3 py-1.5 rounded-[9px] border text-[13px] font-mono w-36 select-all" style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-bg)', color: 'var(--pp-text2)' }}>
@@ -441,15 +459,6 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
               )
             )}
             {addingRow && <FacturaInlineRow form={newForm} setForm={setNewForm} onSave={saveNew} onCancel={() => setAddingRow(false)} saving={saving} />}
-            {!addingRow && !readOnly && (
-              <tr style={{ borderTop: '1px solid var(--pp-border2)' }}>
-                <td colSpan={9} className="py-2 pl-5">
-                  <button onClick={startAdd} className="flex items-center gap-1.5 text-[12.5px] font-semibold transition-colors hover:text-[#a0a0a0]" style={{ color: 'var(--pp-text3)' }}>
-                    <Plus className="w-4 h-4" strokeWidth={2.5} /> Añadir fila
-                  </button>
-                </td>
-              </tr>
-            )}
           </tbody>
           {facturasPendientes.length > 0 && (
             <tfoot>
@@ -478,7 +487,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
             Facturas pagadas ({facturasPagadasVivas.length})
           </button>
           {showPagadas && (
-            <div className="mt-3 space-y-3">
+            <div className="mt-3 space-y-3" style={{ animation: 'ppRise .22s cubic-bezier(.2,.8,.2,1) both' }}>
               {/* Filtros de fecha */}
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-[12.5px] font-semibold" style={{ color: 'var(--pp-text2)' }}>Filtrar por fecha:</span>
@@ -577,7 +586,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
               Historial de pagadas archivadas ({facturasArchivadas.length})
             </button>
             {showArchived && (
-              <div className="mt-3 space-y-3">
+              <div className="mt-3 space-y-3" style={{ animation: 'ppRise .22s cubic-bezier(.2,.8,.2,1) both' }}>
                 {/* Filtros de fecha archivadas */}
                 <div className="flex items-center gap-3 flex-wrap">
                   <span className="text-[12.5px] font-semibold" style={{ color: 'var(--pp-text2)' }}>Filtrar por fecha:</span>
@@ -660,7 +669,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
             Respaldo de facturas ({backups.length})
           </button>
           {showBackups && (
-            <div className="mt-3 space-y-3 rounded-[16px] border p-4" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+            <div className="mt-3 space-y-3 rounded-[16px] border p-4" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', animation: 'ppRise .22s cubic-bezier(.2,.8,.2,1) both' }}>
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <p className="text-[12.5px] max-w-md" style={{ color: 'var(--pp-text2)' }}>
                   Guarda una copia con fecha de las {facturas.length} facturas actuales (todos los talleres y marcas). Podés usarla más adelante para restaurar si algo sale mal.
