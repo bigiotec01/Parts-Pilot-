@@ -3,7 +3,7 @@ import {
   Clock, FileText, Building2, ChevronRight, ClipboardList, CheckCircle2, ChevronUp, ChevronDown, ChevronsUpDown, Eye, ArrowRightCircle
 } from 'lucide-react';
 import { hasNewActivity } from '../../utils/activity';
-import { formatDate } from '../../utils/format';
+import { formatDate, cleanText } from '../../utils/format';
 import { StatusBadge } from '../shared/StatusBadge';
 import { StatCard } from '../shared/StatCard';
 import { DashboardChart } from '../shared/DashboardChart';
@@ -81,7 +81,7 @@ export function AdminDashboard({ pedidos, solicitudes, talleres, getTaller, onSe
                 <span className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5" style={{ background: 'var(--pp-accent)' }} />
                 <div className="min-w-0 flex-1">
                   <div className="text-[13px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</div>
-                  <div className="text-[11.5px] truncate" style={{ color: 'var(--pp-text2)' }}>{getTaller(p.tallerId)?.nombre} · {p.pieza || p.notas?.slice(0,30)}</div>
+                  <div className="text-[11.5px] truncate" style={{ color: 'var(--pp-text2)' }}>{getTaller(p.tallerId)?.nombre} · {p.pieza || cleanText(p.notas)?.slice(0,30)}</div>
                 </div>
                 <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--pp-text3)' }} />
               </button>

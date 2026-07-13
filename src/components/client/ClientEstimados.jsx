@@ -1,8 +1,8 @@
 import {
-  Clock, FileText, ThumbsUp, ThumbsDown, MessageSquare
+  Clock, FileText, ThumbsUp, ThumbsDown, MessageSquare, MessageCircle
 } from 'lucide-react';
 import { hasNewActivity } from '../../utils/activity';
-import { formatDate } from '../../utils/format';
+import { formatDate, cleanText } from '../../utils/format';
 import { StatusBadge } from '../shared/StatusBadge';
 
 export function EstimateCard({ order }) {
@@ -13,7 +13,7 @@ export function EstimateCard({ order }) {
         <h3 className="font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{order.referencia || order.vehiculo}</h3>
         {order.referencia && <p className="text-sm truncate" style={{ color: 'var(--pp-text2)' }}>{order.vehiculo}</p>}
       </div>
-      {estimado.notas && <p className="text-sm mb-3 rounded-lg p-2" style={{ color: 'var(--pp-text2)', background: 'var(--pp-card)' }}>{estimado.notas}</p>}
+      {estimado.notas && <p className="text-sm mb-3 rounded-lg p-2" style={{ color: 'var(--pp-text2)', background: 'var(--pp-card)' }}>{cleanText(estimado.notas)}</p>}
       {estimado.archivo && (
         <a href={estimado.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors mb-3 border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
           <FileText className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{estimado.archivo.name}</span>
@@ -34,7 +34,7 @@ export function EstimateActions({ order, onRespond }) {
         <button onClick={() => onRespond(order.id, 'aceptado')} className="flex-1 py-[11px] rounded-[11px] text-white text-[13px] font-bold flex items-center justify-center gap-1.5 transition-colors" style={{ background: '#10b981' }}>
           <ThumbsUp className="w-4 h-4" /> Aprobar Estimado
         </button>
-        <button onClick={() => onRespond(order.id, 'rechazado')} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold flex items-center justify-center gap-1.5 border transition-colors hover:bg-[#1e1e1e]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+        <button onClick={() => onRespond(order.id, 'rechazado')} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold flex items-center justify-center gap-1.5 border transition-colors hover:brightness-110" style={{ background: 'rgba(220,38,38,0.06)', borderColor: 'rgba(220,38,38,0.3)', color: '#dc2626' }}>
           <ThumbsDown className="w-4 h-4" /> Rechazar
         </button>
       </div>
@@ -108,7 +108,7 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
                   )}
                 </div>
                 {p.estimado?.notas && (
-                  <p className="text-sm rounded-lg p-2.5" style={{ color: 'var(--pp-text2)', background: 'var(--pp-card)' }}>{p.estimado.notas}</p>
+                  <p className="text-sm rounded-lg p-2.5" style={{ color: 'var(--pp-text2)', background: 'var(--pp-card)' }}>{cleanText(p.estimado.notas)}</p>
                 )}
                 {p.estimado?.archivo && (
                   <a href={p.estimado.archivo.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
@@ -119,13 +119,13 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
                   <button onClick={e => { e.stopPropagation(); onRespond(p.id, 'aceptado'); }} className="flex-1 py-[11px] rounded-[11px] text-white text-[13px] font-bold flex items-center justify-center gap-1.5 transition-colors hover:brightness-105" style={{ background: '#10b981' }}>
                     <ThumbsUp className="w-4 h-4" /> Aprobar Estimado
                   </button>
-                  <button onClick={e => { e.stopPropagation(); onRespond(p.id, 'rechazado'); }} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold border flex items-center justify-center gap-1.5 transition-colors hover:bg-[#1e1e1e]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+                  <button onClick={e => { e.stopPropagation(); onRespond(p.id, 'rechazado'); }} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold border flex items-center justify-center gap-1.5 transition-colors hover:brightness-110" style={{ background: 'rgba(220,38,38,0.06)', borderColor: 'rgba(220,38,38,0.3)', color: '#dc2626' }}>
                     <ThumbsDown className="w-4 h-4" /> Rechazar
                   </button>
+                  <button onClick={e => { e.stopPropagation(); onSelect?.(p.id); }} title="Preguntar al vendedor" className="w-[44px] flex-shrink-0 rounded-[11px] flex items-center justify-center border transition-colors hover:bg-[#1e1e1e]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+                    <MessageCircle className="w-4 h-4" />
+                  </button>
                 </div>
-                <button onClick={e => { e.stopPropagation(); onSelect?.(p.id); }} className="w-full flex items-center justify-center gap-1.5 text-[11.5px] font-semibold py-1.5 rounded-[9px] border transition-colors hover:bg-[#1e1e1e]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
-                  <MessageSquare className="w-3.5 h-3.5" /> Preguntar al Vendedor
-                </button>
               </div>
               );
             })}
@@ -162,7 +162,7 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
                   </div>
                   <StatusBadge estado={p.estado} />
                 </div>
-                {p.notas && <p className="text-sm rounded-lg p-2.5 mb-2.5" style={{ color: 'var(--pp-text2)', background: 'var(--pp-card)' }}>{p.notas}</p>}
+                {p.notas && <p className="text-sm rounded-lg p-2.5 mb-2.5" style={{ color: 'var(--pp-text2)', background: 'var(--pp-card)' }}>{cleanText(p.notas)}</p>}
                 {p.archivo && (
                   <a href={p.archivo.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors mb-2.5 border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
                     <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{p.archivo.name}</span>

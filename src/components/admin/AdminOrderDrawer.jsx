@@ -9,17 +9,18 @@ import { OrderChat } from '../shared/OrderChat';
 import { FormField } from '../shared/FormField';
 import { Modal } from '../shared/Modal';
 import { inputClass } from '../../constants/styles';
-import { avgDeliveryLeadDays, suggestDeliveryDate } from '../../utils/format';
+import { avgDeliveryLeadDays, suggestDeliveryDate, cleanText } from '../../utils/format';
 
 const AUTO_DATE_STATES = ['en_transito', 'recibido'];
 
 function TallerNotes({ text }) {
   const [expanded, setExpanded] = useState(false);
-  const isLong = (text || '').length > 160;
+  const clean = cleanText(text) || '';
+  const isLong = clean.length > 160;
   return (
     <div className="rounded-[11px] p-3" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
       <p className="text-[10.5px] font-bold uppercase mb-1" style={{ color: '#f59e0b', letterSpacing: '.05em' }}>Notas del taller</p>
-      <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#7c5a14' }}>{isLong && !expanded ? text.slice(0, 160) + '…' : text}</p>
+      <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#7c5a14' }}>{isLong && !expanded ? clean.slice(0, 160) + '…' : clean}</p>
       {isLong && (
         <button type="button" onClick={() => setExpanded(v => !v)} className="mt-1 flex items-center gap-1 text-[11.5px] font-bold" style={{ color: '#b7791f' }}>
           {expanded ? <>Ver menos <ChevronUp className="w-3 h-3" /></> : <>Ver más <ChevronDown className="w-3 h-3" /></>}

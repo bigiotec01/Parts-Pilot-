@@ -2,7 +2,7 @@ import {
   Clock, FileText, Building2, Paperclip
 } from 'lucide-react';
 import { hasNewActivity } from '../../utils/activity';
-import { formatDate } from '../../utils/format';
+import { formatDate, cleanText } from '../../utils/format';
 
 export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
   if (solicitudes.length === 0) return (
@@ -54,7 +54,7 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
             </span>
           )}
         </div>
-        {p.notas && <p className="text-[13px] line-clamp-2 mt-2" style={{ color: 'var(--pp-text2)' }}>{p.notas}</p>}
+        {p.notas && <p className="text-[13px] line-clamp-2 mt-2" style={{ color: 'var(--pp-text2)' }}>{cleanText(p.notas)}</p>}
         {p.archivo && <p className="text-[11.5px] flex items-center gap-1 mt-1.5" style={{ color: 'var(--pp-text3)' }}><Paperclip className="w-3 h-3" />{p.archivo.name}</p>}
         <p className="font-mono text-[11.5px] mt-2.5" style={{ color: 'var(--pp-text3)' }}>{p.folio || p.id?.slice(0,8)} · {formatDate(p.fecha)}</p>
       </button>

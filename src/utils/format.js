@@ -1,3 +1,11 @@
+// Quita marcadores de markdown (**negrita**, *cursiva*) de texto escrito por
+// usuarios en campos libres, ya que la app no tiene un renderer de markdown
+// y esos asteriscos se veían literalmente en pantalla.
+export function cleanText(text) {
+  if (!text) return text;
+  return text.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1');
+}
+
 export function formatDate(d) {
   if (!d) return '—';
   // Firestore Timestamp tiene .toDate(), string no

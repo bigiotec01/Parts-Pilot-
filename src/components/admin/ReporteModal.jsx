@@ -2,7 +2,7 @@ import {
   Printer
 } from 'lucide-react';
 import { STATUS_CONFIG } from '../../constants/status';
-import { formatDate } from '../../utils/format';
+import { formatDate, cleanText } from '../../utils/format';
 import { StatusBadge } from '../shared/StatusBadge';
 import { Modal } from '../shared/Modal';
 
@@ -32,7 +32,7 @@ export function ReporteModal({ pedidos, talleres, onClose }) {
         <td>${STATUS_CONFIG[p.estado]?.label || p.estado}</td>
         <td>${toStr(p.fecha)}</td>
         <td style="color:#1d4ed8;font-weight:600">${toStr(p.fechaEntrega)}</td>
-        <td style="color:#57534e;font-size:10px">${(p.notas || '').replace(/</g, '&lt;')}</td>
+        <td style="color:#57534e;font-size:10px">${cleanText(p.notas || '').replace(/</g, '&lt;')}</td>
       </tr>`).join('');
 
     const html = `<!DOCTYPE html><html lang="es"><head>
@@ -109,7 +109,7 @@ export function ReporteModal({ pedidos, talleres, onClose }) {
                   <td className="px-3 py-2 font-semibold whitespace-nowrap">
                     {p.fechaEntrega ? <span className="text-blue-400">{formatDate(p.fechaEntrega)}</span> : <span style={{ color: 'var(--pp-text3)' }}>—</span>}
                   </td>
-                  <td className="px-3 py-2 max-w-[140px] truncate" style={{ color: 'var(--pp-text2)' }}>{p.notas || ''}</td>
+                  <td className="px-3 py-2 max-w-[140px] truncate" style={{ color: 'var(--pp-text2)' }}>{cleanText(p.notas) || ''}</td>
                 </tr>
               ))}
             </tbody>

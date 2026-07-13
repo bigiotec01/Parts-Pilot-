@@ -2,7 +2,7 @@ import {
   FileText, Calendar, Printer
 } from 'lucide-react';
 import { STATUS_CONFIG } from '../../constants/status';
-import { formatDate } from '../../utils/format';
+import { formatDate, cleanText } from '../../utils/format';
 import { StatusStepper } from '../shared/StatusBadge';
 import { InfoItem } from '../shared/FormField';
 import { EstimateActions } from './ClientEstimados';
@@ -21,8 +21,8 @@ export function ClientOrderDetail({ order, onRespond }) {
     <tr><th>Estado</th><td>${STATUS_CONFIG[order.estado]?.label || order.estado}</td></tr>
     <tr><th>Fecha registro</th><td>${order.fecha ? new Date(order.fecha?.toDate ? order.fecha.toDate() : order.fecha).toLocaleDateString('es-MX') : '—'}</td></tr>
     ${order.fechaEntrega ? `<tr><th>Entrega estimada</th><td>${new Date(order.fechaEntrega + 'T00:00:00').toLocaleDateString('es-MX')}</td></tr>` : ''}
-    ${order.notas ? `<tr><th>Notas</th><td>${order.notas}</td></tr>` : ''}
-    ${order.estimado?.notas ? `<tr><th>Estimado</th><td>${order.estimado.notas}</td></tr>` : ''}
+    ${order.notas ? `<tr><th>Notas</th><td>${cleanText(order.notas)}</td></tr>` : ''}
+    ${order.estimado?.notas ? `<tr><th>Estimado</th><td>${cleanText(order.estimado.notas)}</td></tr>` : ''}
     </table></body></html>`);
     w.document.close(); w.print();
   };
@@ -60,7 +60,7 @@ export function ClientOrderDetail({ order, onRespond }) {
       {order.notas && (
         <div className="rounded-lg p-3 text-sm" style={{ background: 'var(--pp-card)', color: 'var(--pp-text2)' }}>
           <p className="font-medium mb-1" style={{ color: 'var(--pp-text)' }}>Tus notas</p>
-          {order.notas}
+          {cleanText(order.notas)}
         </div>
       )}
 
@@ -74,7 +74,7 @@ export function ClientOrderDetail({ order, onRespond }) {
           <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--pp-text)' }}><FileText className="w-4 h-4" /> Estimado recibido</p>
           <div className="rounded-lg p-3 mb-3 space-y-2" style={{ background: 'var(--pp-card)' }}>
             {order.estimado.notas ? (
-              <p className="text-sm" style={{ color: 'var(--pp-text2)' }}>{order.estimado.notas}</p>
+              <p className="text-sm" style={{ color: 'var(--pp-text2)' }}>{cleanText(order.estimado.notas)}</p>
             ) : (
               <p className="text-sm italic" style={{ color: 'var(--pp-text3)' }}>Sin notas adicionales.</p>
             )}
