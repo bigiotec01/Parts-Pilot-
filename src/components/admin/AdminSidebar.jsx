@@ -31,7 +31,7 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
           color: 'var(--pp-text)',
-        } : { background: 'transparent', border: '1px solid transparent', color: 'var(--pp-text7)' }}
+        } : { background: 'transparent', border: '1px solid transparent', color: 'var(--pp-text)' }}
       >
         <Icon className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={1.8} />
         {label}

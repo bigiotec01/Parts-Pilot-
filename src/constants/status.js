@@ -20,7 +20,7 @@ export const STATUS_CONFIG_LIGHT = {
   cotizando:        { ...STATUS_CONFIG.cotizando,        bg: '#EFF6FF',  dot: '#2563EB', tx: '#2563EB' },
   pedido_fabrica:   { ...STATUS_CONFIG.pedido_fabrica,   bg: '#F5F3FF',  dot: '#7C3AED', tx: '#7C3AED' },
   ordenadas:        { ...STATUS_CONFIG.ordenadas,        bg: '#DCE7F6',  dot: '#2B6CB0', tx: '#2B6CB0' },
-  esperando_piezas: { ...STATUS_CONFIG.esperando_piezas, bg: '#FFFBEB',  dot: '#D97706', tx: '#D97706' },
+  esperando_piezas: { ...STATUS_CONFIG.esperando_piezas, bg: '#FFF7ED',  dot: '#C2410C', tx: '#C2410C' },
   en_transito:      { ...STATUS_CONFIG.en_transito,      bg: '#FEFCE8',  dot: '#A16207', tx: '#A16207' },
   recibido:         { ...STATUS_CONFIG.recibido,         bg: '#ECFDF5',  dot: '#059669', tx: '#059669' },
   entregado:        { ...STATUS_CONFIG.entregado,        bg: '#F0FDFA',  dot: '#0D9488', tx: '#0D9488' },

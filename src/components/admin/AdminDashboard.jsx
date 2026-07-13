@@ -114,7 +114,7 @@ export function AdminDashboard({ pedidos, solicitudes, talleres, getTaller, onSe
                 const active = sort.key === c.key;
                 const Icon = active ? (sort.dir === 'asc' ? ChevronUp : ChevronDown) : ChevronsUpDown;
                 return (
-                  <th key={c.key} className={`text-left py-3 text-[10.5px] font-bold uppercase ${i === 0 ? 'px-6' : 'px-3'} ${c.align === 'right' ? 'text-right pr-6' : ''} ${c.hideSm ? 'hidden sm:table-cell' : ''}`} style={{ color: active ? 'var(--pp-text)' : 'var(--pp-text3)', letterSpacing: '.06em' }}>
+                  <th key={c.key} className={`text-left py-3 text-[10.5px] font-bold uppercase ${i === 0 ? 'px-6' : 'px-3'} ${c.align === 'right' ? 'text-right pr-6' : ''} ${c.hideSm ? 'hidden sm:table-cell' : ''}`} style={{ color: active ? 'var(--pp-text)' : 'var(--pp-text6)', letterSpacing: '.06em' }}>
                     {sortable ? (
                       <button onClick={() => toggleSort(c.key)} className={`inline-flex items-center gap-1 hover:text-[var(--pp-text)] transition-colors ${c.align === 'right' ? 'flex-row-reverse' : ''}`}>
                         {c.label}<Icon className="w-3 h-3" />
