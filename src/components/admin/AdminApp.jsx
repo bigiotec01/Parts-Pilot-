@@ -228,6 +228,8 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
         canView={canView}
         canEdit={canEdit}
         canManageEquipo={canManageEquipo}
+        perfil={perfil}
+        isSuperadmin={isSuperadmin}
       />
       {mainContent}
       {selectedOrder && (

@@ -1,10 +1,11 @@
+import { useState, useEffect, useRef } from 'react';
 import {
-  FileText, LogOut, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt
+  FileText, LogOut, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt, ChevronUp
 } from 'lucide-react';
 import { APP_VERSION } from '../../constants/app';
 import { ThemeToggleBtn } from '../shared/ThemeToggleBtn';
 
-export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onLogout, canView, canEdit, canManageEquipo }) {
+export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onLogout, canView, canEdit, canManageEquipo, perfil, isSuperadmin }) {
   const primaryItems = [
     { id: 'dashboard',                     label: 'Resumen',    icon: LayoutDashboard },
     canView('pedidos')   && { id: 'pedidos',    label: 'Pedidos',    icon: ClipboardList, badge: pedidosCount },
@@ -17,6 +18,20 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
     canView('facturas')  && { id: 'facturas',   label: 'Facturas',         icon: Receipt },
     canManageEquipo      && { id: 'equipo',     label: 'Equipo',           icon: Users },
   ].filter(Boolean);
+
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    if (!showProfileMenu) return;
+    const handler = (e) => { if (profileRef.current && !profileRef.current.contains(e.target)) setShowProfileMenu(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showProfileMenu]);
+
+  const nombre = perfil?.nombre || 'Administrador';
+  const rol = isSuperadmin ? 'Superadmin' : 'Administrador';
+  const iniciales = nombre.split(' ').filter(w => w.length > 1).slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'AD';
 
   const NavBtn = ({ id, label, icon: Icon, badge, accent }) => {
     const active = activeTab === id;
@@ -71,22 +86,39 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
         </div>
       </div>
 
-      <div className="p-3.5">
-        <div className="rounded-[13px] p-3 flex items-center gap-2.5" style={{ background: 'var(--pp-card)' }}>
-          <div className="w-9 h-9 rounded-[9px] flex items-center justify-center text-[13px] font-bold flex-shrink-0" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text7)' }}>AD</div>
-          <div className="min-w-0 flex-1">
-            <div className="text-[12.5px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>Administrador</div>
-            <div className="text-[11px] truncate" style={{ color: 'var(--pp-text4)' }}>admin</div>
-          </div>
-          <div className="flex gap-1.5 flex-shrink-0">
-            <ThemeToggleBtn />
-            <button onClick={onLogout} className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: 'var(--pp-card)', color: 'var(--pp-text3)' }} title="Cerrar sesión">
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
-          </div>
+      <div className="px-3.5 pt-3.5">
+        <div className="relative" ref={profileRef}>
+          {showProfileMenu && (
+            <div className="absolute left-0 right-0 bottom-[calc(100%+8px)] rounded-[13px] border p-1.5 z-30" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border3)', boxShadow: '0 16px 40px rgba(0,0,0,0.45)', animation: 'ppRise .18s cubic-bezier(.2,.8,.2,1) both' }}>
+              <div className="flex items-center justify-between px-2.5 py-2">
+                <span className="text-[12.5px] font-semibold" style={{ color: 'var(--pp-text2)' }}>Apariencia</span>
+                <ThemeToggleBtn small />
+              </div>
+              <div className="my-1" style={{ borderTop: '1px solid var(--pp-border2)' }} />
+              <button
+                onClick={() => { setShowProfileMenu(false); onLogout(); }}
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[12.5px] font-semibold transition-colors hover:bg-red-900/20 hover:text-red-400"
+                style={{ color: 'var(--pp-text2)' }}
+              >
+                <LogOut className="w-4 h-4" /> Cerrar sesión
+              </button>
+            </div>
+          )}
+          <button
+            onClick={() => setShowProfileMenu(v => !v)}
+            className="w-full rounded-[13px] p-3 flex items-center gap-2.5 transition-colors hover:bg-[#252525]"
+            style={{ background: 'var(--pp-card)' }}
+          >
+            <div className="w-9 h-9 rounded-[9px] flex items-center justify-center text-[13px] font-bold flex-shrink-0" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text7)' }}>{iniciales}</div>
+            <div className="min-w-0 flex-1 text-left">
+              <div className="text-[12.5px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{nombre}</div>
+              <div className="text-[11px] truncate" style={{ color: 'var(--pp-text4)' }}>{rol}</div>
+            </div>
+            <ChevronUp className={`w-4 h-4 flex-shrink-0 transition-transform ${showProfileMenu ? '' : 'rotate-180'}`} style={{ color: 'var(--pp-text4)' }} />
+          </button>
         </div>
-        <div className="text-center mt-2 text-[10px]" style={{ color: 'var(--pp-text5)' }}>v{APP_VERSION}</div>
       </div>
+      <div className="text-center py-2 text-[10px]" style={{ color: 'var(--pp-text5)' }}>v{APP_VERSION}</div>
     </aside>
   );
 }
