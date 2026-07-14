@@ -11,10 +11,11 @@ import { inputClass } from '../../constants/styles';
 // (excluye 'cotizando', que vive en Estimados, y 'entregado', que vive en Historial).
 const KANBAN_STATUSES = STATUS_ORDER.filter(s => s !== 'cotizando' && s !== 'entregado');
 
-function KanbanBoard({ pedidos, getTaller, onSelect, onChangeStatus }) {
+function KanbanBoard({ pedidos, getTaller, onSelect, onChangeStatus, hideEmpty }) {
+  const statuses = hideEmpty ? KANBAN_STATUSES.filter(s => pedidos.some(p => p.estado === s)) : KANBAN_STATUSES;
   return (
     <div className="flex gap-3 overflow-x-auto pb-1" style={{ WebkitOverflowScrolling: 'touch' }}>
-      {KANBAN_STATUSES.map(status => {
+      {statuses.map(status => {
         const cfg = STATUS_CONFIG[status];
         const items = pedidos.filter(p => p.estado === status);
         return (
@@ -22,13 +23,13 @@ function KanbanBoard({ pedidos, getTaller, onSelect, onChangeStatus }) {
             <div className="flex items-center gap-2 px-3.5 py-3 flex-shrink-0" style={{ borderBottom: '1px solid var(--pp-border2)' }}>
               <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: cfg.dot }} />
               <span className="text-[12.5px] font-bold flex-1 truncate" style={{ color: 'var(--pp-text)' }}>{cfg.short}</span>
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text3)' }}>{items.length}</span>
+              <span className="text-[11px] font-bold min-w-[20px] text-center px-2 py-0.5 rounded-full" style={items.length > 0 ? { background: cfg.dot, color: '#fff' } : { background: 'var(--pp-surface)', color: 'var(--pp-text3)' }}>{items.length}</span>
             </div>
             <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5 pp-scroll">
               {items.length === 0 ? (
                 <p className="text-[12px] text-center py-6" style={{ color: 'var(--pp-text3)' }}>Sin pedidos</p>
               ) : items.map(p => (
-                <OrderCard key={p.id} order={p} taller={getTaller(p.tallerId)} showTaller onClick={() => onSelect(p.id)} activityRole="admin" onChangeStatus={onChangeStatus} />
+                <OrderCard key={p.id} order={p} taller={getTaller(p.tallerId)} showTaller onClick={() => onSelect(p.id)} activityRole="admin" onChangeStatus={onChangeStatus} compact />
               ))}
             </div>
           </div>
@@ -40,6 +41,7 @@ function KanbanBoard({ pedidos, getTaller, onSelect, onChangeStatus }) {
 
 export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFilterTaller, filterEstado, setFilterEstado, search, setSearch, onSelect, onExport, onChangeStatus }) {
   const [view, setView] = useState('tarjetas');
+  const [hideEmpty, setHideEmpty] = useState(true);
   const chips = [
     filterTaller !== 'todos' && { key: 'taller', label: talleres.find(t => t.uid === filterTaller)?.nombre || filterTaller, clear: () => setFilterTaller('todos') },
     filterEstado !== 'todos' && { key: 'estado', label: STATUS_CONFIG[filterEstado]?.label || filterEstado, clear: () => setFilterEstado('todos') },
@@ -59,6 +61,12 @@ export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFi
             <Columns3 className="w-3.5 h-3.5" /> Tablero
           </button>
         </div>
+        {view === 'tablero' && (
+          <label className="flex items-center gap-1.5 px-1 flex-shrink-0 cursor-pointer select-none">
+            <input type="checkbox" checked={hideEmpty} onChange={e => setHideEmpty(e.target.checked)} className="w-3.5 h-3.5" />
+            <span className="text-[12px] font-semibold whitespace-nowrap" style={{ color: 'var(--pp-text2)' }}>Ocultar columnas vacías</span>
+          </label>
+        )}
         <div className="relative flex-1">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--pp-text3)' }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio..." className={`${inputClass} pl-9`} />
@@ -94,7 +102,7 @@ export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFi
       {pedidos.length === 0 ? (
         <EmptyState text="No hay pedidos que coincidan con los filtros." />
       ) : view === 'tablero' ? (
-        <KanbanBoard pedidos={pedidos} getTaller={getTaller} onSelect={onSelect} onChangeStatus={onChangeStatus} />
+        <KanbanBoard pedidos={pedidos} getTaller={getTaller} onSelect={onSelect} onChangeStatus={onChangeStatus} hideEmpty={hideEmpty} />
       ) : (
         <div className="grid sm:grid-cols-2 gap-3">
           {pedidos.map(p => <OrderCard key={p.id} order={p} taller={getTaller(p.tallerId)} showTaller onClick={() => onSelect(p.id)} activityRole="admin" onChangeStatus={onChangeStatus} />)}

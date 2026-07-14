@@ -7,7 +7,7 @@ import { StatusBadge } from './StatusBadge';
 import { QuickActionsMenu } from './QuickActionsMenu';
 import { STATUS_CONFIG, getNextStatus } from '../../constants/status';
 
-export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0, activityRole, onChangeStatus }) {
+export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0, activityRole, onChangeStatus, compact }) {
   const hasActivity = activityRole ? hasNewActivity(activityRole, order) : false;
   const hasNewIds = order.numeroPO || order.numeroOrden;
   const cardTitle = !hasNewIds ? (order.referencia || order.vehiculo) : order.vehiculo;
@@ -20,7 +20,7 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
-      className="w-full text-left rounded-[15px] p-[17px] border-2 transition-all hover:border-[#a0a0a0] hover:shadow-[0_8px_24px_-14px_rgba(160,160,160,0.15)] relative cursor-pointer"
+      className={`w-full text-left rounded-[15px] ${compact ? 'p-3' : 'p-[17px]'} border-2 transition-all hover:border-[#a0a0a0] hover:shadow-[0_8px_24px_-14px_rgba(160,160,160,0.15)] relative cursor-pointer`}
       style={{ background: hasActivity ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasActivity ? '#f59e0b' : 'var(--pp-border)', boxShadow: hasActivity ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : 'none' }}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
@@ -46,14 +46,20 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
           {cardSub && <p className="text-[12.5px] mt-0.5 truncate" style={{ color: 'var(--pp-text2)' }}>{cardSub}</p>}
           {order.pieza && !cardSub && <p className="text-[12.5px] mt-0.5 truncate" style={{ color: 'var(--pp-text2)' }}>{order.pieza}</p>}
           {hasNewIds && (
-            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-              {order.numeroPO && <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: 'rgba(180,180,180,0.1)', color: 'var(--pp-text6)', border: '1px solid rgba(180,180,180,0.2)' }}>PO# {order.numeroPO}</span>}
-              {order.numeroOrden && <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: 'rgba(140,140,140,0.1)', color: 'var(--pp-text8)', border: '1px solid rgba(140,140,140,0.2)' }}>Orden {order.numeroOrden}</span>}
-            </div>
+            compact ? (
+              <p className="text-[11px] mt-1 truncate font-medium" style={{ color: 'var(--pp-text3)' }}>
+                {[order.numeroPO && `PO: ${order.numeroPO}`, order.numeroOrden && `Orden: ${order.numeroOrden}`].filter(Boolean).join('  ·  ')}
+              </p>
+            ) : (
+              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                {order.numeroPO && <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: 'rgba(180,180,180,0.1)', color: 'var(--pp-text6)', border: '1px solid rgba(180,180,180,0.2)' }}>PO# {order.numeroPO}</span>}
+                {order.numeroOrden && <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: 'rgba(140,140,140,0.1)', color: 'var(--pp-text8)', border: '1px solid rgba(140,140,140,0.2)' }}>Orden {order.numeroOrden}</span>}
+              </div>
+            )
           )}
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <StatusBadge estado={order.estado} />
+          {!compact && <StatusBadge estado={order.estado} />}
           {onChangeStatus && (
             <div onClick={(e) => e.stopPropagation()}>
               <QuickActionsMenu size="sm" items={[
