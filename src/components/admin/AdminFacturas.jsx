@@ -501,6 +501,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
                     className="px-2 py-1 rounded-[8px] border text-[13px] outline-none focus:border-[#a0a0a0] cursor-pointer"
                     style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)', colorScheme: 'var(--pp-color-scheme)' }}
                   />
+                  {filtroDesde && <span className="text-[11px] font-mono" style={{ color: 'var(--pp-text3)' }}>({fmtDateDisp(filtroDesde)})</span>}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[12px]" style={{ color: 'var(--pp-text3)' }}>Hasta</span>
@@ -512,6 +513,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
                     className="px-2 py-1 rounded-[8px] border text-[13px] outline-none focus:border-[#a0a0a0] cursor-pointer"
                     style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)', colorScheme: 'var(--pp-color-scheme)' }}
                   />
+                  {filtroHasta && <span className="text-[11px] font-mono" style={{ color: 'var(--pp-text3)' }}>({fmtDateDisp(filtroHasta)})</span>}
                 </div>
                 {(filtroDesde || filtroHasta) && (
                   <button onClick={() => { setFiltroDesde(''); setFiltroHasta(''); }} className="text-[12px] hover:underline" style={{ color: 'var(--pp-text3)' }}>
@@ -595,12 +597,14 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
                     <input type="date" value={filtroArchDesde} onChange={e => setFiltroArchDesde(e.target.value)} onClick={e => { try { e.target.showPicker(); } catch(_) {} }}
                       className="px-2 py-1 rounded-[8px] border text-[13px] outline-none focus:border-[#a0a0a0] cursor-pointer"
                       style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)', colorScheme: 'var(--pp-color-scheme)' }} />
+                    {filtroArchDesde && <span className="text-[11px] font-mono" style={{ color: 'var(--pp-text3)' }}>({fmtDateDisp(filtroArchDesde)})</span>}
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[12px]" style={{ color: 'var(--pp-text3)' }}>Hasta</span>
                     <input type="date" value={filtroArchHasta} onChange={e => setFiltroArchHasta(e.target.value)} onClick={e => { try { e.target.showPicker(); } catch(_) {} }}
                       className="px-2 py-1 rounded-[8px] border text-[13px] outline-none focus:border-[#a0a0a0] cursor-pointer"
                       style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)', colorScheme: 'var(--pp-color-scheme)' }} />
+                    {filtroArchHasta && <span className="text-[11px] font-mono" style={{ color: 'var(--pp-text3)' }}>({fmtDateDisp(filtroArchHasta)})</span>}
                   </div>
                   {(filtroArchDesde || filtroArchHasta) && (
                     <button onClick={() => { setFiltroArchDesde(''); setFiltroArchHasta(''); }} className="text-[12px] hover:underline" style={{ color: 'var(--pp-text3)' }}>
