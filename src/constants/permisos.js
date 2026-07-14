@@ -6,7 +6,7 @@ export const MODULOS_PERM = [
 ];
 
 export const PERM_OPTS = [
-  { val: 'none', label: 'Sin acceso', bg: 'rgba(100,100,100,0.12)', color: 'var(--pp-text3)' },
-  { val: 'view', label: 'Solo ver',   bg: 'rgba(160,160,160,0.12)', color: 'var(--pp-text8)' },
-  { val: 'edit', label: 'Editar',     bg: 'var(--pp-active-bg2)', color: 'var(--pp-text6)' },
+  { val: 'none', label: 'Sin acceso', bg: 'rgba(239,68,68,0.10)',  color: '#ef4444' },
+  { val: 'view', label: 'Solo ver',   bg: 'rgba(59,130,246,0.12)', color: '#3b82f6' },
+  { val: 'edit', label: 'Editar',     bg: 'rgba(16,185,129,0.12)', color: '#10b981' },
 ];

@@ -1,11 +1,26 @@
 import { useState } from 'react';
 import {
-  CheckCircle2, Plus, X, AlertCircle, Pencil
+  CheckCircle2, Plus, X, AlertCircle, Pencil, Search
 } from 'lucide-react';
 import { FormField } from '../shared/FormField';
 import { inputClass } from '../../constants/styles';
 import { MODULOS_PERM } from '../../constants/permisos';
 import { PermBadge, PermSelector } from '../shared/PermSelector';
+
+const AVATAR_GRADIENTS = [
+  'linear-gradient(160deg, #3b82f6, #2563eb)',
+  'linear-gradient(160deg, #8b5cf6, #7c3aed)',
+  'linear-gradient(160deg, #10b981, #059669)',
+  'linear-gradient(160deg, #ec4899, #db2777)',
+  'linear-gradient(160deg, #06b6d4, #0891b2)',
+];
+
+function avatarGradient(seed) {
+  const s = String(seed || '');
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+  return AVATAR_GRADIENTS[hash % AVATAR_GRADIENTS.length];
+}
 
 export function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onEliminar }) {
   const DEFAULT_P = { pedidos: 'edit', estimados: 'edit', talleres: 'view', facturas: 'view', equipo: false, crearPedidos: true };
@@ -16,8 +31,12 @@ export function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar,
   const [done, setDone] = useState(false);
   const [editId, setEditId] = useState(null);
   const [editPermisos, setEditPermisos] = useState({});
+  const [search, setSearch] = useState('');
 
   const isSuperadmin = (u) => !u.permisos;
+  const equipoFiltrado = equipo.filter(u =>
+    !search || `${u.nombre || ''} ${u.email || ''}`.toLowerCase().includes(search.toLowerCase())
+  );
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -62,16 +81,22 @@ export function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar,
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h2 className="text-[15px] font-bold" style={{ color: 'var(--pp-text)' }}>Equipo</h2>
           <p className="text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>Usuarios con acceso al panel de administración</p>
         </div>
-        <button onClick={() => { setShowForm(s => !s); setError(''); }}
-          className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:bg-[#707070]"
-          style={{ background: 'var(--pp-accent)' }}>
-          <Plus className="w-4 h-4" strokeWidth={2.2} /> Agregar usuario
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--pp-text3)' }} />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar usuario por nombre o email…" className={`${inputClass} pl-8 w-64`} />
+          </div>
+          <button onClick={() => { setShowForm(s => !s); setError(''); }}
+            className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:bg-[#707070] flex-shrink-0"
+            style={{ background: 'var(--pp-accent)' }}>
+            <Plus className="w-4 h-4" strokeWidth={2.2} /> Agregar usuario
+          </button>
+        </div>
       </div>
 
       {done && <div className="flex items-center gap-2 px-4 py-3 rounded-[11px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}><CheckCircle2 className="w-4 h-4" /> Usuario creado correctamente.</div>}
@@ -134,13 +159,16 @@ export function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar,
       )}
 
       {/* Lista de usuarios */}
+      {equipoFiltrado.length === 0 ? (
+        <div className="text-center py-14 text-[13px]" style={{ color: 'var(--pp-text3)' }}>Sin usuarios que coincidan con "{search}".</div>
+      ) : (
       <div className="grid md:grid-cols-2 gap-4">
-        {equipo.map(u => (
+        {equipoFiltrado.map(u => (
           <div key={u.uid} className="rounded-[15px] border p-5" style={{ background: 'var(--pp-card)', borderColor: editId === u.uid ? 'var(--pp-accent)' : 'var(--pp-border)', boxShadow: editId === u.uid ? '0 0 0 3px var(--pp-active-bg)' : 'none' }}>
             <div className="flex items-start justify-between gap-3 mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-[10px] flex items-center justify-center text-[14px] font-extrabold flex-shrink-0"
-                  style={{ background: isSuperadmin(u) ? 'linear-gradient(160deg, #f97316, #ea580c)' : 'var(--pp-surface)', color: '#fff', ...(isSuperadmin(u) ? {} : { color: 'var(--pp-text2)' }) }}>
+                  style={{ background: isSuperadmin(u) ? 'linear-gradient(160deg, #f97316, #ea580c)' : avatarGradient(u.uid || u.email || u.nombre), color: '#fff' }}>
                   {(u.nombre || u.email || 'A')[0].toUpperCase()}
                 </div>
                 <div className="min-w-0">
@@ -148,23 +176,25 @@ export function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar,
                   <div className="text-[12px] truncate" style={{ color: 'var(--pp-text2)' }}>{u.email || (isSuperadmin(u) ? 'Cuenta principal' : '—')}</div>
                 </div>
               </div>
-              <div className="flex items-center gap-1 flex-shrink-0">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 {isSuperadmin(u) ? (
                   <>
                     <span className="text-[11px] font-bold px-2.5 py-1 rounded-[8px]" style={{ background: 'var(--pp-active-bg)', color: 'var(--pp-text8)' }}>Superadmin</span>
-                    <button onClick={() => editId === u.uid ? setEditId(null) : startEdit(u)}
-                      className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-[#1e1e1e] transition-colors" style={{ color: 'var(--pp-text3)' }}>
+                    <button onClick={() => editId === u.uid ? setEditId(null) : startEdit(u)} title="Editar"
+                      className="w-8 h-8 rounded-[8px] flex items-center justify-center hover:bg-[#1e1e1e] transition-colors" style={{ color: 'var(--pp-text3)' }}>
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                   </>
                 ) : u.uid !== currentUid && (
                   <>
-                    <button onClick={() => editId === u.uid ? setEditId(null) : startEdit(u)}
-                      className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-[#1e1e1e] transition-colors" style={{ color: 'var(--pp-text3)' }}>
+                    <button onClick={() => editId === u.uid ? setEditId(null) : startEdit(u)} title="Editar"
+                      className="w-8 h-8 rounded-[8px] flex items-center justify-center hover:bg-[#1e1e1e] transition-colors" style={{ color: 'var(--pp-text3)' }}>
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
-                    <button onClick={() => { if (window.confirm(`¿Eliminar a ${u.nombre || u.email}?`)) onEliminar(u.uid); }}
-                      className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ color: 'var(--pp-text3)' }}>
+                    <button onClick={() => { if (window.confirm(`¿Eliminar a ${u.nombre || u.email}?`)) onEliminar(u.uid); }} title="Eliminar"
+                      className="w-8 h-8 rounded-[8px] flex items-center justify-center transition-colors" style={{ color: 'var(--pp-text3)' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.12)'; e.currentTarget.style.color = '#ef4444'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--pp-text3)'; }}>
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </>
@@ -263,6 +293,7 @@ export function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar,
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }
