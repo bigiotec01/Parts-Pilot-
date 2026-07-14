@@ -1,12 +1,17 @@
+import { useState } from 'react';
 import {
-  X, MessageSquare
+  X, MessageSquare, ClipboardList
 } from 'lucide-react';
-import { Header } from './Header';
 import { StatusBadge } from './StatusBadge';
 import { OrderChat } from './OrderChat';
 
 export function OrderDrawer({ order, title, onClose, detailContent, chatProps }) {
+  const [tab, setTab] = useState('detalle');
   const messageCount = (order.mensajes || []).length;
+  const tabs = [
+    { id: 'detalle', label: 'Detalle', icon: ClipboardList },
+    { id: 'chat', label: 'Mensajes', icon: MessageSquare, badge: messageCount },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
@@ -18,7 +23,7 @@ export function OrderDrawer({ order, title, onClose, detailContent, chatProps })
       <div
         className="relative w-full flex flex-col"
         style={{
-          maxWidth: 980,
+          maxWidth: 660,
           maxHeight: '90vh',
           background: 'var(--pp-card)',
           borderRadius: 20,
@@ -51,30 +56,19 @@ export function OrderDrawer({ order, title, onClose, detailContent, chatProps })
           </button>
         </div>
 
-        {/* Body: 2 columnas */}
-        <div className="flex-1 overflow-hidden flex min-h-0">
-          {/* Columna izquierda — detalle */}
-          <div className="flex-1 overflow-y-auto p-7" style={{ borderRight: '1px solid var(--pp-border2)' }}>
-            {detailContent}
-          </div>
+        {/* Tabs */}
+        <div className="flex px-7 flex-shrink-0" style={{ borderBottom: '1px solid var(--pp-border2)' }}>
+          {tabs.map(({ id, label, icon: Icon, badge }) => (
+            <button key={id} onClick={() => setTab(id)} className="flex items-center gap-1.5 px-1 py-3.5 text-[13px] font-semibold border-b-2 mr-6 transition-colors" style={{ borderBottomColor: tab === id ? 'var(--pp-accent)' : 'transparent', color: tab === id ? 'var(--pp-text)' : 'var(--pp-text3)' }}>
+              <Icon className="w-4 h-4" strokeWidth={1.8} /> {label}
+              {badge > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-0.5" style={{ background: 'var(--pp-card)', color: 'var(--pp-text2)' }}>{badge}</span>}
+            </button>
+          ))}
+        </div>
 
-          {/* Columna derecha — mensajes */}
-          <div className="flex flex-col" style={{ width: 360, flexShrink: 0 }}>
-            <div className="px-6 py-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--pp-border2)' }}>
-              <p className="text-[13px] font-bold flex items-center gap-2" style={{ color: 'var(--pp-text)' }}>
-                <MessageSquare className="w-4 h-4" strokeWidth={1.8} />
-                Mensajes
-                {messageCount > 0 && (
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'var(--pp-card)', color: 'var(--pp-text2)' }}>
-                    {messageCount}
-                  </span>
-                )}
-              </p>
-            </div>
-            <div className="flex-1 overflow-y-auto px-6 py-4">
-              <OrderChat order={order} {...chatProps} />
-            </div>
-          </div>
+        {/* Body: un solo tab visible a la vez */}
+        <div className="flex-1 overflow-y-auto p-7">
+          {tab === 'detalle' ? detailContent : <OrderChat order={order} {...chatProps} />}
         </div>
       </div>
     </div>
