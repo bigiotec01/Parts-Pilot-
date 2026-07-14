@@ -63,14 +63,17 @@ export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFi
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--pp-text3)' }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio..." className={`${inputClass} pl-9`} />
         </div>
-        <select value={filterTaller} onChange={e => setFilterTaller(e.target.value)} className={`${inputClass} sm:w-56`}>
-          <option value="todos">Todos los talleres</option>
-          {talleres.map(t => <option key={t.uid} value={t.uid}>{t.nombre}</option>)}
-        </select>
-        <select value={filterEstado} onChange={e => setFilterEstado(e.target.value)} className={`${inputClass} sm:w-52`}>
-          <option value="todos">Todos los estados</option>
-          {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
-        </select>
+        <div className="hidden sm:block w-px self-stretch flex-shrink-0" style={{ background: 'var(--pp-border3)' }} />
+        <div className="flex gap-2 flex-shrink-0">
+          <select value={filterTaller} onChange={e => setFilterTaller(e.target.value)} className={`${inputClass} sm:w-56`} style={{ background: 'var(--pp-surface)' }}>
+            <option value="todos">Todos los talleres</option>
+            {talleres.map(t => <option key={t.uid} value={t.uid}>{t.nombre}</option>)}
+          </select>
+          <select value={filterEstado} onChange={e => setFilterEstado(e.target.value)} className={`${inputClass} sm:w-52`} style={{ background: 'var(--pp-surface)' }}>
+            <option value="todos">Todos los estados</option>
+            {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
+          </select>
+        </div>
         <button onClick={onExport} className="flex items-center justify-center gap-2 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex-shrink-0 hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }} title="Vista previa e impresión/PDF de los pedidos activos">
           <Printer className="w-4 h-4" /> Reporte
         </button>
