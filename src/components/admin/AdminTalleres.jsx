@@ -6,7 +6,9 @@ import { Header } from '../shared/Header';
 import { FormField } from '../shared/FormField';
 import { inputClass } from '../../constants/styles';
 
-export function TallerSubUsuarios({ tallerId, usuarios, onCrear, onEliminar, onActualizar }) {
+const userTableCols = '1.3fr 0.85fr 1.3fr 56px';
+
+export function TallerSubUsuarios({ tallerId, tallerEmail, usuarios, onCrear, onEliminar, onActualizar }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ nombre: '', email: '', password: '' });
   const [saving, setSaving] = useState(false);
@@ -38,62 +40,75 @@ export function TallerSubUsuarios({ tallerId, usuarios, onCrear, onEliminar, onA
   };
 
   return (
-    <div className="mt-3 pt-3" style={{ borderTop: '1px dashed var(--pp-border)' }}>
+    <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--pp-border3)' }}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-[11px] font-bold uppercase" style={{ color: 'var(--pp-text3)', letterSpacing: '.06em' }}>
           Usuarios ({miembros.length + 1})
         </span>
         <button onClick={() => { setShowForm(s => !s); setError(''); setEditId(null); }}
-          className="flex items-center gap-1 text-[11.5px] font-semibold hover:opacity-80 transition-opacity"
-          style={{ color: 'var(--pp-text8)' }}>
+          className="flex items-center gap-1 text-[11.5px] font-bold px-2.5 py-1 rounded-[7px] border transition-colors hover:bg-[rgba(59,130,246,0.08)]"
+          style={{ color: '#3b82f6', borderColor: 'rgba(59,130,246,0.35)' }}>
           <Plus className="w-3 h-3" strokeWidth={2.5} /> Agregar
         </button>
       </div>
 
-      {/* Cuenta principal */}
-      <div className="flex items-center gap-2 py-1.5 px-2 rounded-[8px] mb-1" style={{ background: 'var(--pp-card)' }}>
-        <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #f97316, #ea580c)', color: '#fff' }}>P</div>
-        <span className="text-[12px] font-semibold flex-1" style={{ color: 'var(--pp-text)' }}>Cuenta principal</span>
-        <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-[6px]" style={{ background: 'var(--pp-active-bg)', color: 'var(--pp-text8)' }}>Admin taller</span>
-      </div>
+      <div className="rounded-[10px] border overflow-hidden" style={{ borderColor: 'var(--pp-border2)' }}>
+        <div className="grid gap-2 px-2.5 py-1.5" style={{ gridTemplateColumns: userTableCols, background: 'var(--pp-surface)' }}>
+          {['Nombre', 'Rol', 'Correo', ''].map(h => (
+            <span key={h} className="text-[9.5px] font-bold uppercase truncate" style={{ color: 'var(--pp-text3)', letterSpacing: '.05em' }}>{h}</span>
+          ))}
+        </div>
 
-      {/* Sub-usuarios */}
-      {miembros.map(u => (
-        <div key={u.uid} className="mb-1">
-          {editId === u.uid ? (
+        {/* Cuenta principal */}
+        <div className="grid gap-2 items-center px-2.5 py-2" style={{ gridTemplateColumns: userTableCols, borderTop: '1px solid var(--pp-border2)' }}>
+          <span className="flex items-center gap-1.5 min-w-0 text-[12px] font-semibold truncate" style={{ color: 'var(--pp-text)' }}>
+            <span className="w-5 h-5 rounded-[6px] flex items-center justify-center text-[9.5px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #f97316, #ea580c)', color: '#fff' }}>P</span>
+            Cuenta principal
+          </span>
+          <span className="text-[10.5px] font-semibold truncate" style={{ color: 'var(--pp-text8)' }}>Admin taller</span>
+          <span className="text-[11px] truncate" style={{ color: 'var(--pp-text3)' }}>{tallerEmail || '—'}</span>
+          <span />
+        </div>
+
+        {/* Sub-usuarios */}
+        {miembros.map(u => (
+          editId === u.uid ? (
             /* Edición inline */
-            <div className="flex items-center gap-2 py-1.5 px-2 rounded-[8px]" style={{ background: 'var(--pp-card)', border: '1px solid #a0a0a0' }}>
+            <div key={u.uid} className="flex items-center gap-2 px-2.5 py-2" style={{ borderTop: '1px solid var(--pp-border2)' }}>
               <input
                 value={editNombre}
                 onChange={e => setEditNombre(e.target.value)}
-                className="flex-1 text-[12px] px-2 py-1 rounded-[7px] border outline-none focus:border-[#a0a0a0]"
+                className="flex-1 min-w-0 text-[12px] px-2 py-1 rounded-[7px] border outline-none focus:border-[#a0a0a0]"
                 style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }}
                 autoFocus
               />
-              <button onClick={() => handleSaveEdit(u.uid)} disabled={saving} className="w-6 h-6 rounded-[6px] flex items-center justify-center text-white text-[11px] font-bold" style={{ background: '#10b981' }}>✓</button>
-              <button onClick={() => setEditId(null)} className="w-6 h-6 rounded-[6px] flex items-center justify-center border text-[11px]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>✕</button>
+              <button onClick={() => handleSaveEdit(u.uid)} disabled={saving} className="w-6 h-6 rounded-[6px] flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0" style={{ background: '#10b981' }}>✓</button>
+              <button onClick={() => setEditId(null)} className="w-6 h-6 rounded-[6px] flex items-center justify-center border text-[11px] flex-shrink-0" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>✕</button>
             </div>
           ) : (
-            <div className="flex items-center gap-2 py-1.5 px-2 rounded-[8px]" style={{ background: 'var(--pp-card)' }}>
-              <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text2)' }}>
-                {(u.nombre || u.email || '?')[0].toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-[12px] font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{u.nombre}</div>
-                <div className="text-[11px] truncate" style={{ color: 'var(--pp-text2)' }}>{u.email}</div>
-              </div>
-              <button onClick={() => { setEditId(u.uid); setEditNombre(u.nombre || ''); }}
-                className="w-6 h-6 rounded-[6px] flex items-center justify-center hover:bg-[#2a2a2a] transition-colors flex-shrink-0" style={{ color: 'var(--pp-text3)' }}>
-                <Pencil className="w-3 h-3" />
-              </button>
-              <button onClick={() => { if (window.confirm(`¿Eliminar a ${u.nombre}?`)) onEliminar(u.uid); }}
-                className="w-6 h-6 rounded-[6px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors flex-shrink-0" style={{ color: 'var(--pp-text3)' }}>
-                <X className="w-3 h-3" />
-              </button>
+            <div key={u.uid} className="grid gap-2 items-center px-2.5 py-2" style={{ gridTemplateColumns: userTableCols, borderTop: '1px solid var(--pp-border2)' }}>
+              <span className="flex items-center gap-1.5 min-w-0 text-[12px] font-semibold truncate" style={{ color: 'var(--pp-text)' }}>
+                <span className="w-5 h-5 rounded-[6px] flex items-center justify-center text-[9.5px] font-bold flex-shrink-0" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text2)' }}>
+                  {(u.nombre || u.email || '?')[0].toUpperCase()}
+                </span>
+                {u.nombre}
+              </span>
+              <span className="text-[10.5px] font-semibold truncate" style={{ color: 'var(--pp-text3)' }}>Miembro</span>
+              <span className="text-[11px] truncate" style={{ color: 'var(--pp-text3)' }}>{u.email}</span>
+              <span className="flex items-center gap-1 justify-end flex-shrink-0">
+                <button onClick={() => { setEditId(u.uid); setEditNombre(u.nombre || ''); }}
+                  className="w-6 h-6 rounded-[6px] flex items-center justify-center hover:bg-[#2a2a2a] transition-colors flex-shrink-0" style={{ color: 'var(--pp-text3)' }}>
+                  <Pencil className="w-3 h-3" />
+                </button>
+                <button onClick={() => { if (window.confirm(`¿Eliminar a ${u.nombre}?`)) onEliminar(u.uid); }}
+                  className="w-6 h-6 rounded-[6px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors flex-shrink-0" style={{ color: 'var(--pp-text3)' }}>
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
             </div>
-          )}
-        </div>
-      ))}
+          )
+        ))}
+      </div>
 
       {/* Formulario nuevo sub-usuario */}
       {showForm && (
@@ -315,17 +330,17 @@ export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos,
               </div>
 
               {/* Pie */}
-              <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px dashed var(--pp-border)' }}>
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-[11.5px]" style={{ color: 'var(--pp-text2)' }}>
+              <div className="flex flex-col gap-2 pt-3" style={{ borderTop: '1px dashed var(--pp-border)' }}>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span className="text-[11.5px] truncate" style={{ color: 'var(--pp-text2)' }}>
                     Usuario: <span className="font-mono font-semibold" style={{ color: 'var(--pp-text2)' }}>{t.usuario || '—'}</span>
                   </span>
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-[7px]" style={{ background: activos > 0 ? '#fef6e9' : 'var(--pp-card)', color: activos > 0 ? '#b7791f' : 'var(--pp-text3)' }}>
-                    {activos} activos
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-[7px] whitespace-nowrap flex-shrink-0" style={{ background: activos > 0 ? 'rgba(59,130,246,0.12)' : 'var(--pp-card)', color: activos > 0 ? '#3b82f6' : 'var(--pp-text3)' }}>
+                    {activos} pedido{activos !== 1 ? 's' : ''} activo{activos !== 1 ? 's' : ''}
                   </span>
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button onClick={() => onVerPedidos(t.uid)} className="flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[12px] font-bold transition-colors hover:bg-[#1e1e1e]" style={{ color: 'var(--pp-text)' }}>
+                <div className="flex items-center justify-end gap-1">
+                  <button onClick={() => onVerPedidos(t.uid)} className="flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[12px] font-bold transition-colors hover:bg-[#1e1e1e] mr-auto" style={{ color: 'var(--pp-text)' }}>
                     Ver <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                   <button onClick={() => startEdit(t)} className="w-7 h-7 rounded-[8px] flex items-center justify-center transition-colors hover:bg-[#1e1e1e] hover:text-[#a0a0a0]" style={{ color: 'var(--pp-text3)' }} title="Editar">
@@ -340,6 +355,7 @@ export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos,
               {/* Sub-usuarios del taller */}
               <TallerSubUsuarios
                 tallerId={t.uid}
+                tallerEmail={t.email}
                 usuarios={tallerUsuarios}
                 onCrear={onCrearSubUsuario}
                 onEliminar={onEliminarSubUsuario}
