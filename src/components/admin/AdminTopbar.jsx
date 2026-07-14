@@ -35,7 +35,7 @@ export function NotificationPanel({ notifications, onSelect, onDismissAll }) {
   );
 }
 
-export function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo, notifications = [], onNotifSelect, onDismissAll }) {
+export function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo, notifications = [], onNotifSelect, onDismissAll, hideNuevoBtn }) {
   const [showNotifs, setShowNotifs] = useState(false);
   const bellRef = useRef(null);
 
@@ -73,9 +73,11 @@ export function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo,
             />
           )}
         </div>
-        <button onClick={onGoToNuevo} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
-          <Plus className="w-4 h-4" strokeWidth={2.2} /> Nuevo pedido
-        </button>
+        {!hideNuevoBtn && (
+          <button onClick={onGoToNuevo} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
+            <Plus className="w-4 h-4" strokeWidth={2.2} /> Nuevo pedido
+          </button>
+        )}
       </div>
     </header>
   );
