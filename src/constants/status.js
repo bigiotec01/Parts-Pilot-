@@ -9,7 +9,7 @@ export const STATUS_CONFIG = {
   cotizando:        { label: 'Cotización enviada',   short: 'Cotizando',  dot: '#3b82f6', bg: 'rgba(59,130,246,0.15)',  tx: '#60a5fa', icon: FileText },
   pedido_fabrica:   { label: 'Por ordenar',          short: 'Por ordenar',dot: '#8b5cf6', bg: 'rgba(139,92,246,0.15)', tx: '#a78bfa', icon: Package },
   ordenadas:        { label: 'Piezas ordenadas',     short: 'Ordenadas',  dot: '#6366f1', bg: 'rgba(99,102,241,0.15)', tx: '#818cf8', icon: PackageCheck },
-  esperando_piezas: { label: 'Esperando piezas',     short: 'Esperando',  dot: '#f59e0b', bg: 'rgba(245,158,11,0.15)', tx: '#f59e0b', icon: Hourglass },
+  esperando_piezas: { label: 'Esperando piezas',     short: 'Esperando piezas', dot: '#f59e0b', bg: 'rgba(245,158,11,0.15)', tx: '#f59e0b', icon: Hourglass },
   en_transito:      { label: 'En tránsito',          short: 'En camino',  dot: '#eab308', bg: 'rgba(234,179,8,0.15)',  tx: '#eab308', icon: Truck },
   recibido:         { label: 'Recibido en Tienda',   short: 'En Tienda',  dot: '#10b981', bg: 'rgba(16,185,129,0.15)', tx: '#34d399', icon: Package },
   entregado:        { label: 'Orden Completa',       short: 'Completa',   dot: '#14b8a6', bg: 'rgba(20,184,166,0.15)', tx: '#2dd4bf', icon: CheckCircle2 },

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  FileText, LogOut, Plus, Search, ClipboardList, History, UserCircle, Receipt
+  FileText, LogOut, Plus, Search, X, ClipboardList, History, UserCircle, Receipt
 } from 'lucide-react';
 import { APP_VERSION } from '../../constants/app';
 import { hasNewActivity, saveOrderSeen } from '../../utils/activity';
@@ -137,7 +137,12 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
         <div className="space-y-3">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--pp-text3)' }} />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio…" className="w-full pl-10 pr-4 py-[11px] rounded-[12px] border text-[13.5px] outline-none focus:border-[#a0a0a0] focus:ring-2 focus:ring-[#a0a0a0]/10" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }} />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio…" className="w-full pl-10 pr-10 py-[11px] rounded-[12px] border text-[13.5px] outline-none focus:border-[#a0a0a0] focus:ring-2 focus:ring-[#a0a0a0]/10" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }} />
+            {search && (
+              <button onClick={() => setSearch('')} title="Limpiar búsqueda" className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center hover:bg-[#252525]" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text3)' }}>
+                <X className="w-3 h-3" />
+              </button>
+            )}
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             {pedidosFiltrados.length === 0

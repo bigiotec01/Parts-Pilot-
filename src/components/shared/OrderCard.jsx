@@ -23,19 +23,19 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
       className="w-full text-left rounded-[15px] p-[17px] border-2 transition-all hover:border-[#a0a0a0] hover:shadow-[0_8px_24px_-14px_rgba(160,160,160,0.15)] relative cursor-pointer"
       style={{ background: hasActivity ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasActivity ? '#f59e0b' : 'var(--pp-border)', boxShadow: hasActivity ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : 'none' }}
     >
-      {hasActivity && (
-        <span className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-md" style={{ background: '#f59e0b' }}>
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-          </span>
-          Actualizado
-        </span>
-      )}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-bold text-[14.5px] truncate" style={{ color: 'var(--pp-text)' }}>{cardTitle}</h3>
+            {hasActivity && (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
+                </span>
+                Actualizado
+              </span>
+            )}
             {unreadCount > 0 && (
               <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold flex-shrink-0" style={{ background: 'var(--pp-active-bg)', color: 'var(--pp-text8)' }}>
                 <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: 'var(--pp-accent)' }} />
@@ -74,8 +74,11 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
         </div>
         <div className="flex items-center gap-2.5 flex-shrink-0 text-[11.5px]" style={{ color: 'var(--pp-text2)' }}>
           {order.mensajes?.length > 0 && (
-            <span className="flex items-center gap-1 font-semibold" style={hasActivity ? { color: '#f59e0b' } : undefined}>
-              <MessageSquare className="w-3.5 h-3.5" />{order.mensajes.length}
+            <span className="flex items-center gap-1">
+              <MessageSquare className="w-3.5 h-3.5" style={{ color: hasActivity ? '#f59e0b' : 'var(--pp-text3)' }} />
+              <span className="min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: hasActivity ? '#f59e0b' : 'var(--pp-text3)' }}>
+                {order.mensajes.length}
+              </span>
             </span>
           )}
           {order.estado === 'cotizando' && order.estimado?.respuesta === 'pendiente' && <span className="flex items-center gap-1 font-semibold" style={{ color: '#b7791f' }}><Clock className="w-3.5 h-3.5" />Esperando</span>}
