@@ -24,7 +24,7 @@ export function StatusStepper({ estado, onSelect }) {
     <div>
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-[12px] font-semibold" style={{ color: cfg.tx }}>{cfg.short}</span>
-        <span className="text-[11px]" style={{ color: 'var(--pp-text3)' }}>{pct}%</span>
+        <span className="text-[11px]" style={{ color: 'var(--pp-text3)' }}>Paso {currentIndex + 1} de {STATUS_ORDER.length}</span>
       </div>
       <div className="h-2 rounded-full overflow-hidden mb-3" style={{ background: 'var(--pp-progress-bg)' }}>
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: cfg.dot }} />
