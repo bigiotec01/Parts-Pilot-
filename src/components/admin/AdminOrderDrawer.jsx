@@ -8,7 +8,7 @@ import { OrderChat } from '../shared/OrderChat';
 import { FormField } from '../shared/FormField';
 import { Modal } from '../shared/Modal';
 import { inputClass } from '../../constants/styles';
-import { avgDeliveryLeadDays, suggestDeliveryDate, cleanText } from '../../utils/format';
+import { avgDeliveryLeadDays, suggestDeliveryDate, cleanText, filesOf } from '../../utils/format';
 
 const AUTO_DATE_STATES = ['en_transito', 'recibido'];
 
@@ -44,7 +44,7 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
   const [numeroOrden, setNumeroOrden]   = useState(order.numeroOrden ?? '');
   const [notasInt, setNotasInt]         = useState(order.notasInternas ?? '');
   const [notasEst, setNotasEst]         = useState(order.estimado?.notas ?? '');
-  const [archivo, setArchivo]           = useState(order.estimado?.archivo ?? null);
+  const [archivos, setArchivos]         = useState(filesOf(order.estimado?.archivo, order.estimado?.archivos));
   const [saving, setSaving]             = useState(false);
   const [saved, setSaved]               = useState(false);
   const [sending, setSending]           = useState(false);
@@ -103,7 +103,7 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
     setEstado(order.estado); setFechaEntrega(order.fechaEntrega || ''); setFechaSugerida(false);
     setNumeroPO(order.numeroPO ?? ''); setNumeroOrden(order.numeroOrden ?? '');
     setNotasInt(order.notasInternas ?? ''); setNotasEst(order.estimado?.notas ?? '');
-    setArchivo(order.estimado?.archivo ?? null);
+    setArchivos(filesOf(order.estimado?.archivo, order.estimado?.archivos));
   }, [order.id]); // eslint-disable-line
 
   const handleSave = async () => {
@@ -119,17 +119,19 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
   const handleSendEst = async () => {
     setSending(true); setSendError('');
     try {
-      await onSendEstimate(order.id, { notas: notasEst, archivo });
+      await onSendEstimate(order.id, { notas: notasEst, archivos });
       setSent(true); setTimeout(() => setSent(false), 3000);
     } catch (err) { setSendError('Error: ' + (err.message || err.code)); }
     finally { setSending(false); }
   };
 
   const handleFile = (e) => {
-    const file = e.target.files?.[0]; if (!file) return;
-    setArchivo({ name: file.name, type: file.type, url: URL.createObjectURL(file), file });
+    const files = Array.from(e.target.files || []); if (!files.length) return;
+    setArchivos(prev => [...prev, ...files.map(file => ({ name: file.name, type: file.type, url: URL.createObjectURL(file), file }))]);
     e.target.value = '';
   };
+
+  const handleRemoveFile = (idx) => setArchivos(prev => prev.filter((_, i) => i !== idx));
 
   const openDatePicker = (e) => { try { e.target.showPicker(); } catch (_) {} };
 
@@ -190,16 +192,20 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
 
       {order.notas && <TallerNotes text={order.notas} />}
 
-      {order.archivo && (
+      {filesOf(order.archivo, order.archivos).length > 0 && (
         <div>
-          <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: 'var(--pp-text9)', letterSpacing: '.05em' }}>Archivo del taller</p>
-          {order.archivo.type?.startsWith('image/') ? (
-            <a href={order.archivo.url} target="_blank" rel="noreferrer"><img src={order.archivo.url} alt="" className="rounded-lg max-h-32 object-cover" /></a>
-          ) : (
-            <a href={order.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-[10px] px-3 py-2 border text-[13px] hover:border-[#e8632f] hover:text-[#c9491c] transition-colors" style={{ background: '#f8f9fa', borderColor: '#e7e9ed', color: 'var(--pp-text11)' }}>
-              <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{order.archivo.name}</span>
-            </a>
-          )}
+          <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: 'var(--pp-text9)', letterSpacing: '.05em' }}>Archivo{filesOf(order.archivo, order.archivos).length > 1 ? 's' : ''} del taller</p>
+          <div className="flex flex-wrap gap-2">
+            {filesOf(order.archivo, order.archivos).map((f, i) => (
+              f.type?.startsWith('image/') ? (
+                <a key={i} href={f.url} target="_blank" rel="noreferrer"><img src={f.url} alt="" className="rounded-lg max-h-32 object-cover" /></a>
+              ) : (
+                <a key={i} href={f.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-[10px] px-3 py-2 border text-[13px] hover:border-[#e8632f] hover:text-[#c9491c] transition-colors" style={{ background: '#f8f9fa', borderColor: '#e7e9ed', color: 'var(--pp-text11)' }}>
+                  <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{f.name}</span>
+                </a>
+              )
+            ))}
+          </div>
         </div>
       )}
 
@@ -254,18 +260,19 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
       </FormField>
       <div>
         <p className="text-[12.5px] font-semibold mb-1.5" style={{ color: 'var(--pp-text11)' }}>PDF <span style={{ color: 'var(--pp-text10)', fontWeight: 400 }}>(opcional)</span></p>
-        {archivo ? (
-          <div className="flex items-center gap-2 rounded-[10px] px-3 py-2.5 border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
-            <FileText className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--pp-text8)' }} />
-            <a href={archivo.url} target="_blank" rel="noreferrer" className="text-[13px] truncate flex-1 hover:underline" style={{ color: 'var(--pp-text2)' }}>{archivo.name}</a>
-            <button onClick={() => setArchivo(null)} style={{ color: 'var(--pp-text3)' }}><X className="w-4 h-4" /></button>
-          </div>
-        ) : (
+        <div className="space-y-2">
+          {archivos.map((f, i) => (
+            <div key={i} className="flex items-center gap-2 rounded-[10px] px-3 py-2.5 border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+              <FileText className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--pp-text8)' }} />
+              <a href={f.url} target="_blank" rel="noreferrer" className="text-[13px] truncate flex-1 hover:underline" style={{ color: 'var(--pp-text2)' }}>{f.name}</a>
+              <button onClick={() => handleRemoveFile(i)} style={{ color: 'var(--pp-text3)' }}><X className="w-4 h-4" /></button>
+            </div>
+          ))}
           <label className="flex items-center justify-center gap-2 border-dashed border rounded-[10px] px-3 py-3 text-[13px] cursor-pointer transition-colors hover:border-[#a0a0a0] hover:text-[#a0a0a0]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
-            <Paperclip className="w-4 h-4" /> Adjuntar PDF
-            <input type="file" accept="application/pdf" onChange={handleFile} className="hidden" />
+            <Paperclip className="w-4 h-4" /> {archivos.length ? 'Adjuntar otro PDF' : 'Adjuntar PDF'}
+            <input type="file" accept="application/pdf" multiple onChange={handleFile} className="hidden" />
           </label>
-        )}
+        </div>
       </div>
       <button onClick={handleSendEst} disabled={sending} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#707070] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: 'var(--pp-accent)' }}>
         <Send className="w-4 h-4" /> {sending ? 'Enviando…' : order.estimado ? 'Actualizar estimado' : 'Enviar estimado al taller'}

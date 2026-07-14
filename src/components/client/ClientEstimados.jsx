@@ -2,7 +2,7 @@ import {
   Clock, FileText, ThumbsUp, ThumbsDown, MessageSquare, MessageCircle
 } from 'lucide-react';
 import { hasNewActivity } from '../../utils/activity';
-import { formatDate, cleanText } from '../../utils/format';
+import { formatDate, cleanText, filesOf } from '../../utils/format';
 import { StatusBadge } from '../shared/StatusBadge';
 
 export function EstimateCard({ order }) {
@@ -14,11 +14,11 @@ export function EstimateCard({ order }) {
         {order.referencia && <p className="text-sm truncate" style={{ color: 'var(--pp-text2)' }}>{order.vehiculo}</p>}
       </div>
       {estimado.notas && <p className="text-sm mb-3 rounded-lg p-2" style={{ color: 'var(--pp-text2)', background: 'var(--pp-card)' }}>{cleanText(estimado.notas)}</p>}
-      {estimado.archivo && (
-        <a href={estimado.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors mb-3 border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
-          <FileText className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{estimado.archivo.name}</span>
+      {filesOf(estimado.archivo, estimado.archivos).map((f, i) => (
+        <a key={i} href={f.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors mb-3 border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
+          <FileText className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{f.name}</span>
         </a>
-      )}
+      ))}
       <EstimateActions order={order} />
     </div>
   );
@@ -110,11 +110,11 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
                 {p.estimado?.notas && (
                   <p className="text-sm rounded-lg p-2.5" style={{ color: 'var(--pp-text2)', background: 'var(--pp-card)' }}>{cleanText(p.estimado.notas)}</p>
                 )}
-                {p.estimado?.archivo && (
-                  <a href={p.estimado.archivo.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
-                    <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{p.estimado.archivo.name}</span>
+                {filesOf(p.estimado?.archivo, p.estimado?.archivos).map((f, i) => (
+                  <a key={i} href={f.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
+                    <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{f.name}</span>
                   </a>
-                )}
+                ))}
                 <div className="flex gap-2">
                   <button onClick={e => { e.stopPropagation(); onRespond(p.id, 'aceptado'); }} className="flex-1 py-[11px] rounded-[11px] text-white text-[13px] font-bold flex items-center justify-center gap-1.5 transition-colors hover:brightness-105" style={{ background: '#10b981' }}>
                     <ThumbsUp className="w-4 h-4" /> Aprobar Estimado
@@ -163,11 +163,11 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
                   <StatusBadge estado={p.estado} />
                 </div>
                 {p.notas && <p className="text-sm rounded-lg p-2.5 mb-2.5" style={{ color: 'var(--pp-text2)', background: 'var(--pp-card)' }}>{cleanText(p.notas)}</p>}
-                {p.archivo && (
-                  <a href={p.archivo.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors mb-2.5 border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
-                    <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{p.archivo.name}</span>
+                {filesOf(p.archivo, p.archivos).map((f, i) => (
+                  <a key={i} href={f.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors mb-2.5 border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
+                    <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{f.name}</span>
                   </a>
-                )}
+                ))}
                 <div className="flex items-center justify-between gap-1.5 text-xs px-3 py-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)' }}>
                   <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Esperando estimado · {formatDate(p.fecha)}</span>
                   {(p.mensajes?.length > 0) && <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" />{p.mensajes.length}</span>}

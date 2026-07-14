@@ -2,7 +2,7 @@ import {
   Clock, FileText, Building2, Paperclip
 } from 'lucide-react';
 import { hasNewActivity } from '../../utils/activity';
-import { formatDate, cleanText } from '../../utils/format';
+import { formatDate, cleanText, filesOf } from '../../utils/format';
 
 export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
   if (solicitudes.length === 0) return (
@@ -55,7 +55,15 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
           )}
         </div>
         {p.notas && <p className="text-[13px] line-clamp-2 mt-2" style={{ color: 'var(--pp-text2)' }}>{cleanText(p.notas)}</p>}
-        {p.archivo && <p className="text-[11.5px] flex items-center gap-1 mt-1.5" style={{ color: 'var(--pp-text3)' }}><Paperclip className="w-3 h-3" />{p.archivo.name}</p>}
+        {(() => {
+          const archivos = filesOf(p.archivo, p.archivos);
+          if (!archivos.length) return null;
+          return (
+            <p className="text-[11.5px] flex items-center gap-1 mt-1.5" style={{ color: 'var(--pp-text3)' }}>
+              <Paperclip className="w-3 h-3" />{archivos[0].name}{archivos.length > 1 ? ` +${archivos.length - 1}` : ''}
+            </p>
+          );
+        })()}
         <p className="font-mono text-[11.5px] mt-2.5" style={{ color: 'var(--pp-text3)' }}>{p.folio || p.id?.slice(0,8)} · {formatDate(p.fecha)}</p>
       </button>
     );

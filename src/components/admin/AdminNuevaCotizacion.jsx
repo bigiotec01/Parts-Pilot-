@@ -11,7 +11,7 @@ export function AdminNuevaCotizacion({ talleres, onCreate }) {
   const [numeroOrden, setNumeroOrden] = useState('');
   const [fechaPersonalizada, setFechaPersonalizada] = useState('');
   const [notasEstimado, setNotasEstimado] = useState('');
-  const [archivoEstimado, setArchivoEstimado] = useState(null);
+  const [archivosEstimado, setArchivosEstimado] = useState([]);
   const [done, setDone] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
@@ -19,24 +19,26 @@ export function AdminNuevaCotizacion({ talleres, onCreate }) {
   const handleChange = (field, value) => setForm(f => ({ ...f, [field]: value }));
 
   const handleFile = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setArchivoEstimado({ name: file.name, type: file.type, url: URL.createObjectURL(file), file });
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setArchivosEstimado(prev => [...prev, ...files.map(file => ({ name: file.name, type: file.type, url: URL.createObjectURL(file), file }))]);
     e.target.value = '';
   };
+
+  const handleRemoveFile = (idx) => setArchivosEstimado(prev => prev.filter((_, i) => i !== idx));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
     setError('');
     try {
-      await onCreate({ ...form, numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim(), fechaPersonalizada, notasEstimado, archivoEstimado });
+      await onCreate({ ...form, numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim(), fechaPersonalizada, notasEstimado, archivosEstimado });
       setForm({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', notas: '' });
       setNumeroPO('');
       setNumeroOrden('');
       setFechaPersonalizada('');
       setNotasEstimado('');
-      setArchivoEstimado(null);
+      setArchivosEstimado([]);
       setDone(true);
       setTimeout(() => setDone(false), 3000);
     } catch (err) {
@@ -81,19 +83,20 @@ export function AdminNuevaCotizacion({ talleres, onCreate }) {
           <textarea value={notasEstimado} onChange={e => setNotasEstimado(e.target.value)} rows={3} placeholder="Precio, tiempo de entrega, condiciones..." className={`${inputClass} resize-none`} />
         </FormField>
         <FormField label="PDF del estimado (opcional)">
-          {archivoEstimado ? (
-            <div className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
-              <a href={archivoEstimado.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm truncate hover:underline" style={{ color: 'var(--pp-text)' }}>
-                <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{archivoEstimado.name}</span>
-              </a>
-              <button type="button" onClick={() => setArchivoEstimado(null)} style={{ color: 'var(--pp-text3)' }} className="hover:text-red-400 flex-shrink-0"><X className="w-4 h-4" /></button>
-            </div>
-          ) : (
+          <div className="space-y-2">
+            {archivosEstimado.map((f, i) => (
+              <div key={i} className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+                <a href={f.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm truncate hover:underline" style={{ color: 'var(--pp-text)' }}>
+                  <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{f.name}</span>
+                </a>
+                <button type="button" onClick={() => handleRemoveFile(i)} style={{ color: 'var(--pp-text3)' }} className="hover:text-red-400 flex-shrink-0"><X className="w-4 h-4" /></button>
+              </div>
+            ))}
             <label className="flex items-center justify-center gap-2 border border-dashed rounded-lg px-3 py-2.5 text-sm cursor-pointer transition-colors hover:border-[#a0a0a0]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
-              <Paperclip className="w-4 h-4" /> Adjuntar PDF
-              <input type="file" accept="application/pdf" onChange={handleFile} className="hidden" />
+              <Paperclip className="w-4 h-4" /> {archivosEstimado.length ? 'Adjuntar otro PDF' : 'Adjuntar PDF'}
+              <input type="file" accept="application/pdf" multiple onChange={handleFile} className="hidden" />
             </label>
-          )}
+          </div>
         </FormField>
         <FormField label="Notas internas (opcional)">
           <textarea value={form.notas} onChange={e => handleChange('notas', e.target.value)} rows={2} placeholder="Observaciones adicionales..." className={`${inputClass} resize-none`} />

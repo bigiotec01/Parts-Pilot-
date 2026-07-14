@@ -66,9 +66,25 @@ export function useTalleres(user) {
   return talleres;
 }
 
+// Sube una lista de archivos { name, file } a Storage y devuelve [{ name, url }].
+// Se antepone timestamp+índice al nombre para evitar colisiones cuando se
+// suben varios archivos con el mismo nombre en la misma carpeta.
+async function subirArchivos(carpeta, archivos) {
+  const subidos = [];
+  for (let i = 0; i < archivos.length; i++) {
+    const archivo = archivos[i];
+    if (!archivo?.file) continue;
+    const storageRef = ref(storage, `${carpeta}/${Date.now()}_${i}_${archivo.name}`);
+    await uploadBytes(storageRef, archivo.file);
+    const url = await getDownloadURL(storageRef);
+    subidos.push({ name: archivo.name, url });
+  }
+  return subidos;
+}
+
 // ── Crear pedido ────────────────────────────────────────────────────
 export async function crearPedido(data) {
-  const { archivo, fechaPersonalizada, ...rest } = data;
+  const { archivos, fechaPersonalizada, ...rest } = data;
   const countersRef = doc(db, 'config', 'counters');
   const pedidoRef = doc(collection(db, 'pedidos'));
 
@@ -88,22 +104,20 @@ export async function crearPedido(data) {
       estado: 'pendiente',
       estimado: null,
       mensajes: [],
-      archivo: null,
+      archivos: [],
     });
     tx.set(countersRef, { pedidos: next }, { merge: true });
   });
 
-  if (archivo?.file) {
-    const storageRef = ref(storage, `solicitudes/${pedidoRef.id}/${archivo.name}`);
-    await uploadBytes(storageRef, archivo.file);
-    const url = await getDownloadURL(storageRef);
-    await updateDoc(pedidoRef, { archivo: { name: archivo.name, url } });
+  if (archivos?.length) {
+    const subidos = await subirArchivos(`solicitudes/${pedidoRef.id}`, archivos);
+    if (subidos.length) await updateDoc(pedidoRef, { archivos: subidos });
   }
 }
 
 // ── Crear cotización (admin) ─────────────────────────────────────────
 export async function crearCotizacion(data) {
-  const { archivoEstimado, notasEstimado, fechaPersonalizada, ...rest } = data;
+  const { archivosEstimado, notasEstimado, fechaPersonalizada, ...rest } = data;
   const countersRef = doc(db, 'config', 'counters');
   const pedidoRef = doc(collection(db, 'pedidos'));
 
@@ -124,21 +138,19 @@ export async function crearCotizacion(data) {
       tipo: 'pedido',
       estimado: {
         notas: notasEstimado || '',
-        archivo: null,
+        archivos: [],
         fecha: new Date().toISOString().split('T')[0],
         respuesta: 'pendiente',
       },
       mensajes: [],
-      archivo: null,
+      archivos: [],
     });
     tx.set(countersRef, { pedidos: next }, { merge: true });
   });
 
-  if (archivoEstimado?.file) {
-    const storageRef = ref(storage, `estimados/${pedidoRef.id}/${archivoEstimado.name}`);
-    await uploadBytes(storageRef, archivoEstimado.file);
-    const url = await getDownloadURL(storageRef);
-    await updateDoc(pedidoRef, { 'estimado.archivo': { name: archivoEstimado.name, url } });
+  if (archivosEstimado?.length) {
+    const subidos = await subirArchivos(`estimados/${pedidoRef.id}`, archivosEstimado);
+    if (subidos.length) await updateDoc(pedidoRef, { 'estimado.archivos': subidos });
   }
 }
 
@@ -151,19 +163,15 @@ export async function cambiarEstatus(pedidoId, estado, fechaEntrega) {
 }
 
 // ── Enviar estimado ─────────────────────────────────────────────────
-export async function enviarEstimado(pedidoId, { notas, archivo }) {
-  let archivoData = null;
-  if (archivo?.file) {
-    const storageRef = ref(storage, `estimados/${pedidoId}/${archivo.name}`);
-    await uploadBytes(storageRef, archivo.file);
-    const url = await getDownloadURL(storageRef);
-    archivoData = { name: archivo.name, url };
-  } else if (archivo?.url) {
-    archivoData = { name: archivo.name, url: archivo.url };
-  }
+export async function enviarEstimado(pedidoId, { notas, archivos }) {
+  const lista = archivos || [];
+  // Los que ya tenían url (archivos previos conservados al editar) se mantienen tal cual;
+  // los nuevos (con .file) se suben a Storage.
+  const yaSubidos = lista.filter(a => a?.url && !a?.file).map(a => ({ name: a.name, url: a.url }));
+  const nuevos = await subirArchivos(`estimados/${pedidoId}`, lista.filter(a => a?.file));
   const nuevoEstimado = {
     notas,
-    archivo: archivoData,
+    archivos: [...yaSubidos, ...nuevos],
     fecha: new Date().toISOString().split('T')[0],
     respuesta: 'pendiente',
   };

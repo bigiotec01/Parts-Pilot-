@@ -3,7 +3,7 @@ import {
   CheckCircle2, Clock, FileText, X, ThumbsUp, ThumbsDown, AlertCircle, Send, Paperclip, Mail, Trash2, StickyNote, Share2
 } from 'lucide-react';
 import { STATUS_CONFIG, STATUS_ORDER } from '../../constants/status';
-import { formatDate } from '../../utils/format';
+import { formatDate, filesOf } from '../../utils/format';
 import { StatusBadge, StatusStepper } from '../shared/StatusBadge';
 import { FormField, InfoItem } from '../shared/FormField';
 import { inputClass } from '../../constants/styles';
@@ -17,7 +17,7 @@ export function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate
   const [notasInt, setNotasInt]         = useState(order.notasInternas ?? '');
   // Estimado (sección separada)
   const [notasEstimado, setNotasEstimado] = useState(order.estimado?.notas ?? '');
-  const [archivo, setArchivo]           = useState(order.estimado?.archivo ?? null);
+  const [archivos, setArchivos]         = useState(filesOf(order.estimado?.archivo, order.estimado?.archivos));
   // UI state
   const [saving, setSaving]             = useState(false);
   const [saved, setSaved]               = useState(false);
@@ -35,7 +35,7 @@ export function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate
     setNumeroOrden(order.numeroOrden ?? '');
     setNotasInt(order.notasInternas ?? '');
     setNotasEstimado(order.estimado?.notas ?? '');
-    setArchivo(order.estimado?.archivo ?? null);
+    setArchivos(filesOf(order.estimado?.archivo, order.estimado?.archivos));
   }, [order.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Botón único — guarda estado, fecha, PO, orden y notas de una vez
@@ -53,7 +53,7 @@ export function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate
   const handleSendEstimate = async () => {
     setSending(true); setSendError('');
     try {
-      await onSendEstimate(order.id, { notas: notasEstimado, archivo });
+      await onSendEstimate(order.id, { notas: notasEstimado, archivos });
       setSent(true);
       setTimeout(() => setSent(false), 3000);
     } catch (err) {
@@ -62,18 +62,21 @@ export function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate
   };
 
   const handleFile = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setArchivo({ name: file.name, type: file.type, url: URL.createObjectURL(file), file });
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setArchivos(prev => [...prev, ...files.map(file => ({ name: file.name, type: file.type, url: URL.createObjectURL(file), file }))]);
     e.target.value = '';
   };
+
+  const handleRemoveFile = (idx) => setArchivos(prev => prev.filter((_, i) => i !== idx));
 
   const buildEmailContent = () => {
     const subject = `Estimado · ${order.referencia || order.vehiculo}`;
     const lineas = [`Hola ${taller.contacto || ''},`, '', `Te compartimos el estimado para tu pedido (${order.vehiculo}):`, ''];
     if (notasEstimado) lineas.push(`Notas: ${notasEstimado}`);
     lineas.push('', 'Puedes ver el detalle completo, fotos y archivos desde Parts Pilot.');
-    if (archivo) lineas.push('', `No olvides adjuntar el PDF "${archivo.name}" a este correo.`);
+    if (archivos.length === 1) lineas.push('', `No olvides adjuntar el PDF "${archivos[0].name}" a este correo.`);
+    else if (archivos.length > 1) lineas.push('', `No olvides adjuntar los ${archivos.length} PDFs a este correo.`);
     lineas.push('', 'Saludos.');
     return { subject, body: lineas.join('\n') };
   };
@@ -143,16 +146,20 @@ export function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate
             </div>
           )}
 
-          {order.archivo && (
+          {filesOf(order.archivo, order.archivos).length > 0 && (
             <div className="rounded-[12px] p-3" style={{ background: 'var(--pp-card)' }}>
-              <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: 'var(--pp-text3)', letterSpacing: '.05em' }}>Archivo del taller</p>
-              {order.archivo.type?.startsWith('image/') || order.archivo.url?.match(/\.(jpg|jpeg|png|webp|gif)/i) ? (
-                <a href={order.archivo.url} target="_blank" rel="noreferrer"><img src={order.archivo.url} alt={order.archivo.name} className="rounded-lg max-h-36 object-cover" style={{ border: '1px solid var(--pp-border)' }} /></a>
-              ) : (
-                <a href={order.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-[10px] px-3 py-2 text-[13px] border transition-colors hover:border-[#a0a0a0]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
-                  <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{order.archivo.name}</span>
-                </a>
-              )}
+              <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: 'var(--pp-text3)', letterSpacing: '.05em' }}>Archivo{filesOf(order.archivo, order.archivos).length > 1 ? 's' : ''} del taller</p>
+              <div className="flex flex-wrap gap-2">
+                {filesOf(order.archivo, order.archivos).map((f, i) => (
+                  f.type?.startsWith('image/') || f.url?.match(/\.(jpg|jpeg|png|webp|gif)/i) ? (
+                    <a key={i} href={f.url} target="_blank" rel="noreferrer"><img src={f.url} alt={f.name} className="rounded-lg max-h-36 object-cover" style={{ border: '1px solid var(--pp-border)' }} /></a>
+                  ) : (
+                    <a key={i} href={f.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-[10px] px-3 py-2 text-[13px] border transition-colors hover:border-[#a0a0a0]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+                      <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{f.name}</span>
+                    </a>
+                  )
+                ))}
+              </div>
             </div>
           )}
 
@@ -195,19 +202,20 @@ export function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate
               <textarea value={notasEstimado} onChange={e => setNotasEstimado(e.target.value)} rows={3} placeholder="Tiempo de entrega, condiciones, precio…" className={`${inputClass} resize-none`} />
             </FormField>
             <FormField label="PDF del estimado (opcional)">
-              {archivo ? (
-                <div className="flex items-center justify-between gap-2 rounded-[10px] px-3 py-2 border" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)' }}>
-                  <a href={archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[13px] truncate hover:underline" style={{ color: 'var(--pp-text2)' }}>
-                    <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{archivo.name}</span>
-                  </a>
-                  <button type="button" onClick={() => setArchivo(null)} style={{ color: 'var(--pp-text3)' }}><X className="w-4 h-4" /></button>
-                </div>
-              ) : (
+              <div className="space-y-2">
+                {archivos.map((f, i) => (
+                  <div key={i} className="flex items-center justify-between gap-2 rounded-[10px] px-3 py-2 border" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)' }}>
+                    <a href={f.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[13px] truncate hover:underline" style={{ color: 'var(--pp-text2)' }}>
+                      <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{f.name}</span>
+                    </a>
+                    <button type="button" onClick={() => handleRemoveFile(i)} style={{ color: 'var(--pp-text3)' }}><X className="w-4 h-4" /></button>
+                  </div>
+                ))}
                 <label className="flex items-center justify-center gap-2 border-dashed border rounded-[10px] px-3 py-2.5 text-[13px] cursor-pointer transition-colors hover:border-[#a0a0a0] hover:text-[#a0a0a0]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
-                  <Paperclip className="w-4 h-4" /> Adjuntar PDF
-                  <input type="file" accept="application/pdf" onChange={handleFile} className="hidden" />
+                  <Paperclip className="w-4 h-4" /> {archivos.length ? 'Adjuntar otro PDF' : 'Adjuntar PDF'}
+                  <input type="file" accept="application/pdf" multiple onChange={handleFile} className="hidden" />
                 </label>
-              )}
+              </div>
             </FormField>
             <button onClick={handleSendEstimate} disabled={sending} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#707070] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: 'var(--pp-accent)' }}>
               <Send className="w-4 h-4" /> {sending ? 'Enviando…' : order.estimado ? 'Actualizar estimado' : 'Enviar estimado al taller'}

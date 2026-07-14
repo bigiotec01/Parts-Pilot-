@@ -6,6 +6,14 @@ export function cleanText(text) {
   return text.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1');
 }
 
+// Normaliza el campo de archivos adjuntos: soporta tanto el arreglo nuevo
+// (`archivos`) como el objeto único de pedidos/cotizaciones antiguos (`archivo`),
+// para que la UI no tenga que preocuparse por el formato del documento.
+export function filesOf(legacy, plural) {
+  if (Array.isArray(plural)) return plural;
+  return legacy ? [legacy] : [];
+}
+
 export function formatDate(d) {
   if (!d) return '—';
   // Firestore Timestamp tiene .toDate(), string no

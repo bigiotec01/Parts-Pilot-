@@ -2,7 +2,7 @@ import {
   FileText, Calendar, Printer
 } from 'lucide-react';
 import { STATUS_CONFIG } from '../../constants/status';
-import { formatDate, cleanText } from '../../utils/format';
+import { formatDate, cleanText, filesOf } from '../../utils/format';
 import { StatusStepper } from '../shared/StatusBadge';
 import { InfoItem } from '../shared/FormField';
 import { EstimateActions } from './ClientEstimados';
@@ -78,11 +78,11 @@ export function ClientOrderDetail({ order, onRespond }) {
             ) : (
               <p className="text-sm italic" style={{ color: 'var(--pp-text3)' }}>Sin notas adicionales.</p>
             )}
-            {order.estimado.archivo && (
-              <a href={order.estimado.archivo.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
-                <FileText className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{order.estimado.archivo.name}</span>
+            {filesOf(order.estimado.archivo, order.estimado.archivos).map((f, i) => (
+              <a key={i} href={f.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+                <FileText className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{f.name}</span>
               </a>
-            )}
+            ))}
           </div>
           <EstimateActions order={order} onRespond={onRespond} />
         </div>
