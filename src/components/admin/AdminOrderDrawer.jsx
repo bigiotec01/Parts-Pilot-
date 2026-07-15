@@ -82,7 +82,7 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
   const whatsappNumber = (() => {
     const digits = (taller?.telefono || '').replace(/\D/g, '');
     if (digits.length < 10) return null;
-    return digits.length === 10 ? `52${digits}` : digits;
+    return digits.length === 10 ? `1${digits}` : digits;
   })();
 
   const [notifyBody, setNotifyBody] = useState('');
