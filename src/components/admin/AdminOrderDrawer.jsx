@@ -50,7 +50,6 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
   const [sending, setSending]           = useState(false);
   const [sent, setSent]                 = useState(false);
   const [sendError, setSendError]       = useState('');
-  const [showEmail, setShowEmail]       = useState(false);
   const [copied, setCopied]             = useState(false);
   const [showNotify, setShowNotify]     = useState(false);
   const msgCount = (order.mensajes || []).length;
@@ -146,30 +145,19 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
           <div className="text-[13.5px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{taller?.nombre}</div>
           <div className="text-[12px]" style={{ color: 'var(--pp-text2)' }}>{taller?.contacto}</div>
         </div>
-        {taller?.email && (
-          <button onClick={() => setShowEmail(v => !v)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] border text-[12px] font-semibold hover:bg-[#1a1a1a] transition-colors flex-shrink-0" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
-            <Mail className="w-3.5 h-3.5" /> Correo
-          </button>
+        {whatsappNumber && (
+          <a
+            href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent([`Hola ${taller?.contacto || ''},`, '', `Estimado para: ${order.vehiculo}`, notasEst ? `Notas: ${notasEst}` : '', '', 'Puedes verlo en Parts Pilot.', '', 'Saludos.'].filter((l, i) => !(i === 3 && !notasEst)).join('\n'))}`}
+            target="_blank" rel="noreferrer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] border text-[12px] font-semibold hover:bg-[#1a1a1a] transition-colors flex-shrink-0" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}
+          >
+            <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+          </a>
         )}
         <button onClick={buildShareLink} title="Enviar link del pedido" className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0 transition-colors hover:bg-[#252525]" style={{ color: 'var(--pp-text3)' }}>
           <Share2 className="w-4 h-4" />
         </button>
       </div>
-
-      {showEmail && taller?.email && (() => {
-        const subject = `Estimado · ${order.vehiculo}`;
-        const body = [`Hola ${taller.contacto || ''},`, '', `Estimado para: ${order.vehiculo}`, notasEst ? `Notas: ${notasEst}` : '', '', 'Puedes verlo en Parts Pilot.', '', 'Saludos.'].filter((l, i) => !(i === 3 && !notasEst)).join('\n');
-        return (
-          <div className="rounded-[12px] p-3 border space-y-2 text-[13px]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
-            <div><span className="font-semibold" style={{ color: 'var(--pp-text2)' }}>Para: </span><span style={{ color: 'var(--pp-text)' }}>{taller.email}</span></div>
-            <div><span className="font-semibold" style={{ color: 'var(--pp-text2)' }}>Asunto: </span><span style={{ color: 'var(--pp-text)' }}>{subject}</span></div>
-            <textarea readOnly value={body} rows={4} className="w-full text-[12px] rounded-[10px] p-2 resize-none outline-none border" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }} />
-            <button onClick={() => navigator.clipboard.writeText(`Para: ${taller.email}\nAsunto: ${subject}\n\n${body}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); })} className="w-full py-2 rounded-[10px] text-white text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
-              {copied ? <><CheckCircle2 className="w-4 h-4" /> ¡Copiado!</> : <><Paperclip className="w-4 h-4" /> Copiar correo</>}
-            </button>
-          </div>
-        );
-      })()}
 
       <div>
         <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: 'var(--pp-text9)', letterSpacing: '.06em' }}>Progreso <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>· clic en un paso para cambiar el estado</span></p>
