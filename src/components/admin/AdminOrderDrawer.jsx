@@ -147,7 +147,7 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
         </div>
         {whatsappNumber && (
           <a
-            href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent([`Hola ${taller?.contacto || ''},`, '', `Estimado para: ${order.vehiculo}`, notasEst ? `Notas: ${notasEst}` : '', '', 'Puedes verlo en Parts Pilot.', '', 'Saludos.'].filter((l, i) => !(i === 3 && !notasEst)).join('\n'))}`}
+            href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent([`Hola ${taller?.contacto || ''},`, '', `Estimado para: ${order.vehiculo}`, notasEst ? `Notas: ${notasEst}` : '', '', `Puedes verlo aquí:\n${window.location.origin}${window.location.pathname}?order=${order.id}`, '', 'Saludos.'].filter((l, i) => !(i === 3 && !notasEst)).join('\n'))}`}
             target="_blank" rel="noreferrer"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] border text-[12px] font-semibold hover:bg-[#1a1a1a] transition-colors flex-shrink-0" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}
           >
