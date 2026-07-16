@@ -37,8 +37,11 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
               </span>
             )}
             {unreadCount > 0 && (
-              <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold flex-shrink-0" style={{ background: 'var(--pp-active-bg)', color: 'var(--pp-text8)' }}>
-                <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: 'var(--pp-accent)' }} />
+              <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
+                </span>
                 {unreadCount} nuevo{unreadCount !== 1 ? 's' : ''}
               </span>
             )}
