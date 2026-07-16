@@ -30,7 +30,7 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
             {hasActivity && (
               <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full" style={{ background: '#3b82f6' }} />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-white" style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.15)' }} />
                 </span>
                 Actualizado
@@ -39,7 +39,7 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
             {unreadCount > 0 && (
               <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full" style={{ background: '#3b82f6' }} />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-white" style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.15)' }} />
                 </span>
                 {unreadCount} nuevo{unreadCount !== 1 ? 's' : ''}
