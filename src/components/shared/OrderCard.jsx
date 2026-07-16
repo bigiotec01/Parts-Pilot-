@@ -42,7 +42,7 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full" style={{ background: '#3b82f6' }} />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-white" style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.15)' }} />
                 </span>
-                {unreadCount} nuevo{unreadCount !== 1 ? 's' : ''}
+                {unreadCount} mensaje{unreadCount !== 1 ? 's' : ''} nuevo{unreadCount !== 1 ? 's' : ''}
               </span>
             )}
           </div>
