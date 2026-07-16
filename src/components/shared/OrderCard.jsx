@@ -29,18 +29,18 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
             <h3 className="font-bold text-[14.5px] truncate" style={{ color: 'var(--pp-text)' }}>{cardTitle}</h3>
             {hasActivity && (
               <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white" style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.15)' }} />
                 </span>
                 Actualizado
               </span>
             )}
             {unreadCount > 0 && (
               <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white" style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.15)' }} />
                 </span>
                 {unreadCount} nuevo{unreadCount !== 1 ? 's' : ''}
               </span>
