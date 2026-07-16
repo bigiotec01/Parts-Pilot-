@@ -77,7 +77,7 @@ async function subirArchivos(carpeta, archivos) {
     const storageRef = ref(storage, `${carpeta}/${Date.now()}_${i}_${archivo.name}`);
     await uploadBytes(storageRef, archivo.file);
     const url = await getDownloadURL(storageRef);
-    subidos.push({ name: archivo.name, url });
+    subidos.push({ name: archivo.name, type: archivo.type, url });
   }
   return subidos;
 }
@@ -167,7 +167,7 @@ export async function enviarEstimado(pedidoId, { notas, archivos }) {
   const lista = archivos || [];
   // Los que ya tenían url (archivos previos conservados al editar) se mantienen tal cual;
   // los nuevos (con .file) se suben a Storage.
-  const yaSubidos = lista.filter(a => a?.url && !a?.file).map(a => ({ name: a.name, url: a.url }));
+  const yaSubidos = lista.filter(a => a?.url && !a?.file).map(a => ({ name: a.name, type: a.type, url: a.url }));
   const nuevos = await subirArchivos(`estimados/${pedidoId}`, lista.filter(a => a?.file));
   const nuevoEstimado = {
     notas,

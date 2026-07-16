@@ -155,7 +155,7 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
       {activeTab === 'historial' && <ClientHistorial pedidos={pedidosHistorial} onSelect={handleSelect} />}
       {activeTab === 'estimados' && <ClientEstimados solicitudes={solicitudes} cotizaciones={cotizacionesPendientes} onRespond={onRespondEstimate} onSelect={handleSelect} />}
       {activeTab === 'nueva' && (
-        <ClientNuevaSolicitud onCreate={(data) => { onCreateOrder({ ...data, tallerId: taller.id }); goTab('estimados'); }} />
+        <ClientNuevaSolicitud onCreate={async (data) => { await onCreateOrder({ ...data, tallerId: taller.id }); goTab('estimados'); }} />
       )}
       {activeTab === 'facturas' && <ClientFacturas facturas={facturas} taller={taller} />}
       {activeTab === 'perfil' && (

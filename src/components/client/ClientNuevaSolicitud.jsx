@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  CheckCircle2, FileText, X, Paperclip
+  CheckCircle2, FileText, X, Paperclip, AlertCircle
 } from 'lucide-react';
 import { FormField } from '../shared/FormField';
 import { inputClass } from '../../constants/styles';
@@ -9,6 +9,8 @@ export function ClientNuevaSolicitud({ onCreate }) {
   const [form, setForm] = useState({ vehiculo: '', notas: '' });
   const [archivos, setArchivos] = useState([]);
   const [done, setDone] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (field, value) => setForm(f => ({ ...f, [field]: value }));
 
@@ -21,13 +23,22 @@ export function ClientNuevaSolicitud({ onCreate }) {
 
   const handleRemoveFile = (idx) => setArchivos(prev => prev.filter((_, i) => i !== idx));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onCreate({ ...form, archivos });
-    setForm({ vehiculo: '', notas: '' });
-    setArchivos([]);
-    setDone(true);
-    setTimeout(() => setDone(false), 3000);
+    if (sending) return;
+    setSending(true);
+    setError('');
+    try {
+      await onCreate({ ...form, archivos });
+      setForm({ vehiculo: '', notas: '' });
+      setArchivos([]);
+      setDone(true);
+      setTimeout(() => setDone(false), 3000);
+    } catch (err) {
+      setError('No se pudo enviar la solicitud: ' + (err.message || err.code));
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -37,6 +48,11 @@ export function ClientNuevaSolicitud({ onCreate }) {
       {done && (
         <div className="mb-4 text-sm text-emerald-400 bg-emerald-900/20 px-3 py-2 rounded-lg flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4" /> Solicitud enviada correctamente.
+        </div>
+      )}
+      {error && (
+        <div className="mb-4 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" /> {error}
         </div>
       )}
       <form onSubmit={handleSubmit} className="rounded-xl border p-5 space-y-4" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
@@ -67,8 +83,8 @@ export function ClientNuevaSolicitud({ onCreate }) {
             </label>
           </div>
         </FormField>
-        <button type="submit" className="w-full text-white font-semibold py-2.5 rounded-lg transition-colors hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
-          Enviar solicitud
+        <button type="submit" disabled={sending} className="w-full text-white font-semibold py-2.5 rounded-lg transition-colors hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
+          {sending ? 'Enviando...' : 'Enviar solicitud'}
         </button>
       </form>
     </div>

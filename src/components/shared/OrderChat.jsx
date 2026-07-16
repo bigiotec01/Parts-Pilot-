@@ -1,13 +1,44 @@
 import { useState } from 'react';
 import {
-  FileText, AlertCircle, Send, MessageSquare, Paperclip, Trash2
+  FileText, AlertCircle, Send, MessageSquare, Paperclip, Trash2, X
 } from 'lucide-react';
 import { inputClass } from '../../constants/styles';
 
-export function ChatAttachment({ attachment, isMine }) {
+function ImageLightbox({ attachment, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.85)' }}
+      onClick={onClose}
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white"
+      >
+        <X className="w-5 h-5" />
+      </button>
+      <img
+        src={attachment.url}
+        alt={attachment.name}
+        onClick={e => e.stopPropagation()}
+        className="max-w-full max-h-full rounded-lg object-contain"
+      />
+    </div>
+  );
+}
+
+export function ChatAttachment({ attachment, isMine, onZoom }) {
   if (!attachment) return null;
   if (attachment.type?.startsWith('image/')) {
-    return <img src={attachment.url} alt={attachment.name} className="rounded-lg max-w-full max-h-48 object-cover" />;
+    return (
+      <img
+        src={attachment.url}
+        alt={attachment.name}
+        onClick={() => onZoom(attachment)}
+        className="rounded-lg max-w-full max-h-48 object-cover cursor-zoom-in"
+      />
+    );
   }
   return (
     <a
@@ -26,6 +57,7 @@ export function OrderChat({ order, role, otherPartyName, onSendMessage, onDelete
   const [sending, setSending] = useState(false);
   const [chatError, setChatError] = useState('');
   const [deletingIndex, setDeletingIndex] = useState(null);
+  const [zoomAttachment, setZoomAttachment] = useState(null);
   const mensajes = order.mensajes || [];
 
   const handleDelete = async (index) => {
@@ -103,7 +135,7 @@ export function OrderChat({ order, role, otherPartyName, onSendMessage, onDelete
                     borderBottomLeftRadius: isMine ? 14 : 5,
                   }}
                 >
-                  {m.attachment && <ChatAttachment attachment={m.attachment} isMine={isMine} />}
+                  {m.attachment && <ChatAttachment attachment={m.attachment} isMine={isMine} onZoom={setZoomAttachment} />}
                   {m.texto && <p>{m.texto}</p>}
                 </div>
                 {canDelete && !isMine && (
@@ -138,6 +170,7 @@ export function OrderChat({ order, role, otherPartyName, onSendMessage, onDelete
           <Send className="w-4 h-4" />
         </button>
       </form>
+      {zoomAttachment && <ImageLightbox attachment={zoomAttachment} onClose={() => setZoomAttachment(null)} />}
     </div>
   );
 }
