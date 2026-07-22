@@ -1,7 +1,11 @@
 'use strict';
 
 const { onDocumentCreated, onDocumentUpdated } = require('firebase-functions/v2/firestore');
+const { onRequest } = require('firebase-functions/v2/https');
+const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
+
+const TAGLOGIC_KEY = defineSecret('TAGLOGIC_KEY');
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -185,5 +189,69 @@ exports.onPedidoUpdate = onDocumentUpdated('pedidos/{pedidoId}', async (event) =
       { title: `${after.tallerNombre || 'Taller'} ${verbo} la cotización`, body: `PO ${ref}` },
       { pedidoId, tipo: 'respuesta_estimado', respuesta: rAfter }
     );
+  }
+});
+
+// ── Ingesta de pedidos externos (Tag Logic) ─────────────────────────
+// Recibe una orden de piezas desde Tag Logic y la guarda como pedido.
+exports.ingestTagLogic = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res) => {
+  try {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'usa POST' });
+    if (req.get('x-api-key') !== TAGLOGIC_KEY.value())
+      return res.status(401).json({ error: 'no autorizado' });
+
+    const b = req.body || {};
+    if (!b.ref || !b.taller?.id)
+      return res.status(400).json({ error: 'faltan ref o taller.id' });
+
+    const v = b.vehiculo || {};
+    const piezas = Array.isArray(b.piezas) ? b.piezas : [];
+    const vehiculo = [v.anio, v.marca, v.modelo].filter(Boolean).join(' ')
+                   + (v.tablilla ? ` — ${v.tablilla}` : '');
+    const pieza = piezas.length === 1
+      ? piezas[0].descripcion
+      : `${piezas.length} piezas (${piezas.slice(0, 3).map(p => p.descripcion).join(', ')})`;
+    const lista = piezas.map(p =>
+      `• ${p.descripcion}${p.partNumber ? ` — Part# ${p.partNumber}` : ''}${p.lado ? ` (${p.lado})` : ''}`
+    ).join('\n');
+    const archivos = (b.fotos || []).map(f => ({ name: f.name || 'foto', type: 'image/jpeg', url: f.url }));
+
+    const id = `taglogic_${b.ref}`;
+    const ref = db.collection('pedidos').doc(id);
+
+    const folio = await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      if (snap.exists) {
+        // Reenvío (suplemento/corrección): refresca datos, respeta folio, estado, chat y estimado.
+        tx.set(ref, {
+          vehiculo, pieza, archivos, vehiculoDetalle: v, piezas,
+          reclamacion: b.reclamacion || null, enlaceTagLogic: b.enlaceTagLogic || '',
+        }, { merge: true });
+        return snap.data().folio;
+      }
+      // Primer insert: folio PP-XXXX con el mismo contador que crearPedido.
+      const counterRef = db.doc('config/counters');
+      const cs = await tx.get(counterRef);
+      const next = ((cs.exists ? cs.data().pedidos : 0) || 0) + 1;
+      const nuevoFolio = `PP-${String(next).padStart(4, '0')}`;
+      tx.set(counterRef, { pedidos: next }, { merge: true });
+      tx.set(ref, {
+        origen: 'taglogic', ref: b.ref,
+        tallerId: b.taller.id, tallerNombre: b.taller.nombre || '',
+        vehiculo, pieza,
+        notas: [`Tag #${b.ref}`, lista, b.notas || ''].filter(Boolean).join('\n'),
+        archivos, estado: 'pendiente', estimado: null, mensajes: [],
+        fecha: admin.firestore.FieldValue.serverTimestamp(),
+        folio: nuevoFolio,
+        vehiculoDetalle: v, piezas,
+        reclamacion: b.reclamacion || null, enlaceTagLogic: b.enlaceTagLogic || '',
+      });
+      return nuevoFolio;
+    });
+
+    return res.json({ ok: true, folio, id });
+  } catch (e) {
+    console.error('ingestTagLogic', e);
+    return res.status(500).json({ error: e.message });
   }
 });
