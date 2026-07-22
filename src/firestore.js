@@ -185,7 +185,10 @@ export async function enviarEstimado(pedidoId, { notas, archivos }) {
 // ── Responder estimado ──────────────────────────────────────────────
 export async function responderEstimado(pedidoId, respuesta) {
   const datos = { 'estimado.respuesta': respuesta };
-  if (respuesta === 'aceptado') datos.estado = 'pedido_fabrica';
+  if (respuesta === 'aceptado') {
+    datos.estado = 'pedido_fabrica';
+    datos.tipo = 'pedido';
+  }
   await updateDoc(doc(db, 'pedidos', pedidoId), datos);
 }
 
