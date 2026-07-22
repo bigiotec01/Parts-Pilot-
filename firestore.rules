@@ -7,9 +7,18 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
+    // "Dueño" pleno de su empresa (tenant): rol explícito 'admin', o legado
+    // (docs de antes del refactor multi-tenant, sin campo 'rol' ni 'permisos').
     function isSuperAdmin() {
       let d = get(/databases/$(database)/documents/admins/$(request.auth.uid)).data;
-      return !('permisos' in d);
+      return (d.rol == 'admin') || (!('rol' in d) && !('permisos' in d));
+    }
+
+    // Super Admin de la PLATAFORMA (dueño del SaaS, ve/gestiona todas las empresas).
+    // Colección separada de 'admins' para no mezclar el rol de plataforma con el de tenant.
+    function isPlatformSuperAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/superadmins/$(request.auth.uid));
     }
 
     function getTallerId() {
@@ -24,24 +33,44 @@ service cloud.firestore {
       );
     }
 
-    // Admins: cualquier usuario autenticado puede leer su PROPIO doc (para verificar rol en login)
+    // Empresas (tenants): gestión reservada al Super Admin de plataforma.
+    // La creación/activación/suspensión se hace por Cloud Functions (Admin SDK, ignora estas reglas);
+    // aquí solo se habilita la lectura para el panel de Super Admin.
+    match /empresas/{tenantId} {
+      allow read: if isPlatformSuperAdmin() || (isAdmin() &&
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.tenantId == tenantId);
+      allow write: if false;
+    }
+
+    // Super Admins de plataforma: doc marcador, gestionado manualmente/por migración. Solo lectura propia.
+    match /superadmins/{uid} {
+      allow read:  if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Admins: cualquier usuario autenticado puede leer su PROPIO doc (para verificar rol en login).
+    // La creación ahora es EXCLUSIVA de las Cloud Functions (crearEmpresa/crearMiembroEquipo),
+    // que usan el Admin SDK y por lo tanto no pasan por estas reglas: allow create queda cerrado.
     match /admins/{uid} {
-      allow read:   if request.auth != null && (isAdmin() || request.auth.uid == uid);
-      allow create: if isAdmin() && isSuperAdmin();
+      allow read:   if request.auth != null && (isAdmin() || request.auth.uid == uid || isPlatformSuperAdmin());
+      allow create: if false;
       allow update: if isAdmin() && (isSuperAdmin() || request.auth.uid == uid);
       allow delete: if isAdmin() && isSuperAdmin() && request.auth.uid != uid;
     }
 
-    // Talleres: cualquier usuario autenticado puede leer su PROPIO doc (para verificar rol en login)
+    // Talleres: cualquier usuario autenticado puede leer su PROPIO doc (para verificar rol en login).
+    // La creación es exclusiva de la Cloud Function crearTallerCF.
     match /talleres/{uid} {
-      allow read:  if request.auth != null && (isAdmin() || isTallerMember(uid) || request.auth.uid == uid);
-      allow write: if isAdmin();
+      allow read:   if request.auth != null && (isAdmin() || isTallerMember(uid) || request.auth.uid == uid || isPlatformSuperAdmin());
+      allow create: if false;
+      allow update, delete: if isAdmin();
     }
 
-    // Sub-usuarios: pueden leer su propio doc (para obtener tallerId en login)
+    // Sub-usuarios: pueden leer su propio doc (para obtener tallerId en login).
+    // La creación es exclusiva de la Cloud Function crearTallerUsuarioCF.
     match /tallerUsuarios/{uid} {
-      allow read:   if isAdmin() || (request.auth != null && request.auth.uid == uid);
-      allow create: if isAdmin();
+      allow read:   if isAdmin() || (request.auth != null && request.auth.uid == uid) || isPlatformSuperAdmin();
+      allow create: if false;
       allow update: if isAdmin() || (request.auth != null && request.auth.uid == uid);
       allow delete: if isAdmin();
     }
@@ -51,14 +80,14 @@ service cloud.firestore {
     }
 
     match /pedidos/{pedidoId} {
-      allow read:   if isAdmin() || isTallerMember(resource.data.tallerId);
+      allow read:   if isAdmin() || isTallerMember(resource.data.tallerId) || isPlatformSuperAdmin();
       allow create: if isAdmin() || isTallerMember(request.resource.data.tallerId);
       allow update: if isAdmin() || isTallerMember(resource.data.tallerId);
       allow delete: if isAdmin();
     }
 
     match /facturas/{facturaId} {
-      allow read:   if isAdmin() || isTallerMember(resource.data.tallerId);
+      allow read:   if isAdmin() || isTallerMember(resource.data.tallerId) || isPlatformSuperAdmin();
       allow create: if isAdmin();
       allow update: if isAdmin();
       allow delete: if isAdmin();

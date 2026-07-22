@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { db, storage } from './firebase';
+import { db, storage, functions } from './firebase';
 import {
   collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot,
   query, where, orderBy, serverTimestamp, arrayUnion, runTransaction, Timestamp,
@@ -8,11 +8,7 @@ import {
 import {
   ref, uploadBytes, getDownloadURL
 } from 'firebase/storage';
-import {
-  createUserWithEmailAndPassword, getAuth
-} from 'firebase/auth';
-import { initializeApp, deleteApp } from 'firebase/app';
-import { firebaseConfig } from './firebase';
+import { httpsCallable } from 'firebase/functions';
 import { setDoc } from 'firebase/firestore';
 
 // ── Pedidos en tiempo real ──────────────────────────────────────────
@@ -259,16 +255,8 @@ export function useTallerUsuarios(user) {
 }
 
 export async function crearTallerUsuario(tallerId, { nombre, email, password }) {
-  const secondaryApp = initializeApp(firebaseConfig, `create-taller-user-${Date.now()}`);
-  const secondaryAuth = getAuth(secondaryApp);
-  let uid;
-  try {
-    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
-    uid = cred.user.uid;
-  } finally {
-    await deleteApp(secondaryApp);
-  }
-  await setDoc(doc(db, 'tallerUsuarios', uid), { tallerId, nombre, email });
+  const fn = httpsCallable(functions, 'crearTallerUsuarioCF');
+  await fn({ tallerId, nombre, email, password });
 }
 
 export async function eliminarTallerUsuario(uid) {
@@ -294,17 +282,9 @@ export function useAdminEquipo(user) {
   return equipo;
 }
 
-export async function crearAdminUsuario({ nombre, email, password, permisos }) {
-  const secondaryApp = initializeApp(firebaseConfig, `create-admin-${Date.now()}`);
-  const secondaryAuth = getAuth(secondaryApp);
-  let uid;
-  try {
-    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
-    uid = cred.user.uid;
-  } finally {
-    await deleteApp(secondaryApp);
-  }
-  await setDoc(doc(db, 'admins', uid), { nombre, email, permisos });
+export async function crearAdminUsuario({ nombre, email, password, permisos, tallerIds }) {
+  const fn = httpsCallable(functions, 'crearMiembroEquipo');
+  await fn({ nombre, email, password, permisos, tallerIds });
 }
 
 export async function actualizarPermisosAdmin(uid, data) {
@@ -440,28 +420,6 @@ export async function eliminarFCMToken(uid) {
 
 // ── Crear taller (admin) ────────────────────────────────────────────
 export async function crearTaller({ nombre, contacto, telefono, email, usuario, password }) {
-  let uid;
-
-  if (email && password) {
-    // Crea usuario en Auth usando app secundaria para no cerrar sesión del admin
-    const secondaryApp = initializeApp(firebaseConfig, `create-taller-${Date.now()}`);
-    const secondaryAuth = getAuth(secondaryApp);
-    try {
-      const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
-      uid = cred.user.uid;
-    } finally {
-      await deleteApp(secondaryApp);
-    }
-  } else {
-    // Sin credenciales: solo registro en Firestore (sin acceso al portal)
-    uid = `taller_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  }
-
-  await setDoc(doc(db, 'talleres', uid), {
-    nombre,
-    contacto: contacto || '',
-    telefono: telefono || '',
-    email: email || '',
-    usuario: usuario || '',
-  });
+  const fn = httpsCallable(functions, 'crearTallerCF');
+  await fn({ nombre, contacto, telefono, email, usuario, password });
 }
