@@ -193,7 +193,7 @@ exports.onPedidoUpdate = onDocumentUpdated('pedidos/{pedidoId}', async (event) =
 });
 
 // ── Ingesta de pedidos externos (Tag Logic) ─────────────────────────
-// Recibe una orden de piezas desde Tag Logic y la guarda como pedido.
+// Recibe una orden de piezas desde Tag Logic y la guarda como solicitud.
 exports.ingestTagLogic = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res) => {
   try {
     if (req.method !== 'POST') return res.status(405).json({ error: 'usa POST' });
@@ -201,31 +201,21 @@ exports.ingestTagLogic = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res)
       return res.status(401).json({ error: 'no autorizado' });
 
     const b = req.body || {};
-    if (!b.ref || !b.taller?.id)
-      return res.status(400).json({ error: 'faltan ref o taller.id' });
+    if (!b.ref || !b.taller?.id) return res.status(400).json({ error: 'faltan ref o taller.id' });
 
-    const v = b.vehiculo || {};
-    const piezas = Array.isArray(b.piezas) ? b.piezas : [];
-    const vehiculo = [v.anio, v.marca, v.modelo].filter(Boolean).join(' ')
-                   + (v.tablilla ? ` — ${v.tablilla}` : '');
-    const pieza = piezas.length === 1
-      ? piezas[0].descripcion
-      : `${piezas.length} piezas (${piezas.slice(0, 3).map(p => p.descripcion).join(', ')})`;
-    const lista = piezas.map(p =>
-      `• ${p.descripcion}${p.partNumber ? ` — Part# ${p.partNumber}` : ''}${p.lado ? ` (${p.lado})` : ''}`
-    ).join('\n');
-    const archivos = (b.fotos || []).map(f => ({ name: f.name || 'foto', type: 'image/jpeg', url: f.url }));
-
-    const id = `taglogic_${b.ref}`;
+    const id  = `taglogic_${b.ref}`;
     const ref = db.collection('pedidos').doc(id);
+    const archivos = (b.fotos || []).map(f => ({ name: f.name || 'foto', type: 'image/jpeg', url: f.url }));
 
     const folio = await db.runTransaction(async (tx) => {
       const snap = await tx.get(ref);
       if (snap.exists) {
-        // Reenvío (suplemento/corrección): refresca datos, respeta folio, estado, chat y estimado.
+        // Reenvío (suplemento): refresca lo visible, respeta folio/estado/estimado/chat.
         tx.set(ref, {
-          vehiculo, pieza, archivos, vehiculoDetalle: v, piezas,
-          reclamacion: b.reclamacion || null, enlaceTagLogic: b.enlaceTagLogic || '',
+          vehiculo: b.vehiculo || '', pieza: b.pieza || '', notas: b.notas || '', archivos,
+          tag: b.tag || null, piezas: b.piezas || [],
+          vehiculoDetalle: b.vehiculoDetalle || null, reclamacion: b.reclamacion || null,
+          enlaceTagLogic: b.enlaceTagLogic || '',
         }, { merge: true });
         return snap.data().folio;
       }
@@ -236,14 +226,14 @@ exports.ingestTagLogic = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res)
       const nuevoFolio = `PP-${String(next).padStart(4, '0')}`;
       tx.set(counterRef, { pedidos: next }, { merge: true });
       tx.set(ref, {
-        origen: 'taglogic', ref: b.ref,
+        origen: 'taglogic', ref: b.ref, tag: b.tag || null,
+        tipo: 'solicitud',
         tallerId: b.taller.id, tallerNombre: b.taller.nombre || '',
-        vehiculo, pieza,
-        notas: [`Tag #${b.ref}`, lista, b.notas || ''].filter(Boolean).join('\n'),
+        vehiculo: b.vehiculo || '', pieza: b.pieza || '', notas: b.notas || '',
         archivos, estado: 'pendiente', estimado: null, mensajes: [],
         fecha: admin.firestore.FieldValue.serverTimestamp(),
         folio: nuevoFolio,
-        vehiculoDetalle: v, piezas,
+        piezas: b.piezas || [], vehiculoDetalle: b.vehiculoDetalle || null,
         reclamacion: b.reclamacion || null, enlaceTagLogic: b.enlaceTagLogic || '',
       });
       return nuevoFolio;
@@ -254,4 +244,33 @@ exports.ingestTagLogic = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res)
     console.error('ingestTagLogic', e);
     return res.status(500).json({ error: e.message });
   }
+});
+
+// ── Estado de un pedido para Tag Logic ──────────────────────────────
+// Devuelve estado + cotización + adjuntos de un pedido de Tag Logic.
+exports.pedidoEstado = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res) => {
+  if (req.get('x-api-key') !== TAGLOGIC_KEY.value())
+    return res.status(401).json({ error: 'no autorizado' });
+  const ref = req.query.ref || (req.body && req.body.ref);
+  if (!ref) return res.status(400).json({ error: 'falta ref' });
+
+  const snap = await db.collection('pedidos').doc(`taglogic_${ref}`).get();
+  if (!snap.exists) return res.json({ found: false });
+
+  const p = snap.data();
+  const est = p.estimado || null;
+  return res.json({
+    found: true,
+    folio: p.folio || null,
+    estado: p.estado || null,
+    numeroPO: p.numeroPO || null,
+    estimado: est ? {
+      notas: est.notas || '', fecha: est.fecha || '', respuesta: est.respuesta || '',
+      archivos: (est.archivos || []).map(a => ({ name: a.name || 'documento', url: a.url })),
+    } : null,
+    mensajes: (p.mensajes || []).map(m => ({
+      from: m.from, texto: m.texto || '', hora: m.hora || '',
+      attachment: m.attachment ? { name: m.attachment.name, url: m.attachment.url } : null,
+    })),
+  });
 });
