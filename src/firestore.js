@@ -16,6 +16,7 @@ export function usePedidos(user) {
   const [pedidos, setPedidos] = useState([]);
 
   useEffect(() => {
+    setPedidos([]); // limpia datos de una sesión/cuenta anterior antes de suscribirse a la nueva
     if (!user) return;
     let q;
     if (user.role === 'admin') {
@@ -39,6 +40,7 @@ export function usePedidos(user) {
 export function useTalleres(user) {
   const [talleres, setTalleres] = useState([]);
   useEffect(() => {
+    setTalleres([]); // limpia datos de una sesión/cuenta anterior antes de suscribirse a la nueva
     if (!user) return;
     if (user.role !== 'admin') {
       // El cliente solo puede leer su propio documento de taller
@@ -243,6 +245,7 @@ export async function eliminarTaller(uid) {
 export function useTallerUsuarios(user) {
   const [tallerUsuarios, setTallerUsuarios] = useState([]);
   useEffect(() => {
+    setTallerUsuarios([]); // limpia datos de una sesión/cuenta anterior antes de suscribirse a la nueva
     if (!user || user.role !== 'admin') return;
     const unsub = onSnapshot(
       collection(db, 'tallerUsuarios'),
@@ -271,6 +274,7 @@ export async function actualizarTallerUsuario(uid, data) {
 export function useAdminEquipo(user) {
   const [equipo, setEquipo] = useState([]);
   useEffect(() => {
+    setEquipo([]); // limpia datos de una sesión/cuenta anterior antes de suscribirse a la nueva
     if (!user || user.role !== 'admin') return;
     const unsub = onSnapshot(
       collection(db, 'admins'),
@@ -299,6 +303,7 @@ export async function eliminarAdminUsuario(uid) {
 export function useFacturas(user) {
   const [facturas, setFacturas] = useState([]);
   useEffect(() => {
+    setFacturas([]); // limpia datos de una sesión/cuenta anterior antes de suscribirse a la nueva
     if (!user) return;
     let q;
     if (user.role === 'admin') {
