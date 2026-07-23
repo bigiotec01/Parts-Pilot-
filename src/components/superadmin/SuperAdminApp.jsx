@@ -211,6 +211,22 @@ export function SuperAdminApp({ onLogout, onExit }) {
     }
   };
 
+  // TEMPORAL: diagnóstico de por qué Garaje Morales no ve sus pedidos/facturas.
+  const [diagBusy, setDiagBusy] = useState(false);
+  const correrDiagnostico = async () => {
+    setDiagBusy(true);
+    try {
+      const fn = httpsCallable(functions, 'diagnosticoTaller');
+      const { data } = await fn({ nombreTaller: 'Garaje Morales' });
+      console.log('[diagnosticoTaller]', data);
+      alert(JSON.stringify(data, null, 2));
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setDiagBusy(false);
+    }
+  };
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--pp-bg)' }}>
       <header className="h-[70px] flex items-center gap-3 px-[30px] border-b" style={{ borderColor: 'var(--pp-border2)' }}>
@@ -227,6 +243,9 @@ export function SuperAdminApp({ onLogout, onExit }) {
           )}
           <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
             <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva empresa
+          </button>
+          <button onClick={correrDiagnostico} disabled={diagBusy} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold disabled:opacity-50" style={{ border: '1px solid var(--pp-border4)', color: 'var(--pp-text2)' }}>
+            {diagBusy ? 'Diagnosticando…' : 'Diagnóstico Garaje Morales'}
           </button>
           <button onClick={onLogout} className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }} title="Cerrar sesión">
             <LogOut className="w-4 h-4" />
