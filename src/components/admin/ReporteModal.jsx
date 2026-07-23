@@ -1,19 +1,24 @@
+import { useMemo, useState } from 'react';
 import {
-  Printer
+  ChevronDown, ChevronsUpDown, ChevronUp, Printer
 } from 'lucide-react';
-import { STATUS_CONFIG } from '../../constants/status';
+import { STATUS_CONFIG, STATUS_ORDER } from '../../constants/status';
 import { formatDate, cleanText } from '../../utils/format';
 import { StatusBadge } from '../shared/StatusBadge';
 import { Modal } from '../shared/Modal';
 
+const COLUMNS = [
+  { key: 'ref',      label: 'PO / Orden' },
+  { key: 'taller',   label: 'Taller' },
+  { key: 'vehiculo', label: 'Vehículo' },
+  { key: 'estado',   label: 'Estado' },
+  { key: 'fecha',    label: 'Fecha Reg.' },
+  { key: 'entrega',  label: 'Entrega Est.' },
+  { key: 'notas',    label: 'Notas', sortable: false },
+];
+
 export function ReporteModal({ pedidos, talleres, onClose }) {
-  const ACTIVOS = ['pendiente', 'cotizando', 'pedido_fabrica', 'en_transito', 'recibido'];
-  const activos = [...pedidos]
-    .filter(p => ACTIVOS.includes(p.estado))
-    .sort((a, b) => {
-      const t = f => f?.toDate ? f.toDate().getTime() : new Date(f + 'T00:00:00').getTime();
-      return t(a.fecha) - t(b.fecha);
-    });
+  const [sort, setSort] = useState({ key: 'fecha', dir: 'asc' });
   const getTaller = id => talleres.find(t => t.uid === id);
 
   // Identificador que de verdad usan en el taller/dealer: PO y/o Orden del cliente.
@@ -23,6 +28,31 @@ export function ReporteModal({ pedidos, talleres, onClose }) {
     if (p.numeroPO) return `PO ${p.numeroPO}`;
     if (p.numeroOrden) return `Orden ${p.numeroOrden}`;
     return p.referencia || p.vehiculo || '—';
+  };
+
+  const toMs = f => f?.toDate ? f.toDate().getTime() : new Date(f + 'T00:00:00').getTime();
+
+  const activos = useMemo(() => {
+    const ACTIVOS = ['pendiente', 'cotizando', 'pedido_fabrica', 'en_transito', 'recibido'];
+    const dir = sort.dir === 'asc' ? 1 : -1;
+    return [...pedidos]
+      .filter(p => ACTIVOS.includes(p.estado))
+      .sort((a, b) => {
+        switch (sort.key) {
+          case 'ref':      return dir * refLabel(a).localeCompare(refLabel(b));
+          case 'taller':   return dir * (getTaller(a.tallerId)?.nombre || '').localeCompare(getTaller(b.tallerId)?.nombre || '');
+          case 'vehiculo': return dir * (a.vehiculo || '').localeCompare(b.vehiculo || '');
+          case 'estado':   return dir * (STATUS_ORDER.indexOf(a.estado) - STATUS_ORDER.indexOf(b.estado));
+          case 'entrega':  return dir * ((a.fechaEntrega ? toMs(a.fechaEntrega) : 0) - (b.fechaEntrega ? toMs(b.fechaEntrega) : 0));
+          case 'fecha':
+          default:         return dir * (toMs(a.fecha) - toMs(b.fecha));
+        }
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pedidos, sort, talleres]);
+
+  const toggleSort = (key) => {
+    setSort(s => s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' });
   };
 
   const handlePrint = () => {
@@ -96,13 +126,20 @@ export function ReporteModal({ pedidos, talleres, onClose }) {
             <thead>
               <tr className="text-[10px] uppercase tracking-wider" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text)' }}>
                 <th className="text-left px-3 py-2.5 font-medium">#</th>
-                <th className="text-left px-3 py-2.5 font-medium">PO / Orden</th>
-                <th className="text-left px-3 py-2.5 font-medium">Taller</th>
-                <th className="text-left px-3 py-2.5 font-medium">Vehículo</th>
-                <th className="text-left px-3 py-2.5 font-medium">Estado</th>
-                <th className="text-left px-3 py-2.5 font-medium whitespace-nowrap">Fecha Reg.</th>
-                <th className="text-left px-3 py-2.5 font-medium whitespace-nowrap">Entrega Est.</th>
-                <th className="text-left px-3 py-2.5 font-medium">Notas</th>
+                {COLUMNS.map((c) => {
+                  const sortable = c.sortable !== false;
+                  const active = sort.key === c.key;
+                  const Icon = active ? (sort.dir === 'asc' ? ChevronUp : ChevronDown) : ChevronsUpDown;
+                  return (
+                    <th key={c.key} className="text-left px-3 py-2.5 font-medium whitespace-nowrap" style={{ color: active ? 'var(--pp-text)' : undefined }}>
+                      {sortable ? (
+                        <button onClick={() => toggleSort(c.key)} className="inline-flex items-center gap-1 hover:opacity-80 transition-opacity">
+                          {c.label}<Icon className="w-3 h-3" />
+                        </button>
+                      ) : c.label}
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
