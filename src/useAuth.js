@@ -35,7 +35,6 @@ export function useAuth() {
               role: 'admin', uid: firebaseUser.uid, email: firebaseUser.email,
               isPlatformSuperAdmin: superAdminDoc.exists(),
               tallerIds: Array.isArray(adminData.tallerIds) ? adminData.tallerIds : null,
-              tenantId: adminData.tenantId || null,
             });
             setPerfil(adminData);
             setCargando(false);

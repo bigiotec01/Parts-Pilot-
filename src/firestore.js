@@ -20,7 +20,7 @@ export function usePedidos(user) {
     if (!user) return;
     let q;
     if (user.role === 'admin') {
-      q = query(collection(db, 'pedidos'), where('tenantId', '==', user.tenantId), orderBy('fecha', 'desc'));
+      q = query(collection(db, 'pedidos'), orderBy('fecha', 'desc'));
     } else {
       // Para sub-usuarios de taller, usar tallerId (puede diferir del uid)
       q = query(collection(db, 'pedidos'), where('tallerId', '==', user.tallerId || user.uid));
@@ -63,7 +63,7 @@ export function useTalleres(user) {
       return unsub;
     }
     const unsub = onSnapshot(
-      query(collection(db, 'talleres'), where('tenantId', '==', user.tenantId)),
+      collection(db, 'talleres'),
       (snap) => {
         let docs = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
         if (Array.isArray(user.tallerIds)) {
@@ -264,7 +264,7 @@ export function useTallerUsuarios(user) {
     setTallerUsuarios([]); // limpia datos de una sesión/cuenta anterior antes de suscribirse a la nueva
     if (!user || user.role !== 'admin') return;
     const unsub = onSnapshot(
-      query(collection(db, 'tallerUsuarios'), where('tenantId', '==', user.tenantId)),
+      collection(db, 'tallerUsuarios'),
       snap => setTallerUsuarios(snap.docs.map(d => ({ uid: d.id, ...d.data() }))),
       err => console.error('useTallerUsuarios:', err.code)
     );
@@ -293,7 +293,7 @@ export function useAdminEquipo(user) {
     setEquipo([]); // limpia datos de una sesión/cuenta anterior antes de suscribirse a la nueva
     if (!user || user.role !== 'admin') return;
     const unsub = onSnapshot(
-      query(collection(db, 'admins'), where('tenantId', '==', user.tenantId)),
+      collection(db, 'admins'),
       snap => setEquipo(snap.docs.map(d => ({ uid: d.id, ...d.data() }))),
       err => console.error('useAdminEquipo:', err.code)
     );
@@ -323,7 +323,7 @@ export function useFacturas(user) {
     if (!user) return;
     let q;
     if (user.role === 'admin') {
-      q = query(collection(db, 'facturas'), where('tenantId', '==', user.tenantId), orderBy('createdAt', 'asc'));
+      q = query(collection(db, 'facturas'), orderBy('createdAt', 'asc'));
     } else {
       q = query(collection(db, 'facturas'), where('tallerId', '==', user.tallerId || user.uid));
     }
