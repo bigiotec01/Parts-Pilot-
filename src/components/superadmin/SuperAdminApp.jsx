@@ -106,6 +106,44 @@ function EliminarEmpresaModal({ empresa, onClose }) {
   );
 }
 
+// TEMPORAL: muestra el resultado de diagnosticoTaller en un cuadro seleccionable/copiable.
+function DiagnosticoModal({ texto, onClose }) {
+  const [copiado, setCopiado] = useState(false);
+  const copiar = async () => {
+    try {
+      await navigator.clipboard.writeText(texto);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 1500);
+    } catch {
+      // clipboard API no disponible: el usuario puede seleccionar el texto a mano
+    }
+  };
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
+      <div className="w-full max-w-[600px] rounded-[18px] p-6 space-y-4" style={{ background: 'var(--pp-card)' }}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-[15px] font-bold" style={{ color: 'var(--pp-text)' }}>Diagnóstico Garaje Morales</h2>
+          <button type="button" onClick={onClose}><X className="w-4 h-4" style={{ color: 'var(--pp-text3)' }} /></button>
+        </div>
+        <textarea
+          readOnly
+          value={texto}
+          onFocus={(e) => e.target.select()}
+          className="w-full h-[320px] rounded-[10px] p-3 text-[11.5px] font-mono"
+          style={{ background: 'var(--pp-bg)', color: 'var(--pp-text)', border: '1px solid var(--pp-border2)' }}
+        />
+        <button
+          onClick={copiar}
+          className="w-full py-[10px] rounded-[11px] text-white font-bold text-[13px]"
+          style={{ background: 'var(--pp-accent)' }}
+        >
+          {copiado ? 'Copiado ✓' : 'Copiar'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Talleres y pedidos activos de una empresa — conteo puntual (no en vivo), solo para el listado.
 function useEmpresaStats(tenantId) {
   const [stats, setStats] = useState(null);
@@ -213,15 +251,16 @@ export function SuperAdminApp({ onLogout, onExit }) {
 
   // TEMPORAL: diagnóstico de por qué Garaje Morales no ve sus pedidos/facturas.
   const [diagBusy, setDiagBusy] = useState(false);
+  const [diagResultado, setDiagResultado] = useState(null);
   const correrDiagnostico = async () => {
     setDiagBusy(true);
     try {
       const fn = httpsCallable(functions, 'diagnosticoTaller');
       const { data } = await fn({ nombreTaller: 'Garaje Morales' });
       console.log('[diagnosticoTaller]', data);
-      alert(JSON.stringify(data, null, 2));
+      setDiagResultado(JSON.stringify(data, null, 2));
     } catch (err) {
-      alert(err.message);
+      setDiagResultado(`ERROR: ${err.message}`);
     } finally {
       setDiagBusy(false);
     }
@@ -274,6 +313,7 @@ export function SuperAdminApp({ onLogout, onExit }) {
 
       {showForm && <NuevaEmpresaModal onClose={() => setShowForm(false)} />}
       {eliminarTarget && <EliminarEmpresaModal empresa={eliminarTarget} onClose={() => setEliminarTarget(null)} />}
+      {diagResultado && <DiagnosticoModal texto={diagResultado} onClose={() => setDiagResultado(null)} />}
     </div>
   );
 }
