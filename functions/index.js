@@ -4,6 +4,7 @@ const { onDocumentCreated, onDocumentUpdated } = require('firebase-functions/v2/
 const { onRequest, onCall, HttpsError } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
+const crypto = require('crypto');
 
 const TAGLOGIC_KEY = defineSecret('TAGLOGIC_KEY');
 
@@ -77,6 +78,8 @@ exports.crearEmpresa = onCall(async (request) => {
   validarEmailPassword(email, password);
 
   const tenantId = await generarSlugUnico(nombreEmpresa);
+  // Clave propia para integraciones externas (Tag Logic), aislada por empresa.
+  const tagLogicApiKey = crypto.randomBytes(24).toString('hex');
 
   const userRecord = await admin.auth().createUser({ email, password, displayName: nombreAdmin });
   try {
@@ -85,6 +88,7 @@ exports.crearEmpresa = onCall(async (request) => {
       slug: tenantId,
       estado: 'activa',
       adminPrincipalUid: userRecord.uid,
+      tagLogicApiKey,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
     await db.collection('admins').doc(userRecord.uid).set({
@@ -95,7 +99,7 @@ exports.crearEmpresa = onCall(async (request) => {
     throw e;
   }
 
-  return { tenantId, uid: userRecord.uid };
+  return { tenantId, uid: userRecord.uid, tagLogicApiKey };
 });
 
 // Activa o suspende una empresa. Solo el Super Admin.
@@ -343,7 +347,7 @@ const STATUS_LABELS = {
   entregado:        'Orden Completa',
 };
 
-const TOPIC_ADMINS = 'pp_admins_v1';
+const topicAdmins = (tenantId) => `pp_admins_${(tenantId || TENANT_ID_MANA_AUTO).replace(/[^a-zA-Z0-9_-]/g, '_')}`;
 const topicTaller  = (id) => `pp_taller_${id.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
 
 // Devuelve 1 token por uid (el más reciente según updatedAt) — evita duplicados en mismo dispositivo
@@ -358,13 +362,16 @@ function tokensPorUid(snap) {
   return Object.values(byUid).map(e => e.token).filter(Boolean);
 }
 
-// Suscribe todos los tokens de admins al topic y retorna la cantidad
-async function suscribirAdmins() {
-  const snap = await db.collection('fcmTokens').where('role', '==', 'admin').get();
-  const tokens = tokensPorUid(snap);
-  if (tokens.length) await admin.messaging().subscribeToTopic(tokens, TOPIC_ADMINS);
-  console.log(`[Topic] ${tokens.length} tokens admin → ${TOPIC_ADMINS}`);
-  return tokens.length;
+// Suscribe los tokens de admins DE ESTA EMPRESA al topic y retorna el topic.
+// Sin where('role', '==', 'admin') combinado (evitaría un índice compuesto): se filtra en memoria.
+async function suscribirAdmins(tenantId) {
+  const topic = topicAdmins(tenantId);
+  const snap = await db.collection('fcmTokens').where('tenantId', '==', tenantId || TENANT_ID_MANA_AUTO).get();
+  const soloAdmins = { docs: snap.docs.filter(d => d.data().role === 'admin') };
+  const tokens = tokensPorUid(soloAdmins);
+  if (tokens.length) await admin.messaging().subscribeToTopic(tokens, topic);
+  console.log(`[Topic] ${tokens.length} tokens admin (${tenantId}) → ${topic}`);
+  return topic;
 }
 
 // Suscribe todos los tokens del taller al topic y retorna el topic
@@ -427,10 +434,10 @@ async function enviarOnce(key, topic, notification, data = {}) {
 exports.onNuevoPedido = onDocumentCreated('pedidos/{pedidoId}', async (event) => {
   const pedido    = event.data.data();
   const pedidoId  = event.params.pedidoId;
-  await suscribirAdmins();
+  const topic = await suscribirAdmins(pedido.tenantId);
   await enviarOnce(
     `${pedidoId}_nuevo`,
-    TOPIC_ADMINS,
+    topic,
     {
       title: `Nuevo pedido — ${pedido.tallerNombre || 'Taller'}`,
       body:  `${pedido.folio} · ${pedido.pieza || pedido.vehiculo || 'Solicitud nueva'}`,
@@ -478,10 +485,10 @@ exports.onPedidoUpdate = onDocumentUpdated('pedidos/{pedidoId}', async (event) =
         { pedidoId, tipo: 'mensaje', remitente: 'admin' }
       );
     } else {
-      await suscribirAdmins();
+      const topicAdm = await suscribirAdmins(after.tenantId);
       await enviarOnce(
         `${pedidoId}_msg_${msgsAfter.length}`,
-        TOPIC_ADMINS,
+        topicAdm,
         { title: `${after.tallerNombre || 'Taller'} — PO ${ref}`, body: texto },
         { pedidoId, tipo: 'mensaje', remitente: 'taller' }
       );
@@ -503,24 +510,36 @@ exports.onPedidoUpdate = onDocumentUpdated('pedidos/{pedidoId}', async (event) =
   const rBefore = before.estimado?.respuesta;
   const rAfter  = after.estimado?.respuesta;
   if (rBefore === 'pendiente' && rAfter && rAfter !== 'pendiente') {
-    await suscribirAdmins();
+    const topicAdm = await suscribirAdmins(after.tenantId);
     const verbo = rAfter === 'aceptado' ? 'aceptó' : 'rechazó';
     await enviarOnce(
       `${pedidoId}_respuesta_${rAfter}`,
-      TOPIC_ADMINS,
+      topicAdm,
       { title: `${after.tallerNombre || 'Taller'} ${verbo} la cotización`, body: `PO ${ref}` },
       { pedidoId, tipo: 'respuesta_estimado', respuesta: rAfter }
     );
   }
 });
 
+// ── Autenticación de Tag Logic por empresa ───────────────────────────
+// Acepta la clave global legada (TAGLOGIC_KEY, hoy usada por Mana Auto — no se rota
+// para no romper su integración ya configurada) O una clave propia por empresa
+// (empresas/{tenantId}.tagLogicApiKey), generada automáticamente al crear cada empresa nueva.
+// Devuelve el tenantId dueño de la clave, o null si no es válida.
+async function validarTagLogicKey(providedKey) {
+  if (!providedKey) return null;
+  if (providedKey === TAGLOGIC_KEY.value()) return TENANT_ID_MANA_AUTO;
+  const snap = await db.collection('empresas').where('tagLogicApiKey', '==', providedKey).limit(1).get();
+  return snap.empty ? null : snap.docs[0].id;
+}
+
 // ── Ingesta de pedidos externos (Tag Logic) ─────────────────────────
 // Recibe una orden de piezas desde Tag Logic y la guarda como solicitud.
 exports.ingestTagLogic = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res) => {
   try {
     if (req.method !== 'POST') return res.status(405).json({ error: 'usa POST' });
-    if (req.get('x-api-key') !== TAGLOGIC_KEY.value())
-      return res.status(401).json({ error: 'no autorizado' });
+    const tenantIdDeLaKey = await validarTagLogicKey(req.get('x-api-key'));
+    if (!tenantIdDeLaKey) return res.status(401).json({ error: 'no autorizado' });
 
     const b = req.body || {};
     if (!b.ref || !b.taller?.id) return res.status(400).json({ error: 'faltan ref o taller.id' });
@@ -532,6 +551,11 @@ exports.ingestTagLogic = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res)
     // El pedido hereda el tenantId del taller destino, para que sea visible bajo las reglas multi-tenant.
     const tallerSnap = await db.collection('talleres').doc(b.taller.id).get();
     const tenantId = tallerSnap.exists ? (tallerSnap.data().tenantId || null) : null;
+    // La clave usada debe pertenecer a la MISMA empresa que el taller destino —
+    // evita que la clave de una empresa cree pedidos a nombre de talleres de otra.
+    if (tenantId !== tenantIdDeLaKey) {
+      return res.status(403).json({ error: 'el taller no pertenece a la empresa de esta clave' });
+    }
 
     const folio = await db.runTransaction(async (tx) => {
       const snap = await tx.get(ref);
@@ -545,8 +569,8 @@ exports.ingestTagLogic = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res)
         }, { merge: true });
         return snap.data().folio;
       }
-      // Primer insert: folio PP-XXXX con el mismo contador que crearPedido.
-      const counterRef = db.doc('config/counters');
+      // Primer insert: folio PP-XXXX, contador propio de la empresa del taller.
+      const counterRef = db.doc(`empresas/${tenantId}/counters/pedidos`);
       const cs = await tx.get(counterRef);
       const next = ((cs.exists ? cs.data().pedidos : 0) || 0) + 1;
       const nuevoFolio = `PP-${String(next).padStart(4, '0')}`;
@@ -575,8 +599,8 @@ exports.ingestTagLogic = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res)
 // ── Estado de un pedido para Tag Logic ──────────────────────────────
 // Devuelve estado + cotización + adjuntos de un pedido de Tag Logic.
 exports.pedidoEstado = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res) => {
-  if (req.get('x-api-key') !== TAGLOGIC_KEY.value())
-    return res.status(401).json({ error: 'no autorizado' });
+  const tenantIdDeLaKey = await validarTagLogicKey(req.get('x-api-key'));
+  if (!tenantIdDeLaKey) return res.status(401).json({ error: 'no autorizado' });
   const ref = req.query.ref || (req.body && req.body.ref);
   if (!ref) return res.status(400).json({ error: 'falta ref' });
 
@@ -584,6 +608,7 @@ exports.pedidoEstado = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res) =
   if (!snap.exists) return res.json({ found: false });
 
   const p = snap.data();
+  if (p.tenantId !== tenantIdDeLaKey) return res.status(403).json({ error: 'no autorizado para este pedido' });
   const est = p.estimado || null;
   return res.json({
     found: true,

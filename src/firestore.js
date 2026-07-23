@@ -96,8 +96,8 @@ async function subirArchivos(carpeta, archivos) {
 
 // ── Crear pedido ────────────────────────────────────────────────────
 export async function crearPedido(data) {
-  const { archivos, fechaPersonalizada, ...rest } = data;
-  const countersRef = doc(db, 'config', 'counters');
+  const { archivos, fechaPersonalizada, tenantId, ...rest } = data;
+  const countersRef = doc(db, 'empresas', tenantId, 'counters', 'pedidos');
   const pedidoRef = doc(collection(db, 'pedidos'));
 
   const fechaValue = fechaPersonalizada
@@ -111,6 +111,7 @@ export async function crearPedido(data) {
     folio = `PP-${String(next).padStart(4, '0')}`;
     tx.set(pedidoRef, {
       ...rest,
+      tenantId,
       folio,
       fecha: fechaValue,
       estado: 'pendiente',
@@ -129,8 +130,8 @@ export async function crearPedido(data) {
 
 // ── Crear cotización (admin) ─────────────────────────────────────────
 export async function crearCotizacion(data) {
-  const { archivosEstimado, notasEstimado, fechaPersonalizada, ...rest } = data;
-  const countersRef = doc(db, 'config', 'counters');
+  const { archivosEstimado, notasEstimado, fechaPersonalizada, tenantId, ...rest } = data;
+  const countersRef = doc(db, 'empresas', tenantId, 'counters', 'pedidos');
   const pedidoRef = doc(collection(db, 'pedidos'));
 
   const fechaValue = fechaPersonalizada
@@ -144,6 +145,7 @@ export async function crearCotizacion(data) {
     folio = `PP-${String(next).padStart(4, '0')}`;
     tx.set(pedidoRef, {
       ...rest,
+      tenantId,
       folio,
       fecha: fechaValue,
       estado: 'cotizando',
@@ -363,23 +365,31 @@ function chunk(arr, size) {
   return out;
 }
 
-export function useFacturaBackups(enabled) {
+export function useFacturaBackups(enabled, tenantId) {
   const [backups, setBackups] = useState([]);
   useEffect(() => {
-    if (!enabled) { setBackups([]); return; }
-    const q = query(collection(db, 'facturaBackups'), orderBy('fecha', 'desc'));
+    if (!enabled || !tenantId) { setBackups([]); return; }
+    // Sin orderBy en la query (evita depender de un índice compuesto) — se ordena al vuelo.
+    const q = query(collection(db, 'facturaBackups'), where('tenantId', '==', tenantId));
     const unsub = onSnapshot(
       q,
-      (snap) => setBackups(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      (snap) => {
+        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        docs.sort((a, b) => (b.fecha?.toMillis?.() || 0) - (a.fecha?.toMillis?.() || 0));
+        setBackups(docs);
+      },
       (err) => console.error('useFacturaBackups error:', err.code)
     );
     return unsub;
-  }, [enabled]);
+  }, [enabled, tenantId]);
   return backups;
 }
 
-export async function crearBackupFacturas(facturas) {
+export async function crearBackupFacturas(facturas, tenantId) {
   const backupRef = doc(collection(db, 'facturaBackups'));
+  // El doc padre se crea PRIMERO (con tenantId): la regla de la subcolección items
+  // necesita poder leerlo para saber a qué empresa pertenece.
+  await setDoc(backupRef, { fecha: serverTimestamp(), count: facturas.length, tenantId });
   for (const grupo of chunk(facturas, 400)) {
     const batch = writeBatch(db);
     grupo.forEach(f => {
@@ -388,15 +398,15 @@ export async function crearBackupFacturas(facturas) {
     });
     await batch.commit();
   }
-  await setDoc(backupRef, { fecha: serverTimestamp(), count: facturas.length });
   return backupRef.id;
 }
 
-// Restaura un backup: reemplaza TODAS las facturas actuales por las del backup elegido.
-export async function restaurarBackupFacturas(backupId) {
+// Restaura un backup: reemplaza las facturas actuales DE ESTE TENANT por las del backup elegido.
+// Nunca toca facturas de otras empresas.
+export async function restaurarBackupFacturas(backupId, tenantId) {
   const [itemsSnap, actualesSnap] = await Promise.all([
     getDocs(collection(db, 'facturaBackups', backupId, 'items')),
-    getDocs(collection(db, 'facturas')),
+    getDocs(query(collection(db, 'facturas'), where('tenantId', '==', tenantId))),
   ]);
 
   for (const grupo of chunk(actualesSnap.docs, 400)) {
@@ -407,7 +417,8 @@ export async function restaurarBackupFacturas(backupId) {
 
   for (const grupo of chunk(itemsSnap.docs, 400)) {
     const batch = writeBatch(db);
-    grupo.forEach(d => batch.set(doc(db, 'facturas', d.id), d.data()));
+    // Se fuerza tenantId aunque el backup sea de antes del refactor multi-tenant.
+    grupo.forEach(d => batch.set(doc(db, 'facturas', d.id), { ...d.data(), tenantId }));
     await batch.commit();
   }
 }
@@ -426,13 +437,13 @@ export async function eliminarBackupFacturas(backupId) {
 // El ID del documento es el token mismo (sanitizado) para que un
 // mismo dispositivo nunca tenga 2 entradas aunque cambien de cuenta.
 
-export async function guardarFCMToken(uid, token, role, tallerId = null) {
+export async function guardarFCMToken(uid, token, role, tallerId = null, tenantId = null) {
   const tokenId = token.replace(/\//g, '_');
   // Borrar tokens viejos del mismo uid para que el dispositivo no quede con múltiples tokens activos
   const viejos = await getDocs(query(collection(db, 'fcmTokens'), where('uid', '==', uid)));
   const batch = writeBatch(db);
   viejos.docs.forEach(d => { if (d.id !== tokenId) batch.delete(d.ref); });
-  batch.set(doc(db, 'fcmTokens', tokenId), { token, uid, role, tallerId, updatedAt: serverTimestamp() });
+  batch.set(doc(db, 'fcmTokens', tokenId), { token, uid, role, tallerId, tenantId, updatedAt: serverTimestamp() });
   await batch.commit();
 }
 

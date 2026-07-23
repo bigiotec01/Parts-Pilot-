@@ -25,7 +25,7 @@ function AppContent() {
   const equipo         = useAdminEquipo(user);
   const tallerUsuarios = useTallerUsuarios(user);
   const isSuperadmin   = user?.role === 'admin' && !perfil?.permisos;
-  const backups        = useFacturaBackups(isSuperadmin);
+  const backups        = useFacturaBackups(isSuperadmin, perfil?.tenantId);
 
   const [notifToast, setNotifToast] = useState(null);
   const notifTimerRef = useRef(null);
@@ -40,7 +40,7 @@ function AppContent() {
         const granted = await requestNotificationPermission();
         if (!granted) return;
         const token = await getFCMToken();
-        if (token) await guardarFCMToken(user.uid, token, user.role, user.tallerId || null);
+        if (token) await guardarFCMToken(user.uid, token, user.role, user.tallerId || null, perfil?.tenantId || null);
         unsub = listenForeground((payload) => {
           setNotifToast({
             title: payload.notification?.title || 'Parts Pilot',
@@ -130,8 +130,8 @@ function AppContent() {
           onEliminarSubUsuario={(uid) => eliminarTallerUsuario(uid)}
           onActualizarSubUsuario={(uid, data) => actualizarTallerUsuario(uid, data)}
           backups={backups}
-          onCrearBackup={() => crearBackupFacturas(facturas)}
-          onRestaurarBackup={(backupId) => restaurarBackupFacturas(backupId)}
+          onCrearBackup={() => crearBackupFacturas(facturas, perfil?.tenantId)}
+          onRestaurarBackup={(backupId) => restaurarBackupFacturas(backupId, perfil?.tenantId)}
           onEliminarBackup={(backupId) => eliminarBackupFacturas(backupId)}
         />
       </>
