@@ -87,7 +87,7 @@ function AppContent() {
   if (user.role === 'admin') {
     // Solo la cuenta original de Mana Auto ve la pantalla de migración (única vez, arranca el multi-tenant).
     // El resto del equipo sigue entrando a AdminApp exactamente igual que siempre mientras tanto.
-    if (!perfil?.tenantId && perfil?.email === 'ismael.bigio@gmail.com') {
+    if (!perfil?.tenantId && (perfil?.email || '').toLowerCase() === 'bigio_tec@me.com') {
       return <MigrationScreen onLogout={logout} />;
     }
     return (

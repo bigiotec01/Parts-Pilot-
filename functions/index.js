@@ -184,7 +184,7 @@ exports.crearTallerUsuarioCF = onCall(async (request) => {
 // Modo dryRun (por defecto): solo cuenta cuántos documentos tocaría, sin escribir nada.
 // Con { dryRun: false } ejecuta el backfill real, una sola vez (falla si ya se corrió).
 const TENANT_ID_MANA_AUTO = 'mana-auto';
-const MIGRATION_ADMIN_EMAIL = 'ismael.bigio@gmail.com';
+const MIGRATION_ADMIN_EMAIL = 'bigio_tec@me.com';
 
 function chunkArr(arr, size) {
   const out = [];
@@ -204,7 +204,7 @@ exports.migrarManaAuto = onCall(async (request) => {
   if (!callerSnap.exists) {
     throw new HttpsError('permission-denied', 'Solo la cuenta admin original de Mana Auto puede ejecutar esto.');
   }
-  if (request.auth.token.email !== MIGRATION_ADMIN_EMAIL) {
+  if ((request.auth.token.email || '').toLowerCase() !== MIGRATION_ADMIN_EMAIL.toLowerCase()) {
     throw new HttpsError('permission-denied', 'Solo la cuenta original de Mana Auto puede ejecutar esta migración.');
   }
 
