@@ -20,7 +20,7 @@ export function useAuth() {
           // 1. ¿Es Super Admin de la plataforma?
           const superAdminDoc = await getDoc(doc(db, 'superadmins', firebaseUser.uid));
           if (superAdminDoc.exists()) {
-            setUser({ role: 'superadmin', uid: firebaseUser.uid });
+            setUser({ role: 'superadmin', uid: firebaseUser.uid, email: firebaseUser.email });
             setPerfil(superAdminDoc.data());
             setCargando(false);
             return;
@@ -29,7 +29,7 @@ export function useAuth() {
           // 2. ¿Es admin (de alguna empresa)?
           const adminDoc = await getDoc(doc(db, 'admins', firebaseUser.uid));
           if (adminDoc.exists()) {
-            setUser({ role: 'admin', uid: firebaseUser.uid });
+            setUser({ role: 'admin', uid: firebaseUser.uid, email: firebaseUser.email });
             setPerfil(adminDoc.data());
             setCargando(false);
             return;
