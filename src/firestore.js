@@ -11,6 +11,30 @@ import {
 import { httpsCallable } from 'firebase/functions';
 import { setDoc } from 'firebase/firestore';
 
+// ── Empresa (tenant) en tiempo real ─────────────────────────────────
+// Doc puntual (get de un solo documento) — no sujeto a la limitación de
+// consultas de lista que exige where(tenantId) explícito (ver usePedidos).
+export function useEmpresa(tenantId) {
+  const [empresa, setEmpresa] = useState(null);
+  useEffect(() => {
+    setEmpresa(null);
+    if (!tenantId) return;
+    const unsub = onSnapshot(
+      doc(db, 'empresas', tenantId),
+      (snap) => setEmpresa(snap.exists() ? { id: snap.id, ...snap.data() } : null),
+      (err) => console.error('useEmpresa error:', err.code)
+    );
+    return unsub;
+  }, [tenantId]);
+  return empresa;
+}
+
+export async function actualizarMarcasFactura(marcas) {
+  const fn = httpsCallable(functions, 'actualizarMarcasFactura');
+  const { data } = await fn({ marcas });
+  return data.marcas;
+}
+
 // ── Pedidos en tiempo real ──────────────────────────────────────────
 export function usePedidos(user) {
   const [pedidos, setPedidos] = useState([]);

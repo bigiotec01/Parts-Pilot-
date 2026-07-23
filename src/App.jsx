@@ -7,7 +7,8 @@ import {
   actualizarFactura, eliminarFactura, archivarFactura, useAdminEquipo, crearAdminUsuario,
   actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario,
   eliminarTallerUsuario, actualizarTallerUsuario, guardarFCMToken, eliminarFCMToken,
-  useFacturaBackups, crearBackupFacturas, restaurarBackupFacturas, eliminarBackupFacturas
+  useFacturaBackups, crearBackupFacturas, restaurarBackupFacturas, eliminarBackupFacturas,
+  useEmpresa, actualizarMarcasFactura
 } from './firestore';
 import { ThemeProvider } from './theme/ThemeContext';
 import { LoginScreen } from './components/shared/LoginScreen';
@@ -26,6 +27,7 @@ function AppContent() {
   const tallerUsuarios = useTallerUsuarios(user);
   const isSuperadmin   = user?.role === 'admin' && !perfil?.permisos;
   const backups        = useFacturaBackups(isSuperadmin, perfil?.tenantId);
+  const empresa        = useEmpresa(user?.role === 'admin' ? perfil?.tenantId : null);
 
   const [notifToast, setNotifToast] = useState(null);
   const notifTimerRef = useRef(null);
@@ -106,6 +108,8 @@ function AppContent() {
           equipo={equipo}
           tallerUsuarios={tallerUsuarios}
           perfil={perfil}
+          empresa={empresa}
+          onActualizarMarcasFactura={actualizarMarcasFactura}
           currentUid={user.uid}
           onLogout={logout}
           onChangeStatus={(id, estado, fechaEntrega) => cambiarEstatus(id, estado, fechaEntrega)}

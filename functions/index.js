@@ -89,6 +89,7 @@ exports.crearEmpresa = onCall(async (request) => {
       estado: 'activa',
       adminPrincipalUid: userRecord.uid,
       tagLogicApiKey,
+      marcasFactura: [],
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
     await db.collection('admins').doc(userRecord.uid).set({
@@ -111,6 +112,23 @@ exports.actualizarEstadoEmpresa = onCall(async (request) => {
   }
   await db.collection('empresas').doc(tenantId).update({ estado });
   return { ok: true };
+});
+
+// Actualiza las marcas de fabricante que una empresa usa para separar sus facturas
+// (ej. KIA/NISSAN para Mana Auto, o cualquier otra para una empresa nueva). Cada empresa
+// gestiona SU PROPIA lista — a diferencia de actualizarEstadoEmpresa, esto lo hace el
+// dueño/admin de la empresa, no el Super Admin de plataforma.
+exports.actualizarMarcasFactura = onCall(async (request) => {
+  const caller = await requireCallerAdmin(request);
+  if (caller.rol !== 'admin' && caller.permisos?.facturas !== 'edit') {
+    throw new HttpsError('permission-denied', 'No tienes permiso para gestionar facturas.');
+  }
+  const { marcas } = request.data || {};
+  if (!Array.isArray(marcas)) throw new HttpsError('invalid-argument', 'Falta el array de marcas.');
+  const limpias = [...new Set(marcas.map(m => String(m).trim().toUpperCase()).filter(Boolean))];
+  if (!limpias.length) throw new HttpsError('invalid-argument', 'Debe haber al menos una marca.');
+  await db.collection('empresas').doc(caller.tenantId).update({ marcasFactura: limpias });
+  return { ok: true, marcas: limpias };
 });
 
 // Borra PERMANENTEMENTE una empresa: cuentas de Auth y todos sus documentos

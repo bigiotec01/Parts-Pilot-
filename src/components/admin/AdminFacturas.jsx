@@ -1,12 +1,73 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
-  CheckCircle2, Plus, X, ChevronRight, Archive, RotateCcw, Trash2
+  CheckCircle2, Plus, X, ChevronRight, Archive, RotateCcw, Trash2, Settings
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Modal } from '../shared/Modal';
 import { inputClass } from '../../constants/styles';
-import { MARCAS_FACTURA } from '../../constants/facturas';
+import { MARCAS_FACTURA_DEFAULT } from '../../constants/facturas';
 import { fmtCur, fmtDateDisp, formatDate } from '../../utils/format';
+
+// Editor de las marcas de fabricante que esta empresa usa para separar sus facturas
+// (ej. KIA/NISSAN, o cualquier otra que aplique al negocio de cada empresa).
+function EditarMarcasModal({ marcas, onGuardar, onClose }) {
+  const [lista, setLista] = useState(marcas);
+  const [nueva, setNueva] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const agregar = () => {
+    const val = nueva.trim().toUpperCase();
+    if (!val || lista.includes(val)) { setNueva(''); return; }
+    setLista(l => [...l, val]);
+    setNueva('');
+  };
+
+  const quitar = (m) => setLista(l => l.filter(x => x !== m));
+
+  const guardar = async () => {
+    if (!lista.length) { setError('Debe quedar al menos una marca.'); return; }
+    setSaving(true); setError('');
+    try {
+      await onGuardar(lista);
+      onClose();
+    } catch (err) {
+      setError(err.message || 'No se pudo guardar.');
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <Modal title="Marcas de factura" onClose={onClose}>
+      <div className="space-y-4">
+        <p className="text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>
+          Las marcas que agregues aquí aparecen como pestañas en Facturas para esta empresa.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {lista.map(m => (
+            <span key={m} className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] text-[13px] font-bold" style={{ background: 'var(--pp-card)', color: 'var(--pp-text)' }}>
+              {m}
+              <button type="button" onClick={() => quitar(m)} style={{ color: 'var(--pp-text3)' }}><X className="w-3.5 h-3.5" /></button>
+            </span>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            value={nueva}
+            onChange={e => setNueva(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); agregar(); } }}
+            placeholder="ej. MAZDA"
+            className={inputClass}
+          />
+          <button type="button" onClick={agregar} className="px-4 rounded-[10px] font-bold text-white text-[13px]" style={{ background: 'var(--pp-accent)' }}>Agregar</button>
+        </div>
+        {error && <p className="text-[12.5px]" style={{ color: '#dc2626' }}>{error}</p>}
+        <button onClick={guardar} disabled={saving} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[14px] disabled:opacity-50" style={{ background: 'var(--pp-accent)' }}>
+          {saving ? 'Guardando…' : 'Guardar cambios'}
+        </button>
+      </div>
+    </Modal>
+  );
+}
 
 export function FacturaInlineRow({ form, setForm, onSave, onCancel, saving }) {
   const inp = "px-2 py-1 rounded-[8px] border text-[16px] outline-none focus:border-[#a0a0a0]";
@@ -37,9 +98,10 @@ export function FacturaInlineRow({ form, setForm, onSave, onCancel, saving }) {
   );
 }
 
-export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar, onUpdateTaller, readOnly = false, isSuperadmin = false, backups = [], onCrearBackup, onRestaurarBackup, onEliminarBackup }) {
+export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onEliminar, onUpdateTaller, readOnly = false, isSuperadmin = false, backups = [], onCrearBackup, onRestaurarBackup, onEliminarBackup, marcasFactura, onActualizarMarcasFactura }) {
+  const marcas = marcasFactura?.length ? marcasFactura : MARCAS_FACTURA_DEFAULT;
   const [tallerSel, setTallerSel] = useState(talleres[0]?.uid || '');
-  const [marca, setMarca] = useState('KIA');
+  const [marca, setMarca] = useState(marcas[0]);
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [addingRow, setAddingRow] = useState(false);
@@ -49,6 +111,12 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
   const [importing, setImporting] = useState(false);
   const fileRef = useRef();
   const [showArchived, setShowArchived] = useState(false);
+  const [showEditarMarcas, setShowEditarMarcas] = useState(false);
+
+  // Si la marca seleccionada deja de existir (se quitó desde el editor), cae a la primera disponible.
+  useEffect(() => {
+    if (!marcas.includes(marca)) setMarca(marcas[0]);
+  }, [marcas, marca]);
 
   const tallerActual = talleres.find(t => t.uid === tallerSel);
   const numeroCuenta = tallerActual?.numeroCuentas?.[marca] || '';
@@ -294,7 +362,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
             {talleres.map(t => <option key={t.uid} value={t.uid}>{t.nombre}</option>)}
           </select>
           <div className="flex gap-1 p-1 rounded-[10px]" style={{ background: 'var(--pp-card)' }}>
-            {MARCAS_FACTURA.map(m => (
+            {marcas.map(m => (
               <button key={m} onClick={() => setMarca(m)} className="px-4 py-1.5 rounded-[8px] text-[13px] font-bold transition-all border"
                 style={marca === m
                   ? { background: 'var(--pp-accent)', color: '#fff', borderColor: 'var(--pp-accent)', boxShadow: '0 2px 8px -2px rgba(0,0,0,.35)' }
@@ -303,6 +371,11 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
               </button>
             ))}
           </div>
+          {!readOnly && onActualizarMarcasFactura && (
+            <button onClick={() => setShowEditarMarcas(true)} title="Editar marcas" className="w-8 h-8 rounded-[9px] flex items-center justify-center border transition-colors hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text3)' }}>
+              <Settings className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {pagadasSinArch.length > 0 && !readOnly && (
@@ -727,6 +800,13 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
             </div>
           )}
         </div>
+      )}
+      {showEditarMarcas && (
+        <EditarMarcasModal
+          marcas={marcas}
+          onGuardar={onActualizarMarcasFactura}
+          onClose={() => setShowEditarMarcas(false)}
+        />
       )}
     </div>
   );
