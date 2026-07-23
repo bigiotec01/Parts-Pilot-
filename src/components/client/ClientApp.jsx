@@ -22,11 +22,14 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState('');
 
-  const solicitudes = pedidos.filter(p => p.tipo === 'solicitud');
-  const misPedidos = pedidos.filter(p => p.tipo === 'pedido' || !p.tipo);
-  const pedidosActivos = misPedidos.filter(p => p.estado !== 'entregado' && p.estado !== 'cotizando');
+  // Qué pestaña muestra un pedido se decide por su ESTADO, no por `tipo` — ver el mismo
+  // criterio (y el porqué) en AdminApp.jsx.
+  const ESTADOS_ESTIMADO = ['pendiente', 'cotizando'];
+  const solicitudes = pedidos.filter(p => p.estado === 'pendiente');
+  const misPedidos = pedidos.filter(p => !ESTADOS_ESTIMADO.includes(p.estado));
+  const pedidosActivos = misPedidos.filter(p => p.estado !== 'entregado');
   const pedidosHistorial = misPedidos.filter(p => p.estado === 'entregado');
-  const cotizacionesPendientes = misPedidos.filter(p => p.estado === 'cotizando');
+  const cotizacionesPendientes = pedidos.filter(p => p.estado === 'cotizando');
   const toMs = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime();
   const pedidosOrdenados = [...pedidosActivos].sort((a, b) => toMs(b.fecha) - toMs(a.fecha));
   const pedidosFiltrados = search

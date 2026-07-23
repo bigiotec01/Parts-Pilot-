@@ -12,7 +12,7 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
     </div>
   );
 
-  const sinEstimado = solicitudes.filter(p => p.estado === 'pendiente' || p.tipo === 'solicitud');
+  const sinEstimado = solicitudes.filter(p => p.estado === 'pendiente');
   const cotizando   = solicitudes.filter(p => p.estado === 'cotizando');
 
   const Card = ({ p }) => {
