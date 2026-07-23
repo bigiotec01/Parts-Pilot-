@@ -38,6 +38,13 @@ service cloud.firestore {
       return isAdmin() && callerAdminData().tenantId == tenantId && tenantActiva(tenantId);
     }
 
+    // Un miembro puede tener acceso restringido a solo algunos talleres (tallerIds: [...]).
+    // tallerIds == null significa acceso a todos los talleres del tenant (el dueño siempre lo tiene).
+    function hasTallerAccess(tallerId) {
+      let ids = callerAdminData().tallerIds;
+      return ids == null || (tallerId in ids);
+    }
+
     function getTallerId() {
       return get(/databases/$(database)/documents/tallerUsuarios/$(request.auth.uid)).data.tallerId;
     }
@@ -81,18 +88,18 @@ service cloud.firestore {
     // La creación es exclusiva de la Cloud Function crearTallerCF.
     match /talleres/{uid} {
       allow read:   if request.auth != null &&
-        (isAdminOfTenant(resource.data.tenantId) || isTallerMember(uid) || request.auth.uid == uid || isPlatformSuperAdmin());
+        ((isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(uid)) || isTallerMember(uid) || request.auth.uid == uid || isPlatformSuperAdmin());
       allow create: if false;
-      allow update, delete: if isAdminOfTenant(resource.data.tenantId);
+      allow update, delete: if isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(uid);
     }
 
     // Sub-usuarios: pueden leer su propio doc (para obtener tallerId en login).
     // La creación es exclusiva de la Cloud Function crearTallerUsuarioCF.
     match /tallerUsuarios/{uid} {
-      allow read:   if isAdminOfTenant(resource.data.tenantId) || (request.auth != null && request.auth.uid == uid) || isPlatformSuperAdmin();
+      allow read:   if (isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(resource.data.tallerId)) || (request.auth != null && request.auth.uid == uid) || isPlatformSuperAdmin();
       allow create: if false;
-      allow update: if isAdminOfTenant(resource.data.tenantId) || (request.auth != null && request.auth.uid == uid);
-      allow delete: if isAdminOfTenant(resource.data.tenantId);
+      allow update: if (isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(resource.data.tallerId)) || (request.auth != null && request.auth.uid == uid);
+      allow delete: if isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(resource.data.tallerId);
     }
 
     match /config/counters {
@@ -100,17 +107,17 @@ service cloud.firestore {
     }
 
     match /pedidos/{pedidoId} {
-      allow read:   if isAdminOfTenant(resource.data.tenantId) || (isTallerMember(resource.data.tallerId) && tenantActiva(resource.data.tenantId)) || isPlatformSuperAdmin();
-      allow create: if isAdminOfTenant(request.resource.data.tenantId) || (isTallerMember(request.resource.data.tallerId) && tenantActiva(request.resource.data.tenantId));
-      allow update: if isAdminOfTenant(resource.data.tenantId) || (isTallerMember(resource.data.tallerId) && tenantActiva(resource.data.tenantId));
-      allow delete: if isAdminOfTenant(resource.data.tenantId);
+      allow read:   if (isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(resource.data.tallerId)) || (isTallerMember(resource.data.tallerId) && tenantActiva(resource.data.tenantId)) || isPlatformSuperAdmin();
+      allow create: if (isAdminOfTenant(request.resource.data.tenantId) && hasTallerAccess(request.resource.data.tallerId)) || (isTallerMember(request.resource.data.tallerId) && tenantActiva(request.resource.data.tenantId));
+      allow update: if (isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(resource.data.tallerId)) || (isTallerMember(resource.data.tallerId) && tenantActiva(resource.data.tenantId));
+      allow delete: if isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(resource.data.tallerId);
     }
 
     match /facturas/{facturaId} {
-      allow read:   if isAdminOfTenant(resource.data.tenantId) || (isTallerMember(resource.data.tallerId) && tenantActiva(resource.data.tenantId)) || isPlatformSuperAdmin();
-      allow create: if isAdminOfTenant(request.resource.data.tenantId);
-      allow update: if isAdminOfTenant(resource.data.tenantId);
-      allow delete: if isAdminOfTenant(resource.data.tenantId);
+      allow read:   if (isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(resource.data.tallerId)) || (isTallerMember(resource.data.tallerId) && tenantActiva(resource.data.tenantId)) || isPlatformSuperAdmin();
+      allow create: if isAdminOfTenant(request.resource.data.tenantId) && hasTallerAccess(request.resource.data.tallerId);
+      allow update: if isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(resource.data.tallerId);
+      allow delete: if isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(resource.data.tallerId);
     }
 
     // Backups de facturas: solo el superadmin puede crear, leer, restaurar o borrar.

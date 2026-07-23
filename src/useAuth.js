@@ -31,7 +31,11 @@ export function useAuth() {
               }
             }
             const superAdminDoc = await getDoc(doc(db, 'superadmins', firebaseUser.uid));
-            setUser({ role: 'admin', uid: firebaseUser.uid, email: firebaseUser.email, isPlatformSuperAdmin: superAdminDoc.exists() });
+            setUser({
+              role: 'admin', uid: firebaseUser.uid, email: firebaseUser.email,
+              isPlatformSuperAdmin: superAdminDoc.exists(),
+              tallerIds: Array.isArray(adminData.tallerIds) ? adminData.tallerIds : null,
+            });
             setPerfil(adminData);
             setCargando(false);
             return;

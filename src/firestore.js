@@ -27,7 +27,15 @@ export function usePedidos(user) {
     }
     const unsub = onSnapshot(
       q,
-      (snap) => setPedidos(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      (snap) => {
+        let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Miembro con acceso restringido a talleres específicos: la regla ya lo exige en el
+        // servidor, esto solo evita que aparezcan en la lista mientras carga/si hay caché.
+        if (user.role === 'admin' && Array.isArray(user.tallerIds)) {
+          docs = docs.filter(p => user.tallerIds.includes(p.tallerId));
+        }
+        setPedidos(docs);
+      },
       (err) => console.error('usePedidos error:', err.code)
     );
     return unsub;
@@ -56,7 +64,13 @@ export function useTalleres(user) {
     }
     const unsub = onSnapshot(
       collection(db, 'talleres'),
-      (snap) => setTalleres(snap.docs.map(d => ({ uid: d.id, ...d.data() }))),
+      (snap) => {
+        let docs = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+        if (Array.isArray(user.tallerIds)) {
+          docs = docs.filter(t => user.tallerIds.includes(t.uid));
+        }
+        setTalleres(docs);
+      },
       (err) => console.error('useTalleres error:', err.code)
     );
     return unsub;
@@ -312,7 +326,13 @@ export function useFacturas(user) {
       q = query(collection(db, 'facturas'), where('tallerId', '==', user.tallerId || user.uid));
     }
     const unsub = onSnapshot(q,
-      snap => setFacturas(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      snap => {
+        let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (user.role === 'admin' && Array.isArray(user.tallerIds)) {
+          docs = docs.filter(f => user.tallerIds.includes(f.tallerId));
+        }
+        setFacturas(docs);
+      },
       err => console.error('useFacturas:', err.code)
     );
     return unsub;

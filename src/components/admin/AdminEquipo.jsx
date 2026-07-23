@@ -6,6 +6,7 @@ import { FormField } from '../shared/FormField';
 import { inputClass } from '../../constants/styles';
 import { MODULOS_PERM } from '../../constants/permisos';
 import { PermBadge, PermSelector } from '../shared/PermSelector';
+import { TallerAccessBadge, TallerSelector } from '../shared/TallerSelector';
 
 const AVATAR_GRADIENTS = [
   'linear-gradient(160deg, #3b82f6, #2563eb)',
@@ -22,15 +23,16 @@ function avatarGradient(seed) {
   return AVATAR_GRADIENTS[hash % AVATAR_GRADIENTS.length];
 }
 
-export function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar, onEliminar }) {
+export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onActualizar, onEliminar }) {
   const DEFAULT_P = { pedidos: 'edit', estimados: 'edit', talleres: 'view', facturas: 'view', equipo: false, crearPedidos: true };
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ nombre: '', email: '', password: '', permisos: { ...DEFAULT_P } });
+  const [form, setForm] = useState({ nombre: '', email: '', password: '', permisos: { ...DEFAULT_P }, tallerIds: null });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
   const [editId, setEditId] = useState(null);
   const [editPermisos, setEditPermisos] = useState({});
+  const [editTallerIds, setEditTallerIds] = useState(null);
   const [search, setSearch] = useState('');
 
   const isSuperadmin = (u) => !u.permisos;
@@ -43,8 +45,8 @@ export function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar,
     if (!form.nombre || !form.email || !form.password) return;
     setSaving(true); setError('');
     try {
-      await onCrear({ nombre: form.nombre.trim(), email: form.email.trim(), password: form.password, permisos: form.permisos });
-      setForm({ nombre: '', email: '', password: '', permisos: { ...DEFAULT_P } });
+      await onCrear({ nombre: form.nombre.trim(), email: form.email.trim(), password: form.password, permisos: form.permisos, tallerIds: form.tallerIds });
+      setForm({ nombre: '', email: '', password: '', permisos: { ...DEFAULT_P }, tallerIds: null });
       setShowForm(false);
       setDone(true);
       setTimeout(() => setDone(false), 3000);
@@ -59,6 +61,7 @@ export function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar,
   const startEdit = (u) => {
     setEditId(u.uid);
     setEditPermisos({ ...DEFAULT_P, ...u.permisos });
+    setEditTallerIds(Array.isArray(u.tallerIds) ? u.tallerIds : null);
     setEditNombreAdmin(u.nombre || '');
     setEditEmailAdmin(u.email || '');
   };
@@ -70,7 +73,7 @@ export function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar,
       if (isSup) {
         await onActualizar(editId, { nombre: editNombreAdmin.trim(), email: editEmailAdmin.trim() });
       } else {
-        await onActualizar(editId, { permisos: editPermisos });
+        await onActualizar(editId, { permisos: editPermisos, tallerIds: editTallerIds });
       }
       setEditId(null);
     } finally { setSaving(false); }
@@ -144,6 +147,9 @@ export function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar,
                     </button>
                   ))}
                 </div>
+              </div>
+              <div className="pt-2" style={{ borderTop: '1px dashed var(--pp-border)' }}>
+                <TallerSelector talleres={talleres} value={form.tallerIds} onChange={val => setForm(f => ({ ...f, tallerIds: val }))} />
               </div>
             </div>
           </div>
@@ -264,6 +270,9 @@ export function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar,
                     ))}
                   </div>
                 </div>
+                <div className="pt-2" style={{ borderTop: '1px dashed var(--pp-border)' }}>
+                  <TallerSelector talleres={talleres} value={editTallerIds} onChange={setEditTallerIds} />
+                </div>
                 <div className="flex gap-2 pt-2">
                   <button onClick={saveEdit} disabled={saving} className="flex-1 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
                     {saving ? 'Guardando…' : 'Guardar permisos'}
@@ -287,6 +296,10 @@ export function AdminEquipo({ equipo, currentUid, perfil, onCrear, onActualizar,
                 <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: 'var(--pp-card)' }}>
                   <span className="text-[12px]" style={{ color: 'var(--pp-text2)' }}>Equipo</span>
                   <PermBadge val={u.permisos?.equipo ? 'edit' : 'none'} />
+                </div>
+                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: 'var(--pp-card)' }}>
+                  <span className="text-[12px]" style={{ color: 'var(--pp-text2)' }}>Talleres</span>
+                  <TallerAccessBadge tallerIds={u.tallerIds} talleres={talleres} />
                 </div>
               </div>
             )}
