@@ -17,20 +17,21 @@ export function useAuth() {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          // 1. ¿Es Super Admin de la plataforma?
-          const superAdminDoc = await getDoc(doc(db, 'superadmins', firebaseUser.uid));
-          if (superAdminDoc.exists()) {
-            setUser({ role: 'superadmin', uid: firebaseUser.uid, email: firebaseUser.email });
-            setPerfil(superAdminDoc.data());
+          // 1. ¿Es admin (de alguna empresa)? — identidad principal si existe, aunque también sea Super Admin.
+          const adminDoc = await getDoc(doc(db, 'admins', firebaseUser.uid));
+          if (adminDoc.exists()) {
+            const superAdminDoc = await getDoc(doc(db, 'superadmins', firebaseUser.uid));
+            setUser({ role: 'admin', uid: firebaseUser.uid, email: firebaseUser.email, isPlatformSuperAdmin: superAdminDoc.exists() });
+            setPerfil(adminDoc.data());
             setCargando(false);
             return;
           }
 
-          // 2. ¿Es admin (de alguna empresa)?
-          const adminDoc = await getDoc(doc(db, 'admins', firebaseUser.uid));
-          if (adminDoc.exists()) {
-            setUser({ role: 'admin', uid: firebaseUser.uid, email: firebaseUser.email });
-            setPerfil(adminDoc.data());
+          // 2. ¿Es Super Admin de la plataforma sin empresa propia?
+          const superAdminDoc = await getDoc(doc(db, 'superadmins', firebaseUser.uid));
+          if (superAdminDoc.exists()) {
+            setUser({ role: 'superadmin', uid: firebaseUser.uid, email: firebaseUser.email });
+            setPerfil(superAdminDoc.data());
             setCargando(false);
             return;
           }

@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  FileText, LogOut, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt, ChevronUp
+  FileText, LogOut, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt, ChevronUp, Building2
 } from 'lucide-react';
 import { APP_VERSION } from '../../constants/app';
 import { ThemeToggleBtn } from '../shared/ThemeToggleBtn';
 
-export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onLogout, canView, canEdit, canManageEquipo, perfil, isSuperadmin }) {
+export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onLogout, canView, canEdit, canManageEquipo, perfil, isSuperadmin, isPlatformSuperAdmin, onOpenSuperAdmin }) {
   const primaryItems = [
     { id: 'dashboard',                     label: 'Resumen',    icon: LayoutDashboard },
     canView('pedidos')   && { id: 'pedidos',    label: 'Pedidos',    icon: ClipboardList, badge: pedidosCount },
@@ -94,6 +94,15 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
                 <span className="text-[12.5px] font-semibold" style={{ color: 'var(--pp-text2)' }}>Apariencia</span>
                 <ThemeToggleBtn small />
               </div>
+              {isPlatformSuperAdmin && (
+                <button
+                  onClick={() => { setShowProfileMenu(false); onOpenSuperAdmin(); }}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[12.5px] font-semibold transition-colors hover:bg-[#252525]"
+                  style={{ color: 'var(--pp-text2)' }}
+                >
+                  <Building2 className="w-4 h-4" /> Panel de Super Admin
+                </button>
+              )}
               <div className="my-1" style={{ borderTop: '1px solid var(--pp-border2)' }} />
               <button
                 onClick={() => { setShowProfileMenu(false); onLogout(); }}

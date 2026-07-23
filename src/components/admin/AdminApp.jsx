@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  FileText, LogOut, LayoutDashboard, ClipboardList, History, Receipt
+  FileText, LogOut, LayoutDashboard, ClipboardList, History, Receipt, Building2
 } from 'lucide-react';
 import { getAdminNotifications, hasNewActivity, saveOrderSeen } from '../../utils/activity';
 import { AdminSidebar } from './AdminSidebar';
@@ -18,7 +18,7 @@ import { AdminEquipo } from './AdminEquipo';
 import { AdminOrderDrawer } from './AdminOrderDrawer';
 import { AdminHistorial } from './AdminHistorial';
 
-export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, currentUid, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onDeleteMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onAgregarFactura, onActualizarFactura, onEliminarFactura, backups, onCrearBackup, onRestaurarBackup, onEliminarBackup, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario }) {
+export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, currentUid, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onDeleteMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onAgregarFactura, onActualizarFactura, onEliminarFactura, backups, onCrearBackup, onRestaurarBackup, onEliminarBackup, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario, isPlatformSuperAdmin, onOpenSuperAdmin }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
@@ -159,6 +159,11 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
               <div className="text-[14px] font-extrabold leading-none" style={{ color: 'var(--pp-text)' }}>Parts Pilot</div>
               <div className="text-[10px] font-bold uppercase mt-0.5" style={{ color: 'var(--pp-text4)', letterSpacing: '.04em' }}>Admin</div>
             </div>
+            {isPlatformSuperAdmin && (
+              <button onClick={onOpenSuperAdmin} className="w-8 h-8 rounded-[9px] flex items-center justify-center" style={{ background: 'var(--pp-card)', color: 'var(--pp-text3)' }} title="Panel de Super Admin">
+                <Building2 className="w-3.5 h-3.5" strokeWidth={1.9} />
+              </button>
+            )}
             <button onClick={onLogout} className="w-8 h-8 rounded-[9px] flex items-center justify-center" style={{ background: 'var(--pp-card)', color: 'var(--pp-text3)' }}>
               <LogOut className="w-3.5 h-3.5" strokeWidth={1.9} />
             </button>
@@ -231,6 +236,8 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
         canManageEquipo={canManageEquipo}
         perfil={perfil}
         isSuperadmin={isSuperadmin}
+        isPlatformSuperAdmin={isPlatformSuperAdmin}
+        onOpenSuperAdmin={onOpenSuperAdmin}
       />
       {mainContent}
       {selectedOrder && (

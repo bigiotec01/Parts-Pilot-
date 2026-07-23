@@ -29,6 +29,7 @@ function AppContent() {
 
   const [notifToast, setNotifToast] = useState(null);
   const notifTimerRef = useRef(null);
+  const [superAdminView, setSuperAdminView] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -90,10 +91,15 @@ function AppContent() {
     if (!perfil?.tenantId && (user?.email || '').toLowerCase() === 'bigio_tec@me.com') {
       return <MigrationScreen onLogout={logout} />;
     }
+    if (user.isPlatformSuperAdmin && superAdminView) {
+      return <SuperAdminApp onLogout={logout} onExit={() => setSuperAdminView(false)} />;
+    }
     return (
       <>
         {notifToast && <NotifToast toast={notifToast} onClose={() => setNotifToast(null)} />}
         <AdminApp
+          isPlatformSuperAdmin={user.isPlatformSuperAdmin}
+          onOpenSuperAdmin={() => setSuperAdminView(true)}
           pedidos={pedidos}
           talleres={talleres}
           facturas={facturas}

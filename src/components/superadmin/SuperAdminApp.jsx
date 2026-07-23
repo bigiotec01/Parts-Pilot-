@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { Building2, LogOut, Plus, X } from 'lucide-react';
+import { ArrowLeft, Building2, LogOut, Plus, X } from 'lucide-react';
 import { db, functions } from '../../firebase';
 import { inputClass } from '../../constants/styles';
 import { FormField } from '../shared/FormField';
@@ -54,7 +54,7 @@ function NuevaEmpresaModal({ onClose }) {
   );
 }
 
-export function SuperAdminApp({ onLogout }) {
+export function SuperAdminApp({ onLogout, onExit }) {
   const [empresas, setEmpresas] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [busyId, setBusyId] = useState(null);
@@ -87,6 +87,11 @@ export function SuperAdminApp({ onLogout }) {
           <p className="text-[12px]" style={{ color: 'var(--pp-text2)' }}>Panel de Super Admin</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
+          {onExit && (
+            <button onClick={onExit} className="flex items-center gap-1.5 px-3.5 py-[9px] rounded-[10px] text-[13px] font-semibold" style={{ color: 'var(--pp-text2)' }}>
+              <ArrowLeft className="w-4 h-4" /> Volver
+            </button>
+          )}
           <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
             <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva empresa
           </button>
