@@ -393,6 +393,17 @@ exports.diagnosticoTaller = onCall(async (request) => {
   return { encontrados: resultados.length, resultados };
 });
 
+// TEMPORAL: genera un custom token de Firebase Auth para un uid específico, solo para que el
+// Super Admin pueda reproducir en un script de diagnóstico exactamente lo que ve esa cuenta
+// (permission-denied al leer pedidos/facturas), sin necesitar su contraseña real.
+exports.generarTokenDiagnostico = onCall(async (request) => {
+  await requireSuperAdmin(request);
+  const { uid } = request.data || {};
+  if (!uid) throw new HttpsError('invalid-argument', 'Falta uid.');
+  const token = await admin.auth().createCustomToken(uid);
+  return { token };
+});
+
 const STATUS_LABELS = {
   pendiente:        'Pendiente de cotizar',
   cotizando:        'Cotización enviada',

@@ -266,6 +266,19 @@ export function SuperAdminApp({ onLogout, onExit }) {
     }
   };
 
+  const generarToken = async (uid) => {
+    setDiagBusy(true);
+    try {
+      const fn = httpsCallable(functions, 'generarTokenDiagnostico');
+      const { data } = await fn({ uid });
+      setDiagResultado(data.token);
+    } catch (err) {
+      setDiagResultado(`ERROR: ${err.message}`);
+    } finally {
+      setDiagBusy(false);
+    }
+  };
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--pp-bg)' }}>
       <header className="h-[70px] flex items-center gap-3 px-[30px] border-b" style={{ borderColor: 'var(--pp-border2)' }}>
@@ -285,6 +298,12 @@ export function SuperAdminApp({ onLogout, onExit }) {
           </button>
           <button onClick={correrDiagnostico} disabled={diagBusy} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold disabled:opacity-50" style={{ border: '1px solid var(--pp-border4)', color: 'var(--pp-text2)' }}>
             {diagBusy ? 'Diagnosticando…' : 'Diagnóstico Garaje Morales'}
+          </button>
+          <button onClick={() => generarToken('z7rDcNcdXahcYneCJZyYcDB633Z2')} disabled={diagBusy} className="flex items-center gap-1.5 px-3 py-[9px] rounded-[10px] text-[12px] font-semibold disabled:opacity-50" style={{ border: '1px solid var(--pp-border4)', color: 'var(--pp-text2)' }}>
+            Token (principal)
+          </button>
+          <button onClick={() => generarToken('Jwi5iXz3XJPWobfTpJ31vRZyUV53')} disabled={diagBusy} className="flex items-center gap-1.5 px-3 py-[9px] rounded-[10px] text-[12px] font-semibold disabled:opacity-50" style={{ border: '1px solid var(--pp-border4)', color: 'var(--pp-text2)' }}>
+            Token (sub-usuario)
           </button>
           <button onClick={onLogout} className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }} title="Cerrar sesión">
             <LogOut className="w-4 h-4" />
