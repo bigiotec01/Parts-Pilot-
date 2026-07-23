@@ -470,6 +470,10 @@ exports.ingestTagLogic = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res)
     const ref = db.collection('pedidos').doc(id);
     const archivos = (b.fotos || []).map(f => ({ name: f.name || 'foto', type: 'image/jpeg', url: f.url }));
 
+    // El pedido hereda el tenantId del taller destino, para que sea visible bajo las reglas multi-tenant.
+    const tallerSnap = await db.collection('talleres').doc(b.taller.id).get();
+    const tenantId = tallerSnap.exists ? (tallerSnap.data().tenantId || null) : null;
+
     const folio = await db.runTransaction(async (tx) => {
       const snap = await tx.get(ref);
       if (snap.exists) {
@@ -491,7 +495,7 @@ exports.ingestTagLogic = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res)
       tx.set(ref, {
         origen: 'taglogic', ref: b.ref, tag: b.tag || null,
         tipo: 'solicitud',
-        tallerId: b.taller.id, tallerNombre: b.taller.nombre || '',
+        tallerId: b.taller.id, tallerNombre: b.taller.nombre || '', tenantId,
         vehiculo: b.vehiculo || '', pieza: b.pieza || '', notas: b.notas || '',
         archivos, estado: 'pendiente', estimado: null, mensajes: [],
         fecha: admin.firestore.FieldValue.serverTimestamp(),
