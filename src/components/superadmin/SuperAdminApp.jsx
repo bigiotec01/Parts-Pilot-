@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { ArrowLeft, Building2, LogOut, Plus, X } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Building2, LogOut, Plus, Trash2, X } from 'lucide-react';
 import { db, functions } from '../../firebase';
 import { inputClass } from '../../constants/styles';
 import { FormField } from '../shared/FormField';
@@ -54,10 +54,61 @@ function NuevaEmpresaModal({ onClose }) {
   );
 }
 
+function EliminarEmpresaModal({ empresa, onClose }) {
+  const [confirmText, setConfirmText] = useState('');
+  const [error, setError] = useState('');
+  const [borrando, setBorrando] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setBorrando(true);
+    try {
+      const fn = httpsCallable(functions, 'eliminarEmpresaPermanente');
+      await fn({ tenantId: empresa.id, confirmar: confirmText.trim() });
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Error al eliminar la empresa.');
+    } finally {
+      setBorrando(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
+      <form onSubmit={submit} className="w-full max-w-[440px] rounded-[18px] p-6 space-y-4" style={{ background: 'var(--pp-card)' }}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-[17px] font-bold flex items-center gap-2" style={{ color: '#ef4444' }}>
+            <AlertTriangle className="w-5 h-5" /> Eliminar {empresa.nombre}
+          </h2>
+          <button type="button" onClick={onClose}><X className="w-4 h-4" style={{ color: 'var(--pp-text3)' }} /></button>
+        </div>
+        <p className="text-[13px]" style={{ color: 'var(--pp-text2)' }}>
+          Esto borra <strong>permanentemente</strong> las cuentas y todos los datos de esta empresa
+          (equipo, talleres, pedidos, facturas). No se puede deshacer.
+        </p>
+        <FormField label={`Escribe "${empresa.id}" para confirmar`}>
+          <input required value={confirmText} onChange={e => setConfirmText(e.target.value)} className={inputClass} placeholder={empresa.id} />
+        </FormField>
+        {error && <p className="text-[12.5px]" style={{ color: '#dc2626' }}>{error}</p>}
+        <button
+          disabled={borrando || confirmText.trim() !== empresa.id}
+          type="submit"
+          className="w-full py-[12px] rounded-[11px] text-white font-bold text-[14px] transition-all disabled:opacity-50"
+          style={{ background: '#dc2626' }}
+        >
+          {borrando ? 'Eliminando…' : 'Eliminar permanentemente'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 export function SuperAdminApp({ onLogout, onExit }) {
   const [empresas, setEmpresas] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [busyId, setBusyId] = useState(null);
+  const [eliminarTarget, setEliminarTarget] = useState(null);
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'empresas'), (snap) => {
@@ -130,6 +181,16 @@ export function SuperAdminApp({ onLogout, onExit }) {
                   >
                     {e.estado === 'activa' ? 'Suspender' : 'Activar'}
                   </button>
+                  {e.id !== 'mana-auto' && (
+                    <button
+                      onClick={() => setEliminarTarget(e)}
+                      className="w-8 h-8 rounded-[8px] flex items-center justify-center transition-colors hover:bg-red-900/20"
+                      style={{ color: '#ef4444' }}
+                      title="Eliminar permanentemente"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -138,6 +199,7 @@ export function SuperAdminApp({ onLogout, onExit }) {
       </div>
 
       {showForm && <NuevaEmpresaModal onClose={() => setShowForm(false)} />}
+      {eliminarTarget && <EliminarEmpresaModal empresa={eliminarTarget} onClose={() => setEliminarTarget(null)} />}
     </div>
   );
 }

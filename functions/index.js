@@ -109,6 +109,65 @@ exports.actualizarEstadoEmpresa = onCall(async (request) => {
   return { ok: true };
 });
 
+// Borra PERMANENTEMENTE una empresa: cuentas de Auth y todos sus documentos
+// (admins, talleres, tallerUsuarios, pedidos, facturas, facturaBackups, fcmTokens).
+// Irreversible. Exige que el llamante escriba el tenantId exacto como confirmación.
+// Solo el Super Admin, y nunca sobre Mana Auto.
+exports.eliminarEmpresaPermanente = onCall(async (request) => {
+  await requireSuperAdmin(request);
+  const { tenantId, confirmar } = request.data || {};
+  if (!tenantId) throw new HttpsError('invalid-argument', 'Falta tenantId.');
+  if (tenantId === 'mana-auto') throw new HttpsError('permission-denied', 'Mana Auto no se puede eliminar desde aquí.');
+  if (confirmar !== tenantId) {
+    throw new HttpsError('invalid-argument', 'Debes escribir el id exacto de la empresa para confirmar.');
+  }
+
+  const [adminsSnap, talleresSnap, tallerUsuariosSnap, pedidosSnap, facturasSnap, backupsSnap, fcmSnap] =
+    await Promise.all([
+      db.collection('admins').where('tenantId', '==', tenantId).get(),
+      db.collection('talleres').where('tenantId', '==', tenantId).get(),
+      db.collection('tallerUsuarios').where('tenantId', '==', tenantId).get(),
+      db.collection('pedidos').where('tenantId', '==', tenantId).get(),
+      db.collection('facturas').where('tenantId', '==', tenantId).get(),
+      db.collection('facturaBackups').where('tenantId', '==', tenantId).get(),
+      db.collection('fcmTokens').where('tenantId', '==', tenantId).get(),
+    ]);
+
+  // Cuentas de Auth: admins + tallerUsuarios (siempre tienen cuenta) + talleres con cuenta real
+  // (los talleres sin acceso al portal tienen un uid sintético "taller_...", sin usuario Auth).
+  const uids = [
+    ...adminsSnap.docs.map(d => d.id),
+    ...talleresSnap.docs.filter(d => !d.id.startsWith('taller_')).map(d => d.id),
+    ...tallerUsuariosSnap.docs.map(d => d.id),
+  ];
+  await Promise.all(uids.map((uid) => admin.auth().deleteUser(uid).catch(() => {})));
+
+  // Subcolección items de cada backup, antes que el doc padre.
+  for (const backupDoc of backupsSnap.docs) {
+    const itemsSnap = await db.collection('facturaBackups').doc(backupDoc.id).collection('items').get();
+    for (const grupo of chunkArr(itemsSnap.docs, 400)) {
+      const batch = db.batch();
+      grupo.forEach((d) => batch.delete(d.ref));
+      await batch.commit();
+    }
+  }
+
+  const allDocs = [
+    ...adminsSnap.docs, ...talleresSnap.docs, ...tallerUsuariosSnap.docs,
+    ...pedidosSnap.docs, ...facturasSnap.docs, ...backupsSnap.docs, ...fcmSnap.docs,
+  ];
+  for (const grupo of chunkArr(allDocs, 400)) {
+    const batch = db.batch();
+    grupo.forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+  }
+
+  await db.doc(`empresas/${tenantId}/counters/pedidos`).delete().catch(() => {});
+  await db.collection('empresas').doc(tenantId).delete();
+
+  return { ok: true, documentosEliminados: allDocs.length, cuentasAuthEliminadas: uids.length };
+});
+
 // Crea un miembro del equipo dentro de la misma empresa del llamante.
 exports.crearMiembroEquipo = onCall(async (request) => {
   const caller = await requireCallerAdmin(request);

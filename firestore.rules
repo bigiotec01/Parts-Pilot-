@@ -26,9 +26,16 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/admins/$(request.auth.uid)).data;
     }
 
-    // Admin/miembro cuyo tenantId coincide con el del recurso — el corazón del aislamiento multi-tenant.
+    // La empresa está activa (no suspendida). Una empresa suspendida pierde acceso a sus datos
+    // de inmediato, aunque su sesión siga vigente — no basta con ocultar el botón en el panel.
+    function tenantActiva(tenantId) {
+      return get(/databases/$(database)/documents/empresas/$(tenantId)).data.estado == 'activa';
+    }
+
+    // Admin/miembro cuyo tenantId coincide con el del recurso, de una empresa activa —
+    // el corazón del aislamiento multi-tenant.
     function isAdminOfTenant(tenantId) {
-      return isAdmin() && callerAdminData().tenantId == tenantId;
+      return isAdmin() && callerAdminData().tenantId == tenantId && tenantActiva(tenantId);
     }
 
     function getTallerId() {
@@ -93,14 +100,14 @@ service cloud.firestore {
     }
 
     match /pedidos/{pedidoId} {
-      allow read:   if isAdminOfTenant(resource.data.tenantId) || isTallerMember(resource.data.tallerId) || isPlatformSuperAdmin();
-      allow create: if isAdminOfTenant(request.resource.data.tenantId) || isTallerMember(request.resource.data.tallerId);
-      allow update: if isAdminOfTenant(resource.data.tenantId) || isTallerMember(resource.data.tallerId);
+      allow read:   if isAdminOfTenant(resource.data.tenantId) || (isTallerMember(resource.data.tallerId) && tenantActiva(resource.data.tenantId)) || isPlatformSuperAdmin();
+      allow create: if isAdminOfTenant(request.resource.data.tenantId) || (isTallerMember(request.resource.data.tallerId) && tenantActiva(request.resource.data.tenantId));
+      allow update: if isAdminOfTenant(resource.data.tenantId) || (isTallerMember(resource.data.tallerId) && tenantActiva(resource.data.tenantId));
       allow delete: if isAdminOfTenant(resource.data.tenantId);
     }
 
     match /facturas/{facturaId} {
-      allow read:   if isAdminOfTenant(resource.data.tenantId) || isTallerMember(resource.data.tallerId) || isPlatformSuperAdmin();
+      allow read:   if isAdminOfTenant(resource.data.tenantId) || (isTallerMember(resource.data.tallerId) && tenantActiva(resource.data.tenantId)) || isPlatformSuperAdmin();
       allow create: if isAdminOfTenant(request.resource.data.tenantId);
       allow update: if isAdminOfTenant(resource.data.tenantId);
       allow delete: if isAdminOfTenant(resource.data.tenantId);

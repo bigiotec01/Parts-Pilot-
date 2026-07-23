@@ -20,9 +20,19 @@ export function useAuth() {
           // 1. ¿Es admin (de alguna empresa)? — identidad principal si existe, aunque también sea Super Admin.
           const adminDoc = await getDoc(doc(db, 'admins', firebaseUser.uid));
           if (adminDoc.exists()) {
+            const adminData = adminDoc.data();
+            if (adminData.tenantId) {
+              const empresaDoc = await getDoc(doc(db, 'empresas', adminData.tenantId));
+              if (empresaDoc.exists() && empresaDoc.data().estado === 'suspendida') {
+                setError('Tu empresa fue suspendida. Contacta al soporte de Parts Pilot.');
+                await signOut(auth);
+                setCargando(false);
+                return;
+              }
+            }
             const superAdminDoc = await getDoc(doc(db, 'superadmins', firebaseUser.uid));
             setUser({ role: 'admin', uid: firebaseUser.uid, email: firebaseUser.email, isPlatformSuperAdmin: superAdminDoc.exists() });
-            setPerfil(adminDoc.data());
+            setPerfil(adminData);
             setCargando(false);
             return;
           }
