@@ -42,16 +42,17 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
   const getTaller = (id) => talleres.find(t => t.uid === id);
   const selectedOrder = pedidos.find(p => p.id === selectedId);
 
-  // Qué pestaña muestra un pedido se decide por su ESTADO, no por el campo `tipo`.
-  // `tipo` solo distingue el origen/flujo de cotización; si se usara para esto, un pedido
-  // de taller/TagLogic (tipo 'solicitud') al que el admin le avanza el estado a mano
-  // (sin pasar por "Enviar estimado", que es lo único que cambia tipo a 'pedido') se quedaba
-  // atrapado en Estimados para siempre y nunca aparecía en Pedidos.
-  const ESTADOS_ESTIMADO = ['pendiente', 'cotizando'];
-  const solicitudes  = pedidos.filter(p => p.estado === 'pendiente');
+  // Qué pestaña muestra un pedido: "esperando cotizar" es estado 'pendiente' Y tipo
+  // 'solicitud' (llegó de un taller/TagLogic sin que el admin sepa aún qué cotizar).
+  // Un pedido que el admin registra directo desde "Nuevo pedido" también nace en estado
+  // 'pendiente' pero con tipo 'pedido' — no necesita cotización, así que no debe entrar aquí.
+  // Una vez que el admin avanza el estado a mano (sin pasar por "Enviar estimado", que es
+  // lo único que cambia tipo a 'pedido'), estado ya no es 'pendiente' y el pedido sale solo.
+  const esperandoCotizar = (p) => p.estado === 'pendiente' && p.tipo === 'solicitud';
+  const solicitudes  = pedidos.filter(esperandoCotizar);
   const cotizando    = pedidos.filter(p => p.estado === 'cotizando');
   const enEstimados  = [...solicitudes, ...cotizando];
-  const todosPedidos = pedidos.filter(p => !ESTADOS_ESTIMADO.includes(p.estado));
+  const todosPedidos = pedidos.filter(p => !esperandoCotizar(p) && p.estado !== 'cotizando');
   const solosPedidos = todosPedidos.filter(p => p.estado !== 'entregado');
   const pedidosCount     = solosPedidos.filter(p => hasNewActivity('admin', p)).length;
   const solicitudesCount = enEstimados.filter(p => hasNewActivity('admin', p)).length;

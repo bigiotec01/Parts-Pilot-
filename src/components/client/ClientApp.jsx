@@ -22,11 +22,13 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState('');
 
-  // Qué pestaña muestra un pedido se decide por su ESTADO, no por `tipo` — ver el mismo
-  // criterio (y el porqué) en AdminApp.jsx.
-  const ESTADOS_ESTIMADO = ['pendiente', 'cotizando'];
-  const solicitudes = pedidos.filter(p => p.estado === 'pendiente');
-  const misPedidos = pedidos.filter(p => !ESTADOS_ESTIMADO.includes(p.estado));
+  // Qué pestaña muestra un pedido — ver el mismo criterio (y el porqué) en AdminApp.jsx:
+  // "esperando cotizar" exige estado 'pendiente' Y tipo 'solicitud'; un pedido que el admin
+  // registra directo a nombre de este taller nace 'pendiente' pero con tipo 'pedido' y debe
+  // verse de inmediato en "Mis pedidos", no en "Estimados".
+  const esperandoCotizar = (p) => p.estado === 'pendiente' && p.tipo === 'solicitud';
+  const solicitudes = pedidos.filter(esperandoCotizar);
+  const misPedidos = pedidos.filter(p => !esperandoCotizar(p) && p.estado !== 'cotizando');
   const pedidosActivos = misPedidos.filter(p => p.estado !== 'entregado');
   const pedidosHistorial = misPedidos.filter(p => p.estado === 'entregado');
   const cotizacionesPendientes = pedidos.filter(p => p.estado === 'cotizando');
