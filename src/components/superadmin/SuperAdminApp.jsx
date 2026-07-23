@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, getCountFromServer, onSnapshot, query, where } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { AlertTriangle, ArrowLeft, Building2, LogOut, Plus, Trash2, X } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Building2, LogIn, LogOut, Plus, Trash2, X } from 'lucide-react';
 import { db, functions } from '../../firebase';
 import { inputClass } from '../../constants/styles';
+import { formatDate } from '../../utils/format';
 import { FormField } from '../shared/FormField';
+import { TenantSupportView } from './TenantSupportView';
 
 function NuevaEmpresaModal({ onClose }) {
   const [form, setForm] = useState({ nombreEmpresa: '', nombreAdmin: '', email: '', password: '' });
@@ -104,11 +106,87 @@ function EliminarEmpresaModal({ empresa, onClose }) {
   );
 }
 
+// Talleres y pedidos activos de una empresa — conteo puntual (no en vivo), solo para el listado.
+function useEmpresaStats(tenantId) {
+  const [stats, setStats] = useState(null);
+  useEffect(() => {
+    let cancelado = false;
+    (async () => {
+      try {
+        // Solo filtros de un campo (tenantId) para no depender de índices compuestos manuales.
+        const [talleresSnap, pedidosSnap] = await Promise.all([
+          getCountFromServer(query(collection(db, 'talleres'), where('tenantId', '==', tenantId))),
+          getCountFromServer(query(collection(db, 'pedidos'), where('tenantId', '==', tenantId))),
+        ]);
+        if (!cancelado) setStats({ talleres: talleresSnap.data().count, pedidos: pedidosSnap.data().count });
+      } catch (err) {
+        console.error('useEmpresaStats:', err.code || err.message);
+      }
+    })();
+    return () => { cancelado = true; };
+  }, [tenantId]);
+  return stats;
+}
+
+function EmpresaRow({ empresa: e, busy, onToggleEstado, onEliminar, onEntrar }) {
+  const stats = useEmpresaStats(e.id);
+
+  return (
+    <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--pp-border2)' }}>
+      <div>
+        <p className="text-[14px] font-bold" style={{ color: 'var(--pp-text)' }}>{e.nombre}</p>
+        <p className="text-[11.5px]" style={{ color: 'var(--pp-text3)' }}>
+          {e.id}
+          {e.createdAt && ` · creada ${formatDate(e.createdAt)}`}
+          {stats && ` · ${stats.talleres} taller${stats.talleres === 1 ? '' : 'es'} · ${stats.pedidos} pedido${stats.pedidos === 1 ? '' : 's'}`}
+        </p>
+      </div>
+      <div className="flex items-center gap-3">
+        <span
+          className="text-[11.5px] font-bold px-2.5 py-1 rounded-full"
+          style={{
+            background: e.estado === 'activa' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.10)',
+            color: e.estado === 'activa' ? '#10b981' : '#ef4444',
+          }}
+        >
+          {e.estado === 'activa' ? 'Activa' : 'Suspendida'}
+        </span>
+        <button
+          onClick={onEntrar}
+          className="flex items-center gap-1.5 text-[12.5px] font-semibold hover:underline"
+          style={{ color: 'var(--pp-text6)' }}
+        >
+          <LogIn className="w-3.5 h-3.5" /> Entrar
+        </button>
+        <button
+          onClick={onToggleEstado}
+          disabled={busy}
+          className="text-[12.5px] font-semibold hover:underline disabled:opacity-50"
+          style={{ color: 'var(--pp-text2)' }}
+        >
+          {e.estado === 'activa' ? 'Suspender' : 'Activar'}
+        </button>
+        {e.id !== 'mana-auto' && (
+          <button
+            onClick={onEliminar}
+            className="w-8 h-8 rounded-[8px] flex items-center justify-center transition-colors hover:bg-red-900/20"
+            style={{ color: '#ef4444' }}
+            title="Eliminar permanentemente"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function SuperAdminApp({ onLogout, onExit }) {
   const [empresas, setEmpresas] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [busyId, setBusyId] = useState(null);
   const [eliminarTarget, setEliminarTarget] = useState(null);
+  const [soporteTarget, setSoporteTarget] = useState(null);
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'empresas'), (snap) => {
@@ -116,6 +194,10 @@ export function SuperAdminApp({ onLogout, onExit }) {
     });
     return unsub;
   }, []);
+
+  if (soporteTarget) {
+    return <TenantSupportView empresa={soporteTarget} onExit={() => setSoporteTarget(null)} />;
+  }
 
   const toggleEstado = async (empresa) => {
     setBusyId(empresa.id);
@@ -152,47 +234,20 @@ export function SuperAdminApp({ onLogout, onExit }) {
         </div>
       </header>
 
-      <div className="p-[30px] max-w-[860px]">
+      <div className="p-[30px] max-w-[980px]">
         {empresas.length === 0 ? (
           <p className="text-[13.5px]" style={{ color: 'var(--pp-text3)' }}>Todavía no hay empresas registradas.</p>
         ) : (
           <div className="rounded-[16px] border overflow-hidden" style={{ borderColor: 'var(--pp-border2)' }}>
             {empresas.map((e) => (
-              <div key={e.id} className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--pp-border2)' }}>
-                <div>
-                  <p className="text-[14px] font-bold" style={{ color: 'var(--pp-text)' }}>{e.nombre}</p>
-                  <p className="text-[11.5px]" style={{ color: 'var(--pp-text3)' }}>{e.id}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span
-                    className="text-[11.5px] font-bold px-2.5 py-1 rounded-full"
-                    style={{
-                      background: e.estado === 'activa' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.10)',
-                      color: e.estado === 'activa' ? '#10b981' : '#ef4444',
-                    }}
-                  >
-                    {e.estado === 'activa' ? 'Activa' : 'Suspendida'}
-                  </span>
-                  <button
-                    onClick={() => toggleEstado(e)}
-                    disabled={busyId === e.id}
-                    className="text-[12.5px] font-semibold hover:underline disabled:opacity-50"
-                    style={{ color: 'var(--pp-text2)' }}
-                  >
-                    {e.estado === 'activa' ? 'Suspender' : 'Activar'}
-                  </button>
-                  {e.id !== 'mana-auto' && (
-                    <button
-                      onClick={() => setEliminarTarget(e)}
-                      className="w-8 h-8 rounded-[8px] flex items-center justify-center transition-colors hover:bg-red-900/20"
-                      style={{ color: '#ef4444' }}
-                      title="Eliminar permanentemente"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
+              <EmpresaRow
+                key={e.id}
+                empresa={e}
+                busy={busyId === e.id}
+                onToggleEstado={() => toggleEstado(e)}
+                onEliminar={() => setEliminarTarget(e)}
+                onEntrar={() => setSoporteTarget(e)}
+              />
             ))}
           </div>
         )}
