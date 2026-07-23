@@ -17,7 +17,16 @@ export function useAuth() {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          // 1. ¿Es admin?
+          // 1. ¿Es Super Admin de la plataforma?
+          const superAdminDoc = await getDoc(doc(db, 'superadmins', firebaseUser.uid));
+          if (superAdminDoc.exists()) {
+            setUser({ role: 'superadmin', uid: firebaseUser.uid });
+            setPerfil(superAdminDoc.data());
+            setCargando(false);
+            return;
+          }
+
+          // 2. ¿Es admin (de alguna empresa)?
           const adminDoc = await getDoc(doc(db, 'admins', firebaseUser.uid));
           if (adminDoc.exists()) {
             setUser({ role: 'admin', uid: firebaseUser.uid });
@@ -26,7 +35,7 @@ export function useAuth() {
             return;
           }
 
-          // 2. ¿Es cuenta principal de taller?
+          // 3. ¿Es cuenta principal de taller?
           const tallerDoc = await getDoc(doc(db, 'talleres', firebaseUser.uid));
           if (tallerDoc.exists()) {
             setUser({ role: 'taller', uid: firebaseUser.uid, tallerId: firebaseUser.uid });
@@ -35,7 +44,7 @@ export function useAuth() {
             return;
           }
 
-          // 3. ¿Es sub-usuario de un taller?
+          // 4. ¿Es sub-usuario de un taller?
           const subUserDoc = await getDoc(doc(db, 'tallerUsuarios', firebaseUser.uid));
           if (subUserDoc.exists()) {
             const subData = subUserDoc.data();

@@ -14,6 +14,8 @@ import { LoginScreen } from './components/shared/LoginScreen';
 import { NotifToast } from './components/shared/NotifToast';
 import { AdminApp } from './components/admin/AdminApp';
 import { ClientApp } from './components/client/ClientApp';
+import { SuperAdminApp } from './components/superadmin/SuperAdminApp';
+import { MigrationScreen } from './components/superadmin/MigrationScreen';
 
 function AppContent() {
   const { user, perfil, cargando, error, login, logout, setError } = useAuth();
@@ -78,7 +80,16 @@ function AppContent() {
     );
   }
 
+  if (user.role === 'superadmin') {
+    return <SuperAdminApp onLogout={logout} />;
+  }
+
   if (user.role === 'admin') {
+    // Solo la cuenta original de Mana Auto ve la pantalla de migración (única vez, arranca el multi-tenant).
+    // El resto del equipo sigue entrando a AdminApp exactamente igual que siempre mientras tanto.
+    if (!perfil?.tenantId && perfil?.email === 'ismael.bigio@gmail.com') {
+      return <MigrationScreen onLogout={logout} />;
+    }
     return (
       <>
         {notifToast && <NotifToast toast={notifToast} onClose={() => setNotifToast(null)} />}
