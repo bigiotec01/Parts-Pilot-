@@ -16,6 +16,15 @@ export function ReporteModal({ pedidos, talleres, onClose }) {
     });
   const getTaller = id => talleres.find(t => t.uid === id);
 
+  // Identificador que de verdad usan en el taller/dealer: PO y/o Orden del cliente.
+  // Si no cargaron ninguno, cae a la referencia legada o al vehículo.
+  const refLabel = (p) => {
+    if (p.numeroPO && p.numeroOrden) return `PO ${p.numeroPO} · Orden ${p.numeroOrden}`;
+    if (p.numeroPO) return `PO ${p.numeroPO}`;
+    if (p.numeroOrden) return `Orden ${p.numeroOrden}`;
+    return p.referencia || p.vehiculo || '—';
+  };
+
   const handlePrint = () => {
     const toStr = f => {
       if (!f) return '—';
@@ -25,8 +34,7 @@ export function ReporteModal({ pedidos, talleres, onClose }) {
     const rows = activos.map((p, i) => `
       <tr style="background:${i % 2 === 0 ? '#ffffff' : '#fafaf9'}">
         <td>${i + 1}</td>
-        <td style="font-family:monospace;font-size:10px;color:#78716c">${p.id.slice(0, 12)}</td>
-        <td><strong>${(p.referencia || '—').replace(/</g, '&lt;')}</strong></td>
+        <td><strong>${refLabel(p).replace(/</g, '&lt;')}</strong></td>
         <td>${(getTaller(p.tallerId)?.nombre || '—').replace(/</g, '&lt;')}</td>
         <td>${(p.vehiculo || '—').replace(/</g, '&lt;')}</td>
         <td>${STATUS_CONFIG[p.estado]?.label || p.estado}</td>
@@ -57,9 +65,9 @@ export function ReporteModal({ pedidos, talleres, onClose }) {
       </header>
       <p class="sub">${activos.length} pedidos activos (excluye Orden Completa)</p>
       <table>
-        <thead><tr><th>#</th><th>Folio</th><th>Referencia / Orden</th><th>Taller</th><th>Vehículo</th><th>Estado</th><th>Fecha Reg.</th><th>Entrega Est.</th><th>Notas</th></tr></thead>
+        <thead><tr><th>#</th><th>PO / Orden</th><th>Taller</th><th>Vehículo</th><th>Estado</th><th>Fecha Reg.</th><th>Entrega Est.</th><th>Notas</th></tr></thead>
         <tbody>${rows}</tbody>
-        <tfoot><tr><td colspan="9">Total: ${activos.length} pedidos activos</td></tr></tfoot>
+        <tfoot><tr><td colspan="8">Total: ${activos.length} pedidos activos</td></tr></tfoot>
       </table>
     </body></html>`;
 
@@ -88,7 +96,7 @@ export function ReporteModal({ pedidos, talleres, onClose }) {
             <thead>
               <tr className="text-[10px] uppercase tracking-wider" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text)' }}>
                 <th className="text-left px-3 py-2.5 font-medium">#</th>
-                <th className="text-left px-3 py-2.5 font-medium">Referencia</th>
+                <th className="text-left px-3 py-2.5 font-medium">PO / Orden</th>
                 <th className="text-left px-3 py-2.5 font-medium">Taller</th>
                 <th className="text-left px-3 py-2.5 font-medium">Vehículo</th>
                 <th className="text-left px-3 py-2.5 font-medium">Estado</th>
@@ -101,7 +109,7 @@ export function ReporteModal({ pedidos, talleres, onClose }) {
               {activos.map((p, i) => (
                 <tr key={p.id} style={{ borderBottom: '1px solid var(--pp-border2)', background: i % 2 === 0 ? 'var(--pp-card)' : 'var(--pp-card)' }}>
                   <td className="px-3 py-2" style={{ color: 'var(--pp-text3)' }}>{i + 1}</td>
-                  <td className="px-3 py-2 font-semibold" style={{ color: 'var(--pp-text)' }}>{p.referencia || <span style={{ color: 'var(--pp-text3)', fontWeight: 400 }}>—</span>}</td>
+                  <td className="px-3 py-2 font-semibold" style={{ color: 'var(--pp-text)' }}>{refLabel(p)}</td>
                   <td className="px-3 py-2" style={{ color: 'var(--pp-text2)' }}>{getTaller(p.tallerId)?.nombre || '—'}</td>
                   <td className="px-3 py-2" style={{ color: 'var(--pp-text2)' }}>{p.vehiculo || '—'}</td>
                   <td className="px-3 py-2"><StatusBadge estado={p.estado} /></td>
