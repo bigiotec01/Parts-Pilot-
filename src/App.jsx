@@ -110,8 +110,8 @@ function AppContent() {
           onLogout={logout}
           onChangeStatus={(id, estado, fechaEntrega) => cambiarEstatus(id, estado, fechaEntrega)}
           onSendEstimate={(id, data) => enviarEstimado(id, data)}
-          onCreateOrder={(data) => crearPedido({ ...data, tipo: 'pedido' })}
-          onCreateCotizacion={(data) => crearCotizacion(data)}
+          onCreateOrder={(data) => crearPedido({ ...data, tipo: 'pedido', tenantId: perfil?.tenantId })}
+          onCreateCotizacion={(data) => crearCotizacion({ ...data, tenantId: perfil?.tenantId })}
           onSendMessage={(id, texto, from, attachment) => enviarMensaje(id, texto, from, attachment)}
           onDeleteMessage={(id, mensajes, index) => eliminarMensaje(id, mensajes, index)}
           onCreateTaller={(data) => crearTaller(data)}
@@ -120,7 +120,7 @@ function AppContent() {
           onUpdateTaller={(uid, data) => actualizarTaller(uid, data)}
           onUpdateNotes={(id, notas) => actualizarNotasInternas(id, notas)}
           onUpdateReferencias={(id, refs) => actualizarReferencias(id, refs)}
-          onAgregarFactura={(data) => agregarFactura(data)}
+          onAgregarFactura={(data) => agregarFactura({ ...data, tenantId: perfil?.tenantId })}
           onActualizarFactura={(id, data) => actualizarFactura(id, data)}
           onEliminarFactura={(id) => eliminarFactura(id)}
           onCrearAdmin={(data) => crearAdminUsuario(data)}
@@ -151,7 +151,7 @@ function AppContent() {
         pedidos={pedidos}
         facturas={facturas}
         onLogout={logout}
-        onCreateOrder={(data) => crearPedido({ ...data, tallerId: user.tallerId || user.uid, tipo: 'solicitud' })}
+        onCreateOrder={(data) => crearPedido({ ...data, tallerId: user.tallerId || user.uid, tipo: 'solicitud', tenantId: taller?.tenantId })}
         onRespondEstimate={(id, respuesta) => responderEstimado(id, respuesta)}
         onSendMessage={(id, texto, from, attachment) => enviarMensaje(id, texto, from, attachment)}
         onUpdateTaller={(uid, data) => actualizarTaller(uid, data)}
