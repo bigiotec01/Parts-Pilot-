@@ -6,6 +6,16 @@ export function cleanText(text) {
   return text.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1');
 }
 
+// Suaviza texto escrito TODO EN MAYÚSCULAS (común en notas del admin/TagLogic) a
+// formato oración, sin tocar el dato guardado — solo cambia cómo se muestra.
+// Si el texto ya viene con mezcla de mayúsculas/minúsculas, se deja tal cual.
+export function humanize(text) {
+  if (!text) return text;
+  const letras = text.replace(/[^a-zA-ZÀ-ÿ]/g, '');
+  if (!letras || letras !== letras.toUpperCase()) return text;
+  return text.charAt(0) + text.slice(1).toLowerCase();
+}
+
 // Normaliza el campo de archivos adjuntos: soporta tanto el arreglo nuevo
 // (`archivos`) como el objeto único de pedidos/cotizaciones antiguos (`archivo`),
 // para que la UI no tenga que preocuparse por el formato del documento.

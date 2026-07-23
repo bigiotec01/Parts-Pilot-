@@ -1,24 +1,53 @@
 import {
-  Clock, FileText, ThumbsUp, ThumbsDown, MessageSquare, MessageCircle
+  Clock, FileText, ThumbsUp, ThumbsDown, MessageSquare, MessageCircle, PackageCheck, PackageX, PackageSearch
 } from 'lucide-react';
 import { hasNewActivity } from '../../utils/activity';
-import { formatDate, cleanText, filesOf } from '../../utils/format';
+import { formatDate, cleanText, filesOf, humanize } from '../../utils/format';
 import { StatusBadge } from '../shared/StatusBadge';
+
+// Ícono + tono para la nota de disponibilidad, según palabras clave frecuentes en el texto
+// que escribe el admin (ninguna estructura de datos nueva, solo lectura del texto libre).
+function disponibilidadTono(notas) {
+  const t = (notas || '').toLowerCase();
+  if (/\bno disponible/.test(t)) return { Icon: PackageX, tone: '#ef4444' };
+  if (/\btodas? disponible/.test(t)) return { Icon: PackageCheck, tone: '#10b981' };
+  return { Icon: PackageSearch, tone: 'var(--pp-text3)' };
+}
+
+function NotaDisponibilidad({ notas }) {
+  if (!notas) return null;
+  const { Icon, tone } = disponibilidadTono(notas);
+  return (
+    <div className="flex items-start gap-2 rounded-lg px-3 py-2" style={{ background: 'var(--pp-surface)' }}>
+      <Icon className="w-4 h-4 flex-shrink-0 mt-[1px]" style={{ color: tone }} />
+      <p className="text-[13px] leading-snug" style={{ color: 'var(--pp-text2)' }}>{humanize(cleanText(notas))}</p>
+    </div>
+  );
+}
+
+function ArchivoChip({ f, onClick }) {
+  return (
+    <a href={f.url} target="_blank" rel="noreferrer" onClick={onClick} className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12.5px] font-medium transition-colors hover:brightness-110" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text2)' }}>
+      <FileText className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#f87171' }} /> <span className="truncate max-w-[140px]">{f.name}</span>
+    </a>
+  );
+}
 
 export function EstimateCard({ order }) {
   const { estimado } = order;
+  const archivos = filesOf(estimado.archivo, estimado.archivos);
   return (
-    <div className="rounded-xl border p-4" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
-      <div className="mb-2">
-        <h3 className="font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{order.referencia || order.vehiculo}</h3>
-        {order.referencia && <p className="text-sm truncate" style={{ color: 'var(--pp-text2)' }}>{order.vehiculo}</p>}
+    <div className="rounded-xl border p-4 space-y-3" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+      <div>
+        <h3 className="text-[15px] font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{humanize(order.referencia || order.vehiculo)}</h3>
+        {order.referencia && <p className="text-sm truncate" style={{ color: 'var(--pp-text2)' }}>{humanize(order.vehiculo)}</p>}
       </div>
-      {estimado.notas && <p className="text-sm mb-3 rounded-lg p-2" style={{ color: 'var(--pp-text2)', background: 'var(--pp-card)' }}>{cleanText(estimado.notas)}</p>}
-      {filesOf(estimado.archivo, estimado.archivos).map((f, i) => (
-        <a key={i} href={f.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors mb-3 border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
-          <FileText className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{f.name}</span>
-        </a>
-      ))}
+      <NotaDisponibilidad notas={estimado.notas} />
+      {archivos.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {archivos.map((f, i) => <ArchivoChip key={i} f={f} />)}
+        </div>
+      )}
       <EstimateActions order={order} />
     </div>
   );
@@ -30,12 +59,12 @@ export function EstimateActions({ order, onRespond }) {
 
   if (canRespond) {
     return (
-      <div className="flex gap-2">
-        <button onClick={() => onRespond(order.id, 'aceptado')} className="flex-1 py-[11px] rounded-[11px] text-white text-[13px] font-bold flex items-center justify-center gap-1.5 transition-colors" style={{ background: '#10b981' }}>
-          <ThumbsUp className="w-4 h-4" /> Aprobar Estimado
+      <div className="flex items-center gap-3">
+        <button onClick={() => onRespond(order.id, 'aceptado')} className="flex-1 py-2 rounded-[9px] text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 transition-colors hover:brightness-105" style={{ background: '#10b981' }}>
+          <ThumbsUp className="w-3.5 h-3.5" /> Aprobar
         </button>
-        <button onClick={() => onRespond(order.id, 'rechazado')} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold flex items-center justify-center gap-1.5 border transition-colors hover:brightness-110" style={{ background: 'rgba(220,38,38,0.06)', borderColor: 'rgba(220,38,38,0.3)', color: '#dc2626' }}>
-          <ThumbsDown className="w-4 h-4" /> Rechazar
+        <button onClick={() => onRespond(order.id, 'rechazado')} className="text-[13px] font-medium flex items-center gap-1.5 transition-colors hover:opacity-80" style={{ color: '#ef4444' }}>
+          <ThumbsDown className="w-3.5 h-3.5" /> Rechazar
         </button>
       </div>
     );
@@ -43,15 +72,15 @@ export function EstimateActions({ order, onRespond }) {
 
   if (estimado.respuesta === 'rechazado') {
     return (
-      <div className="flex items-center gap-2 px-3 py-2.5 rounded-[10px] text-[13px] font-semibold" style={{ background: '#fdecec', color: '#dc2626' }}>
-        <ThumbsDown className="w-4 h-4 flex-shrink-0" /> Rechazaste este estimado
+      <div className="flex items-center gap-2 px-3 py-2 rounded-[9px] text-[13px] font-medium" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
+        <ThumbsDown className="w-3.5 h-3.5 flex-shrink-0" /> Rechazaste este estimado
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2.5 rounded-[10px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}>
-      <ThumbsUp className="w-4 h-4 flex-shrink-0" /> Estimado aceptado
+    <div className="flex items-center gap-2 px-3 py-2 rounded-[9px] text-[13px] font-medium" style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981' }}>
+      <ThumbsUp className="w-3.5 h-3.5 flex-shrink-0" /> Estimado aceptado
     </div>
   );
 }
@@ -90,7 +119,7 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
                 )}
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <h3 className="font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</h3>
+                    <h3 className="text-[15px] font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{humanize(p.vehiculo)}</h3>
                     {(p.numeroPO || p.numeroOrden) && (
                       <div className="flex gap-1.5 mt-1 flex-wrap">
                         {p.numeroPO && <span className="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md font-medium">PO# {p.numeroPO}</span>}
@@ -107,22 +136,22 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
                     </span>
                   )}
                 </div>
-                {p.estimado?.notas && (
-                  <p className="text-sm rounded-lg p-2.5" style={{ color: 'var(--pp-text2)', background: 'var(--pp-card)' }}>{cleanText(p.estimado.notas)}</p>
+                <NotaDisponibilidad notas={p.estimado?.notas} />
+                {filesOf(p.estimado?.archivo, p.estimado?.archivos).length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {filesOf(p.estimado?.archivo, p.estimado?.archivos).map((f, i) => (
+                      <ArchivoChip key={i} f={f} onClick={e => e.stopPropagation()} />
+                    ))}
+                  </div>
                 )}
-                {filesOf(p.estimado?.archivo, p.estimado?.archivos).map((f, i) => (
-                  <a key={i} href={f.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
-                    <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{f.name}</span>
-                  </a>
-                ))}
-                <div className="flex gap-2">
-                  <button onClick={e => { e.stopPropagation(); onRespond(p.id, 'aceptado'); }} className="flex-1 py-[11px] rounded-[11px] text-white text-[13px] font-bold flex items-center justify-center gap-1.5 transition-colors hover:brightness-105" style={{ background: '#10b981' }}>
-                    <ThumbsUp className="w-4 h-4" /> Aprobar Estimado
+                <div className="flex items-center gap-3">
+                  <button onClick={e => { e.stopPropagation(); onRespond(p.id, 'aceptado'); }} className="flex-1 py-2 rounded-[9px] text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 transition-colors hover:brightness-105" style={{ background: '#10b981' }}>
+                    <ThumbsUp className="w-3.5 h-3.5" /> Aprobar
                   </button>
-                  <button onClick={e => { e.stopPropagation(); onRespond(p.id, 'rechazado'); }} className="flex-1 py-[11px] rounded-[11px] text-[13px] font-semibold border flex items-center justify-center gap-1.5 transition-colors hover:brightness-110" style={{ background: 'rgba(220,38,38,0.06)', borderColor: 'rgba(220,38,38,0.3)', color: '#dc2626' }}>
-                    <ThumbsDown className="w-4 h-4" /> Rechazar
+                  <button onClick={e => { e.stopPropagation(); onRespond(p.id, 'rechazado'); }} className="text-[13px] font-medium flex items-center gap-1.5 transition-colors hover:opacity-80" style={{ color: '#ef4444' }}>
+                    <ThumbsDown className="w-3.5 h-3.5" /> Rechazar
                   </button>
-                  <button onClick={e => { e.stopPropagation(); onSelect?.(p.id); }} title="Preguntar al vendedor" className="w-[44px] flex-shrink-0 rounded-[11px] flex items-center justify-center border transition-colors hover:bg-[#1e1e1e]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+                  <button onClick={e => { e.stopPropagation(); onSelect?.(p.id); }} title="Preguntar al vendedor" className="w-8 h-8 flex-shrink-0 rounded-[9px] flex items-center justify-center transition-colors hover:bg-[#1e1e1e]" style={{ color: 'var(--pp-text3)' }}>
                     <MessageCircle className="w-4 h-4" />
                   </button>
                 </div>
@@ -158,16 +187,22 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
                 )}
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="min-w-0">
-                    <h3 className="font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</h3>
+                    <h3 className="text-[15px] font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{humanize(p.vehiculo)}</h3>
                   </div>
                   <StatusBadge estado={p.estado} />
                 </div>
-                {p.notas && <p className="text-sm rounded-lg p-2.5 mb-2.5" style={{ color: 'var(--pp-text2)', background: 'var(--pp-card)' }}>{cleanText(p.notas)}</p>}
-                {filesOf(p.archivo, p.archivos).map((f, i) => (
-                  <a key={i} href={f.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors mb-2.5 border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>
-                    <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{f.name}</span>
-                  </a>
-                ))}
+                {p.notas && (
+                  <div className="mb-2.5">
+                    <NotaDisponibilidad notas={p.notas} />
+                  </div>
+                )}
+                {filesOf(p.archivo, p.archivos).length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2.5">
+                    {filesOf(p.archivo, p.archivos).map((f, i) => (
+                      <ArchivoChip key={i} f={f} onClick={e => e.stopPropagation()} />
+                    ))}
+                  </div>
+                )}
                 <div className="flex items-center justify-between gap-1.5 text-xs px-3 py-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)' }}>
                   <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Esperando estimado · {formatDate(p.fecha)}</span>
                   {(p.mensajes?.length > 0) && <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" />{p.mensajes.length}</span>}
