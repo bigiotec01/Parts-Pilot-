@@ -106,44 +106,6 @@ function EliminarEmpresaModal({ empresa, onClose }) {
   );
 }
 
-// TEMPORAL: muestra el resultado de diagnosticoTaller en un cuadro seleccionable/copiable.
-function DiagnosticoModal({ texto, onClose }) {
-  const [copiado, setCopiado] = useState(false);
-  const copiar = async () => {
-    try {
-      await navigator.clipboard.writeText(texto);
-      setCopiado(true);
-      setTimeout(() => setCopiado(false), 1500);
-    } catch {
-      // clipboard API no disponible: el usuario puede seleccionar el texto a mano
-    }
-  };
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
-      <div className="w-full max-w-[600px] rounded-[18px] p-6 space-y-4" style={{ background: 'var(--pp-card)' }}>
-        <div className="flex items-center justify-between">
-          <h2 className="text-[15px] font-bold" style={{ color: 'var(--pp-text)' }}>Diagnóstico Garaje Morales</h2>
-          <button type="button" onClick={onClose}><X className="w-4 h-4" style={{ color: 'var(--pp-text3)' }} /></button>
-        </div>
-        <textarea
-          readOnly
-          value={texto}
-          onFocus={(e) => e.target.select()}
-          className="w-full h-[320px] rounded-[10px] p-3 text-[11.5px] font-mono"
-          style={{ background: 'var(--pp-bg)', color: 'var(--pp-text)', border: '1px solid var(--pp-border2)' }}
-        />
-        <button
-          onClick={copiar}
-          className="w-full py-[10px] rounded-[11px] text-white font-bold text-[13px]"
-          style={{ background: 'var(--pp-accent)' }}
-        >
-          {copiado ? 'Copiado ✓' : 'Copiar'}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 // Talleres y pedidos activos de una empresa — conteo puntual (no en vivo), solo para el listado.
 function useEmpresaStats(tenantId) {
   const [stats, setStats] = useState(null);
@@ -249,36 +211,6 @@ export function SuperAdminApp({ onLogout, onExit }) {
     }
   };
 
-  // TEMPORAL: diagnóstico de por qué Garaje Morales no ve sus pedidos/facturas.
-  const [diagBusy, setDiagBusy] = useState(false);
-  const [diagResultado, setDiagResultado] = useState(null);
-  const correrDiagnostico = async () => {
-    setDiagBusy(true);
-    try {
-      const fn = httpsCallable(functions, 'diagnosticoTaller');
-      const { data } = await fn({ nombreTaller: 'Garaje Morales' });
-      console.log('[diagnosticoTaller]', data);
-      setDiagResultado(JSON.stringify(data, null, 2));
-    } catch (err) {
-      setDiagResultado(`ERROR: ${err.message}`);
-    } finally {
-      setDiagBusy(false);
-    }
-  };
-
-  const generarToken = async (uid) => {
-    setDiagBusy(true);
-    try {
-      const fn = httpsCallable(functions, 'generarTokenDiagnostico');
-      const { data } = await fn({ uid });
-      setDiagResultado(data.token);
-    } catch (err) {
-      setDiagResultado(`ERROR: ${err.message}`);
-    } finally {
-      setDiagBusy(false);
-    }
-  };
-
   return (
     <div className="min-h-screen" style={{ background: 'var(--pp-bg)' }}>
       <header className="h-[70px] flex items-center gap-3 px-[30px] border-b" style={{ borderColor: 'var(--pp-border2)' }}>
@@ -295,15 +227,6 @@ export function SuperAdminApp({ onLogout, onExit }) {
           )}
           <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
             <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva empresa
-          </button>
-          <button onClick={correrDiagnostico} disabled={diagBusy} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold disabled:opacity-50" style={{ border: '1px solid var(--pp-border4)', color: 'var(--pp-text2)' }}>
-            {diagBusy ? 'Diagnosticando…' : 'Diagnóstico Garaje Morales'}
-          </button>
-          <button onClick={() => generarToken('z7rDcNcdXahcYneCJZyYcDB633Z2')} disabled={diagBusy} className="flex items-center gap-1.5 px-3 py-[9px] rounded-[10px] text-[12px] font-semibold disabled:opacity-50" style={{ border: '1px solid var(--pp-border4)', color: 'var(--pp-text2)' }}>
-            Token (principal)
-          </button>
-          <button onClick={() => generarToken('Jwi5iXz3XJPWobfTpJ31vRZyUV53')} disabled={diagBusy} className="flex items-center gap-1.5 px-3 py-[9px] rounded-[10px] text-[12px] font-semibold disabled:opacity-50" style={{ border: '1px solid var(--pp-border4)', color: 'var(--pp-text2)' }}>
-            Token (sub-usuario)
           </button>
           <button onClick={onLogout} className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }} title="Cerrar sesión">
             <LogOut className="w-4 h-4" />
@@ -332,7 +255,6 @@ export function SuperAdminApp({ onLogout, onExit }) {
 
       {showForm && <NuevaEmpresaModal onClose={() => setShowForm(false)} />}
       {eliminarTarget && <EliminarEmpresaModal empresa={eliminarTarget} onClose={() => setEliminarTarget(null)} />}
-      {diagResultado && <DiagnosticoModal texto={diagResultado} onClose={() => setDiagResultado(null)} />}
     </div>
   );
 }

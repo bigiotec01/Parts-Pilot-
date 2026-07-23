@@ -20,10 +20,13 @@ export function usePedidos(user) {
     if (!user) return;
     let q;
     if (user.role === 'admin') {
-      q = query(collection(db, 'pedidos'), orderBy('fecha', 'desc'));
+      // La regla exige tenantId explícito en la query: sin este where(), Firestore no puede
+      // evaluar tenantActiva()/isAdminOfTenant() en una consulta de lista y niega TODO el resultado
+      // (no filtra documento por documento — "las reglas no son un filtro", falla todo o nada).
+      q = query(collection(db, 'pedidos'), where('tenantId', '==', user.tenantId), orderBy('fecha', 'desc'));
     } else {
       // Para sub-usuarios de taller, usar tallerId (puede diferir del uid)
-      q = query(collection(db, 'pedidos'), where('tallerId', '==', user.tallerId || user.uid));
+      q = query(collection(db, 'pedidos'), where('tallerId', '==', user.tallerId || user.uid), where('tenantId', '==', user.tenantId));
     }
     const unsub = onSnapshot(
       q,
@@ -63,7 +66,9 @@ export function useTalleres(user) {
       return unsub;
     }
     const unsub = onSnapshot(
-      collection(db, 'talleres'),
+      // where(tenantId) es obligatorio: la regla evalúa isAdminOfTenant(resource.data.tenantId)
+      // vía get(), y una consulta de lista sin ese campo filtrado niega el resultado completo.
+      query(collection(db, 'talleres'), where('tenantId', '==', user.tenantId)),
       (snap) => {
         let docs = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
         if (Array.isArray(user.tallerIds)) {
@@ -264,7 +269,7 @@ export function useTallerUsuarios(user) {
     setTallerUsuarios([]); // limpia datos de una sesión/cuenta anterior antes de suscribirse a la nueva
     if (!user || user.role !== 'admin') return;
     const unsub = onSnapshot(
-      collection(db, 'tallerUsuarios'),
+      query(collection(db, 'tallerUsuarios'), where('tenantId', '==', user.tenantId)),
       snap => setTallerUsuarios(snap.docs.map(d => ({ uid: d.id, ...d.data() }))),
       err => console.error('useTallerUsuarios:', err.code)
     );
@@ -293,7 +298,7 @@ export function useAdminEquipo(user) {
     setEquipo([]); // limpia datos de una sesión/cuenta anterior antes de suscribirse a la nueva
     if (!user || user.role !== 'admin') return;
     const unsub = onSnapshot(
-      collection(db, 'admins'),
+      query(collection(db, 'admins'), where('tenantId', '==', user.tenantId)),
       snap => setEquipo(snap.docs.map(d => ({ uid: d.id, ...d.data() }))),
       err => console.error('useAdminEquipo:', err.code)
     );
@@ -323,9 +328,10 @@ export function useFacturas(user) {
     if (!user) return;
     let q;
     if (user.role === 'admin') {
-      q = query(collection(db, 'facturas'), orderBy('createdAt', 'asc'));
+      // Ver el comentario equivalente en usePedidos: la regla necesita tenantId en la query.
+      q = query(collection(db, 'facturas'), where('tenantId', '==', user.tenantId), orderBy('createdAt', 'asc'));
     } else {
-      q = query(collection(db, 'facturas'), where('tallerId', '==', user.tallerId || user.uid));
+      q = query(collection(db, 'facturas'), where('tallerId', '==', user.tallerId || user.uid), where('tenantId', '==', user.tenantId));
     }
     const unsub = onSnapshot(q,
       snap => {

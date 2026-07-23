@@ -35,6 +35,7 @@ export function useAuth() {
               role: 'admin', uid: firebaseUser.uid, email: firebaseUser.email,
               isPlatformSuperAdmin: superAdminDoc.exists(),
               tallerIds: Array.isArray(adminData.tallerIds) ? adminData.tallerIds : null,
+              tenantId: adminData.tenantId,
             });
             setPerfil(adminData);
             setCargando(false);
@@ -53,7 +54,7 @@ export function useAuth() {
           // 3. ¿Es cuenta principal de taller?
           const tallerDoc = await getDoc(doc(db, 'talleres', firebaseUser.uid));
           if (tallerDoc.exists()) {
-            setUser({ role: 'taller', uid: firebaseUser.uid, tallerId: firebaseUser.uid });
+            setUser({ role: 'taller', uid: firebaseUser.uid, tallerId: firebaseUser.uid, tenantId: tallerDoc.data().tenantId });
             setPerfil(tallerDoc.data());
             setCargando(false);
             return;
@@ -66,7 +67,7 @@ export function useAuth() {
             const tallerId = subData.tallerId;
             // Carga el perfil del taller principal pero usa el nombre del sub-usuario como contacto
             const mainTallerDoc = await getDoc(doc(db, 'talleres', tallerId));
-            setUser({ role: 'taller', uid: firebaseUser.uid, tallerId });
+            setUser({ role: 'taller', uid: firebaseUser.uid, tallerId, tenantId: subData.tenantId });
             setPerfil(mainTallerDoc.exists()
               ? { ...mainTallerDoc.data(), contacto: subData.nombre }
               : subData
