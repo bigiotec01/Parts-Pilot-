@@ -26,7 +26,7 @@ export function TallerSubUsuarios({ tallerId, tallerEmail, usuarios, onCrear, on
       setForm({ nombre: '', email: '', password: '' });
       setShowForm(false);
     } catch (err) {
-      setError(err.code === 'auth/email-already-in-use' ? 'Ese correo ya está registrado.' : 'Error: ' + err.message);
+      setError(err.message || 'No se pudo crear el usuario.');
     } finally { setSaving(false); }
   };
 
@@ -185,13 +185,7 @@ export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos,
       setDone(true);
       setTimeout(() => setDone(false), 4000);
     } catch (err) {
-      if (err.code === 'auth/email-already-in-use') {
-        setError('Ese correo ya está registrado. Usa otro correo.');
-      } else if (err.code === 'permission-denied') {
-        setError('Sin permisos para crear talleres. Verifica las reglas de Firestore.');
-      } else {
-        setError('Error al crear el taller: ' + err.message);
-      }
+      setError(err.message || 'Error al crear el taller.');
     } finally {
       setSaving(false);
     }

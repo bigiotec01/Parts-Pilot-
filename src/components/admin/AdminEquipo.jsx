@@ -51,7 +51,7 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
       setDone(true);
       setTimeout(() => setDone(false), 3000);
     } catch (err) {
-      setError(err.code === 'auth/email-already-in-use' ? 'Ese correo ya está registrado.' : 'Error: ' + err.message);
+      setError(err.message || 'No se pudo crear el usuario.');
     } finally { setSaving(false); }
   };
 

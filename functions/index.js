@@ -69,6 +69,26 @@ function validarEmailPassword(email, password) {
   if (!password || String(password).length < 6) throw new HttpsError('invalid-argument', 'La contraseña debe tener al menos 6 caracteres.');
 }
 
+// admin.auth().createUser() lanza errores de Firebase Auth (ej. email duplicado) que, al no
+// ser un HttpsError, llegan al cliente como un genérico 500 "internal" sin mensaje útil.
+// Este wrapper los traduce a errores que el frontend puede mostrar tal cual.
+async function crearUsuarioAuth(email, password, displayName) {
+  try {
+    return await admin.auth().createUser({ email, password, displayName });
+  } catch (e) {
+    if (e.code === 'auth/email-already-exists') {
+      throw new HttpsError('already-exists', 'Ese correo ya está en uso por otra cuenta.');
+    }
+    if (e.code === 'auth/invalid-email') {
+      throw new HttpsError('invalid-argument', 'El correo no es válido.');
+    }
+    if (e.code === 'auth/invalid-password') {
+      throw new HttpsError('invalid-argument', 'La contraseña debe tener al menos 6 caracteres.');
+    }
+    throw e;
+  }
+}
+
 // Crea una empresa (tenant) nueva con su administrador principal. Solo el Super Admin.
 exports.crearEmpresa = onCall(async (request) => {
   await requireSuperAdmin(request);
@@ -81,7 +101,7 @@ exports.crearEmpresa = onCall(async (request) => {
   // Clave propia para integraciones externas (Tag Logic), aislada por empresa.
   const tagLogicApiKey = crypto.randomBytes(24).toString('hex');
 
-  const userRecord = await admin.auth().createUser({ email, password, displayName: nombreAdmin });
+  const userRecord = await crearUsuarioAuth(email, password, nombreAdmin);
   try {
     await db.collection('empresas').doc(tenantId).create({
       nombre: nombreEmpresa,
@@ -198,7 +218,7 @@ exports.crearMiembroEquipo = onCall(async (request) => {
   if (!nombre) throw new HttpsError('invalid-argument', 'Falta el nombre.');
   validarEmailPassword(email, password);
 
-  const userRecord = await admin.auth().createUser({ email, password, displayName: nombre });
+  const userRecord = await crearUsuarioAuth(email, password, nombre);
   try {
     await db.collection('admins').doc(userRecord.uid).set({
       nombre, email, tenantId: caller.tenantId, rol: 'miembro',
@@ -221,7 +241,7 @@ exports.crearTallerCF = onCall(async (request) => {
   let uid;
   if (email && password) {
     validarEmailPassword(email, password);
-    const userRecord = await admin.auth().createUser({ email, password, displayName: nombre });
+    const userRecord = await crearUsuarioAuth(email, password, nombre);
     uid = userRecord.uid;
   } else {
     uid = `taller_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -247,7 +267,7 @@ exports.crearTallerUsuarioCF = onCall(async (request) => {
     throw new HttpsError('permission-denied', 'Ese taller no pertenece a tu empresa.');
   }
 
-  const userRecord = await admin.auth().createUser({ email, password, displayName: nombre });
+  const userRecord = await crearUsuarioAuth(email, password, nombre);
   try {
     await db.collection('tallerUsuarios').doc(userRecord.uid).set({
       tallerId, nombre, email, tenantId: caller.tenantId,
