@@ -46,6 +46,23 @@ async function requireSuperAdmin(request) {
   return uid;
 }
 
+// Deja constancia de una acción sensible del Super Admin (colección auditLogs, solo lectura
+// desde el cliente vía isPlatformSuperAdmin() en firestore.rules; la escritura es exclusiva
+// del Admin SDK). No debe frenar la operación principal si falla.
+async function registrarAuditLog(request, accion, detalle = {}) {
+  try {
+    await db.collection('auditLogs').add({
+      actorUid: request.auth?.uid || null,
+      actorEmail: request.auth?.token?.email || null,
+      accion,
+      detalle,
+      ts: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  } catch (e) {
+    console.error('registrarAuditLog:', e.message);
+  }
+}
+
 // Devuelve el doc admins/{uid} del llamante, validando que exista.
 async function requireCallerAdmin(request) {
   const uid = requireAuth(request);
@@ -108,6 +125,10 @@ exports.crearEmpresa = onCall(async (request) => {
       slug: tenantId,
       estado: 'activa',
       adminPrincipalUid: userRecord.uid,
+      // Denormalizado para mostrar el contacto principal en el listado de Super Admin
+      // sin tener que consultar 'admins' por cada empresa.
+      nombreAdminPrincipal: nombreAdmin,
+      emailAdminPrincipal: email,
       tagLogicApiKey,
       marcasFactura: [],
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -120,6 +141,7 @@ exports.crearEmpresa = onCall(async (request) => {
     throw e;
   }
 
+  await registrarAuditLog(request, 'crear_empresa', { tenantId, nombreEmpresa, emailAdmin: email });
   return { tenantId, uid: userRecord.uid, tagLogicApiKey };
 });
 
@@ -131,6 +153,20 @@ exports.actualizarEstadoEmpresa = onCall(async (request) => {
     throw new HttpsError('invalid-argument', 'Faltan datos válidos (tenantId, estado).');
   }
   await db.collection('empresas').doc(tenantId).update({ estado });
+  await registrarAuditLog(request, 'cambiar_estado_empresa', { tenantId, estado });
+  return { ok: true };
+});
+
+// Edita datos básicos de una empresa ya creada. Solo el Super Admin.
+exports.actualizarEmpresa = onCall(async (request) => {
+  await requireSuperAdmin(request);
+  const { tenantId, nombre } = request.data || {};
+  if (!tenantId) throw new HttpsError('invalid-argument', 'Falta tenantId.');
+  const nombreLimpio = String(nombre || '').trim();
+  if (!nombreLimpio) throw new HttpsError('invalid-argument', 'El nombre no puede estar vacío.');
+
+  await db.collection('empresas').doc(tenantId).update({ nombre: nombreLimpio });
+  await registrarAuditLog(request, 'editar_empresa', { tenantId, nombre: nombreLimpio });
   return { ok: true };
 });
 
@@ -207,6 +243,9 @@ exports.eliminarEmpresaPermanente = onCall(async (request) => {
   await db.doc(`empresas/${tenantId}/counters/pedidos`).delete().catch(() => {});
   await db.collection('empresas').doc(tenantId).delete();
 
+  await registrarAuditLog(request, 'eliminar_empresa', {
+    tenantId, documentosEliminados: allDocs.length, cuentasAuthEliminadas: uids.length,
+  });
   return { ok: true, documentosEliminados: allDocs.length, cuentasAuthEliminadas: uids.length };
 });
 

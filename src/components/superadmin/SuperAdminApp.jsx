@@ -1,12 +1,16 @@
-import { useEffect, useState } from 'react';
-import { collection, getCountFromServer, onSnapshot, query, where } from 'firebase/firestore';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { collection, count, getAggregateFromServer, getCountFromServer, onSnapshot, query, sum, where } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { AlertTriangle, ArrowLeft, Building2, LogIn, LogOut, Plus, Trash2, X } from 'lucide-react';
+import {
+  AlertTriangle, ArrowLeft, Building2, LogIn, LogOut, MoreVertical, Pencil,
+  Plus, Power, ScrollText, Search, Trash2, X,
+} from 'lucide-react';
 import { db, functions } from '../../firebase';
 import { inputClass } from '../../constants/styles';
-import { formatDate } from '../../utils/format';
+import { formatDate, fmtCur } from '../../utils/format';
 import { FormField } from '../shared/FormField';
 import { TenantSupportView } from './TenantSupportView';
+import { AuditLogsView } from './AuditLogsView';
 
 function NuevaEmpresaModal({ onClose }) {
   const [form, setForm] = useState({ nombreEmpresa: '', nombreAdmin: '', email: '', password: '' });
@@ -50,6 +54,45 @@ function NuevaEmpresaModal({ onClose }) {
         {error && <p className="text-[12.5px]" style={{ color: '#dc2626' }}>{error}</p>}
         <button disabled={guardando} type="submit" className="w-full py-[12px] rounded-[11px] text-white font-bold text-[14px] transition-all hover:brightness-105 disabled:opacity-50" style={{ background: 'linear-gradient(160deg, #f97316, #ea580c)' }}>
           {guardando ? 'Creando…' : 'Crear empresa'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function EditarEmpresaModal({ empresa, onClose }) {
+  const [nombre, setNombre] = useState(empresa.nombre || '');
+  const [error, setError] = useState('');
+  const [guardando, setGuardando] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setGuardando(true);
+    try {
+      const fn = httpsCallable(functions, 'actualizarEmpresa');
+      await fn({ tenantId: empresa.id, nombre });
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Error al editar la empresa.');
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
+      <form onSubmit={submit} className="w-full max-w-[420px] rounded-[18px] p-6 space-y-4" style={{ background: 'var(--pp-card)' }}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-[17px] font-bold" style={{ color: 'var(--pp-text)' }}>Editar empresa</h2>
+          <button type="button" onClick={onClose}><X className="w-4 h-4" style={{ color: 'var(--pp-text3)' }} /></button>
+        </div>
+        <FormField label="Nombre de la empresa">
+          <input required value={nombre} onChange={e => setNombre(e.target.value)} className={inputClass} />
+        </FormField>
+        {error && <p className="text-[12.5px]" style={{ color: '#dc2626' }}>{error}</p>}
+        <button disabled={guardando} type="submit" className="w-full py-[12px] rounded-[11px] text-white font-bold text-[14px] transition-all hover:brightness-105 disabled:opacity-50" style={{ background: 'var(--pp-accent)' }}>
+          {guardando ? 'Guardando…' : 'Guardar cambios'}
         </button>
       </form>
     </div>
@@ -106,6 +149,61 @@ function EliminarEmpresaModal({ empresa, onClose }) {
   );
 }
 
+// KPIs globales de toda la plataforma — una lectura puntual (no en vivo) al entrar al panel.
+function useGlobalStats() {
+  const [stats, setStats] = useState(null);
+  useEffect(() => {
+    let cancelado = false;
+    (async () => {
+      try {
+        const [talleresSnap, pedidosSnap, facturasAgg] = await Promise.all([
+          getCountFromServer(collection(db, 'talleres')),
+          getCountFromServer(collection(db, 'pedidos')),
+          getAggregateFromServer(collection(db, 'facturas'), { total: count(), valor: sum('valor') }),
+        ]);
+        if (!cancelado) {
+          setStats({
+            talleres: talleresSnap.data().count,
+            pedidos: pedidosSnap.data().count,
+            facturas: facturasAgg.data().total,
+            facturado: facturasAgg.data().valor || 0,
+          });
+        }
+      } catch (err) {
+        console.error('useGlobalStats:', err.code || err.message);
+      }
+    })();
+    return () => { cancelado = true; };
+  }, []);
+  return stats;
+}
+
+function KpiCard({ label, value }) {
+  return (
+    <div className="rounded-[14px] border px-4 py-3.5" style={{ borderColor: 'var(--pp-border2)', background: 'var(--pp-card)' }}>
+      <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--pp-text3)' }}>{label}</p>
+      <p className="text-[20px] font-bold mt-0.5" style={{ color: 'var(--pp-text)' }}>{value}</p>
+    </div>
+  );
+}
+
+function KpiBar({ empresas }) {
+  const stats = useGlobalStats();
+  const activas = empresas.filter(e => e.estado === 'activa').length;
+  const suspendidas = empresas.length - activas;
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+      <KpiCard label="Empresas activas" value={activas} />
+      <KpiCard label="Suspendidas" value={suspendidas} />
+      <KpiCard label="Talleres" value={stats ? stats.talleres : '…'} />
+      <KpiCard label="Pedidos" value={stats ? stats.pedidos : '…'} />
+      <KpiCard label="Facturas" value={stats ? stats.facturas : '…'} />
+      <KpiCard label="Facturado" value={stats ? fmtCur(stats.facturado) : '…'} />
+    </div>
+  );
+}
+
 // Talleres y pedidos activos de una empresa — conteo puntual (no en vivo), solo para el listado.
 function useEmpresaStats(tenantId) {
   const [stats, setStats] = useState(null);
@@ -128,20 +226,69 @@ function useEmpresaStats(tenantId) {
   return stats;
 }
 
-function EmpresaRow({ empresa: e, busy, onToggleEstado, onEliminar, onEntrar }) {
+function AccionesMenu({ empresa: e, busy, onEditar, onToggleEstado, onEliminar }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClickFuera = (ev) => { if (ref.current && !ref.current.contains(ev.target)) setOpen(false); };
+    document.addEventListener('mousedown', onClickFuera);
+    return () => document.removeEventListener('mousedown', onClickFuera);
+  }, [open]);
+
+  const item = (icon, label, onClick, color) => (
+    <button
+      type="button"
+      onClick={() => { setOpen(false); onClick(); }}
+      className="w-full flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold text-left hover:bg-black/5 dark:hover:bg-white/5"
+      style={{ color: color || 'var(--pp-text2)' }}
+    >
+      {icon} {label}
+    </button>
+  );
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        disabled={busy}
+        className="w-8 h-8 rounded-[8px] flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-50"
+        style={{ color: 'var(--pp-text2)' }}
+        title="Acciones"
+      >
+        <MoreVertical className="w-4 h-4" />
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-1 w-[190px] rounded-[10px] border shadow-lg z-10 overflow-hidden" style={{ borderColor: 'var(--pp-border2)', background: 'var(--pp-card)' }}>
+          {item(<Pencil className="w-3.5 h-3.5" />, 'Editar', onEditar)}
+          {item(<Power className="w-3.5 h-3.5" />, e.estado === 'activa' ? 'Suspender' : 'Activar', onToggleEstado)}
+          {e.id !== 'mana-auto' && item(<Trash2 className="w-3.5 h-3.5" />, 'Eliminar', onEliminar, '#ef4444')}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EmpresaRow({ empresa: e, busy, onToggleEstado, onEliminar, onEntrar, onEditar }) {
   const stats = useEmpresaStats(e.id);
 
   return (
     <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--pp-border2)' }}>
-      <div>
+      <div className="min-w-0">
         <p className="text-[14px] font-bold" style={{ color: 'var(--pp-text)' }}>{e.nombre}</p>
         <p className="text-[11.5px]" style={{ color: 'var(--pp-text3)' }}>
           {e.id}
           {e.createdAt && ` · creada ${formatDate(e.createdAt)}`}
           {stats && ` · ${stats.talleres} taller${stats.talleres === 1 ? '' : 'es'} · ${stats.pedidos} pedido${stats.pedidos === 1 ? '' : 's'}`}
         </p>
+        {(e.nombreAdminPrincipal || e.emailAdminPrincipal) && (
+          <p className="text-[11.5px] mt-0.5" style={{ color: 'var(--pp-text4)' }}>
+            {e.nombreAdminPrincipal}{e.nombreAdminPrincipal && e.emailAdminPrincipal ? ' · ' : ''}{e.emailAdminPrincipal}
+          </p>
+        )}
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 shrink-0">
         <span
           className="text-[11.5px] font-bold px-2.5 py-1 rounded-full"
           style={{
@@ -158,35 +305,28 @@ function EmpresaRow({ empresa: e, busy, onToggleEstado, onEliminar, onEntrar }) 
         >
           <LogIn className="w-3.5 h-3.5" /> Entrar
         </button>
-        <button
-          onClick={onToggleEstado}
-          disabled={busy}
-          className="text-[12.5px] font-semibold hover:underline disabled:opacity-50"
-          style={{ color: 'var(--pp-text2)' }}
-        >
-          {e.estado === 'activa' ? 'Suspender' : 'Activar'}
-        </button>
-        {e.id !== 'mana-auto' && (
-          <button
-            onClick={onEliminar}
-            className="w-8 h-8 rounded-[8px] flex items-center justify-center transition-colors hover:bg-red-900/20"
-            style={{ color: '#ef4444' }}
-            title="Eliminar permanentemente"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        )}
+        <AccionesMenu empresa={e} busy={busy} onEditar={onEditar} onToggleEstado={onToggleEstado} onEliminar={onEliminar} />
       </div>
     </div>
   );
 }
+
+const FILTROS = [
+  { val: 'todas', label: 'Todas' },
+  { val: 'activa', label: 'Activas' },
+  { val: 'suspendida', label: 'Suspendidas' },
+];
 
 export function SuperAdminApp({ onLogout, onExit }) {
   const [empresas, setEmpresas] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [busyId, setBusyId] = useState(null);
   const [eliminarTarget, setEliminarTarget] = useState(null);
+  const [editarTarget, setEditarTarget] = useState(null);
   const [soporteTarget, setSoporteTarget] = useState(null);
+  const [showLogs, setShowLogs] = useState(false);
+  const [busqueda, setBusqueda] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('todas');
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'empresas'), (snap) => {
@@ -195,8 +335,21 @@ export function SuperAdminApp({ onLogout, onExit }) {
     return unsub;
   }, []);
 
+  const empresasFiltradas = useMemo(() => {
+    const q = busqueda.trim().toLowerCase();
+    return empresas.filter((e) => {
+      if (filtroEstado !== 'todas' && e.estado !== filtroEstado) return false;
+      if (!q) return true;
+      return e.nombre?.toLowerCase().includes(q) || e.id.toLowerCase().includes(q);
+    });
+  }, [empresas, busqueda, filtroEstado]);
+
   if (soporteTarget) {
     return <TenantSupportView empresa={soporteTarget} onExit={() => setSoporteTarget(null)} />;
+  }
+
+  if (showLogs) {
+    return <AuditLogsView onExit={() => setShowLogs(false)} />;
   }
 
   const toggleEstado = async (empresa) => {
@@ -225,6 +378,9 @@ export function SuperAdminApp({ onLogout, onExit }) {
               <ArrowLeft className="w-4 h-4" /> Volver
             </button>
           )}
+          <button onClick={() => setShowLogs(true)} className="flex items-center gap-1.5 px-3.5 py-[9px] rounded-[10px] text-[13px] font-semibold border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+            <ScrollText className="w-4 h-4" /> Logs
+          </button>
           <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
             <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva empresa
           </button>
@@ -235,11 +391,42 @@ export function SuperAdminApp({ onLogout, onExit }) {
       </header>
 
       <div className="p-[30px] max-w-[980px]">
+        <KpiBar empresas={empresas} />
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="relative flex-1 max-w-[320px]">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--pp-text3)' }} />
+            <input
+              value={busqueda}
+              onChange={e => setBusqueda(e.target.value)}
+              placeholder="Buscar por nombre o id…"
+              className={`${inputClass} pl-9`}
+            />
+          </div>
+          <div className="flex items-center gap-1 rounded-[10px] border p-1" style={{ borderColor: 'var(--pp-border4)' }}>
+            {FILTROS.map(f => (
+              <button
+                key={f.val}
+                onClick={() => setFiltroEstado(f.val)}
+                className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold transition-colors"
+                style={{
+                  background: filtroEstado === f.val ? 'var(--pp-accent)' : 'transparent',
+                  color: filtroEstado === f.val ? '#fff' : 'var(--pp-text2)',
+                }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {empresas.length === 0 ? (
           <p className="text-[13.5px]" style={{ color: 'var(--pp-text3)' }}>Todavía no hay empresas registradas.</p>
+        ) : empresasFiltradas.length === 0 ? (
+          <p className="text-[13.5px]" style={{ color: 'var(--pp-text3)' }}>Ninguna empresa coincide con la búsqueda.</p>
         ) : (
           <div className="rounded-[16px] border overflow-hidden" style={{ borderColor: 'var(--pp-border2)' }}>
-            {empresas.map((e) => (
+            {empresasFiltradas.map((e) => (
               <EmpresaRow
                 key={e.id}
                 empresa={e}
@@ -247,6 +434,7 @@ export function SuperAdminApp({ onLogout, onExit }) {
                 onToggleEstado={() => toggleEstado(e)}
                 onEliminar={() => setEliminarTarget(e)}
                 onEntrar={() => setSoporteTarget(e)}
+                onEditar={() => setEditarTarget(e)}
               />
             ))}
           </div>
@@ -254,6 +442,7 @@ export function SuperAdminApp({ onLogout, onExit }) {
       </div>
 
       {showForm && <NuevaEmpresaModal onClose={() => setShowForm(false)} />}
+      {editarTarget && <EditarEmpresaModal empresa={editarTarget} onClose={() => setEditarTarget(null)} />}
       {eliminarTarget && <EliminarEmpresaModal empresa={eliminarTarget} onClose={() => setEliminarTarget(null)} />}
     </div>
   );

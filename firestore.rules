@@ -72,6 +72,14 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Auditoría de acciones sensibles del Super Admin (crear/editar/suspender/eliminar empresa).
+    // Solo la escriben las Cloud Functions (Admin SDK, ignora estas reglas); aquí solo se
+    // habilita la lectura para la vista de Logs del panel de Super Admin.
+    match /auditLogs/{logId} {
+      allow read:  if isPlatformSuperAdmin();
+      allow write: if false;
+    }
+
     // Admins: cualquier usuario autenticado puede leer su PROPIO doc (para verificar rol en login).
     // La creación ahora es EXCLUSIVA de las Cloud Functions (crearEmpresa/crearMiembroEquipo),
     // que usan el Admin SDK y por lo tanto no pasan por estas reglas: allow create queda cerrado.
