@@ -8,12 +8,16 @@ export function UpdatePrompt() {
     updateServiceWorker,
   } = useRegisterSW({
     onRegisteredSW(swUrl, registration) {
+      console.log('[PWA] Service worker registrado:', swUrl, registration)
       if (!registration) return
       setInterval(async () => {
         if (registration.installing || !navigator.onLine) return
         const resp = await fetch(swUrl, { cache: 'no-store', headers: { cache: 'no-store' } })
         if (resp?.status === 200) await registration.update()
       }, CHECK_INTERVAL_MS)
+    },
+    onRegisterError(error) {
+      console.error('[PWA] Error registrando el service worker:', error)
     },
   })
 
