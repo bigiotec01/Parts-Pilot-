@@ -30,7 +30,7 @@ export function OrderSheet({ order, title, onClose, detailContent, chatProps }) 
             ))}
           </div>
         </div>
-        <div className="p-5 pb-8" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
+        <div className="p-5" style={{ maxWidth: '100%', overflowX: 'hidden', paddingBottom: 'calc(2rem + env(safe-area-inset-bottom))' }}>
           {tab === 'detalle' ? detailContent : <OrderChat order={order} {...chatProps} />}
         </div>
       </div>

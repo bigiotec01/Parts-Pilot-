@@ -348,7 +348,7 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
               ))}
             </div>
           </div>
-          <div className="p-5 pb-10" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
+          <div className="p-5" style={{ maxWidth: '100%', overflowX: 'hidden', paddingBottom: 'calc(2.5rem + env(safe-area-inset-bottom))' }}>
             {tab === 'detalles' && detallesContent}
             {tab === 'estimado' && estimadoContent}
             {tab === 'mensajes' && chatContent}

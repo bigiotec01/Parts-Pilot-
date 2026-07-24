@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  CheckCircle2, Plus, X, AlertCircle, Pencil, Search
+  CheckCircle2, Plus, X, AlertCircle, Pencil, Search, ChevronDown, ChevronRight
 } from 'lucide-react';
 import { FormField } from '../shared/FormField';
 import { inputClass } from '../../constants/styles';
@@ -31,6 +31,7 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
   const [editId, setEditId] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
   const [editPermisos, setEditPermisos] = useState({});
   const [editTallerIds, setEditTallerIds] = useState(null);
   const [search, setSearch] = useState('');
@@ -60,6 +61,7 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
 
   const startEdit = (u) => {
     setEditId(u.uid);
+    setExpandedId(u.uid);
     setEditPermisos({ ...DEFAULT_P, ...u.permisos });
     setEditTallerIds(Array.isArray(u.tallerIds) ? u.tallerIds : null);
     setEditNombreAdmin(u.nombre || '');
@@ -171,8 +173,13 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
       <div className="grid md:grid-cols-2 gap-4">
         {equipoFiltrado.map(u => (
           <div key={u.uid} className="rounded-[15px] border p-5" style={{ background: 'var(--pp-card)', borderColor: editId === u.uid ? 'var(--pp-accent)' : 'var(--pp-border)', boxShadow: editId === u.uid ? '0 0 0 3px var(--pp-active-bg)' : 'none' }}>
-            <div className="flex items-start justify-between gap-3 mb-4">
-              <div className="flex items-center gap-3">
+            <div className={`flex items-start justify-between gap-3 ${expandedId === u.uid || editId === u.uid ? 'mb-4' : ''}`}>
+              <button
+                type="button"
+                onClick={() => setExpandedId(id => id === u.uid ? null : u.uid)}
+                className="flex items-center gap-3 min-w-0 text-left"
+              >
+                <ChevronRight className="w-4 h-4 flex-shrink-0 transition-transform" style={{ color: 'var(--pp-text3)', transform: (expandedId === u.uid || editId === u.uid) ? 'rotate(90deg)' : 'none' }} />
                 <div className="w-10 h-10 rounded-[10px] flex items-center justify-center text-[14px] font-extrabold flex-shrink-0"
                   style={{ background: isSuperadmin(u) ? 'linear-gradient(160deg, #f97316, #ea580c)' : avatarGradient(u.uid || u.email || u.nombre), color: '#fff' }}>
                   {(u.nombre || u.email || 'A')[0].toUpperCase()}
@@ -181,7 +188,7 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
                   <div className="text-[14px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{u.nombre || (isSuperadmin(u) ? 'Administrador' : '—')}</div>
                   <div className="text-[12px] truncate" style={{ color: 'var(--pp-text2)' }}>{u.email || (isSuperadmin(u) ? 'Cuenta principal' : '—')}</div>
                 </div>
-              </div>
+              </button>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {isSuperadmin(u) ? (
                   <>
@@ -208,7 +215,7 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
               </div>
             </div>
 
-            {isSuperadmin(u) && editId !== u.uid ? (
+            {(expandedId === u.uid || editId === u.uid) && (isSuperadmin(u) && editId !== u.uid ? (
               <div className="grid grid-cols-2 gap-2">
                 {MODULOS_PERM.map(({ id, label }) => (
                   <div key={id} className="flex items-center justify-between gap-2 px-3 py-2 rounded-[9px]" style={{ background: 'var(--pp-card)' }}>
@@ -302,7 +309,7 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
                   <TallerAccessBadge tallerIds={u.tallerIds} talleres={talleres} />
                 </div>
               </div>
-            )}
+            ))}
           </div>
         ))}
       </div>
