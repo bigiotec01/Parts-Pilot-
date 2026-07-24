@@ -80,6 +80,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Notas del Super Admin de plataforma: bitácora personal de errores/mejoras a implementar
+    // en el software. Solo el propio Super Admin de plataforma puede leer/escribir.
+    match /notasSuperAdmin/{notaId} {
+      allow read, write: if isPlatformSuperAdmin();
+    }
+
     // Admins: cualquier usuario autenticado puede leer su PROPIO doc (para verificar rol en login).
     // La creación ahora es EXCLUSIVA de las Cloud Functions (crearEmpresa/crearMiembroEquipo),
     // que usan el Admin SDK y por lo tanto no pasan por estas reglas: allow create queda cerrado.

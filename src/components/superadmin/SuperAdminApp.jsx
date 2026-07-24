@@ -3,7 +3,7 @@ import { collection, count, getAggregateFromServer, getCountFromServer, onSnapsh
 import { httpsCallable } from 'firebase/functions';
 import {
   AlertTriangle, ArrowLeft, Building2, LogIn, LogOut, MoreVertical, Pencil,
-  Plus, Power, ScrollText, Search, Trash2, X,
+  Plus, Power, ScrollText, Search, StickyNote, Trash2, X,
 } from 'lucide-react';
 import { db, functions } from '../../firebase';
 import { inputClass } from '../../constants/styles';
@@ -11,6 +11,7 @@ import { formatDate, fmtCur } from '../../utils/format';
 import { FormField } from '../shared/FormField';
 import { TenantSupportView } from './TenantSupportView';
 import { AuditLogsView } from './AuditLogsView';
+import { NotasView } from './NotasView';
 
 function NuevaEmpresaModal({ onClose }) {
   const [form, setForm] = useState({ nombreEmpresa: '', nombreAdmin: '', email: '', password: '' });
@@ -346,6 +347,7 @@ export function SuperAdminApp({ onLogout, onExit }) {
   const [editarTarget, setEditarTarget] = useState(null);
   const [soporteTarget, setSoporteTarget] = useState(null);
   const [showLogs, setShowLogs] = useState(false);
+  const [showNotas, setShowNotas] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('todas');
 
@@ -371,6 +373,10 @@ export function SuperAdminApp({ onLogout, onExit }) {
 
   if (showLogs) {
     return <AuditLogsView onExit={() => setShowLogs(false)} />;
+  }
+
+  if (showNotas) {
+    return <NotasView onExit={() => setShowNotas(false)} />;
   }
 
   const toggleEstado = async (empresa) => {
@@ -399,6 +405,9 @@ export function SuperAdminApp({ onLogout, onExit }) {
               <ArrowLeft className="w-4 h-4" /> Volver
             </button>
           )}
+          <button onClick={() => setShowNotas(true)} className="flex items-center gap-1.5 px-3.5 py-[9px] rounded-[10px] text-[13px] font-semibold border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+            <StickyNote className="w-4 h-4" /> Notas
+          </button>
           <button onClick={() => setShowLogs(true)} className="flex items-center gap-1.5 px-3.5 py-[9px] rounded-[10px] text-[13px] font-semibold border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
             <ScrollText className="w-4 h-4" /> Logs
           </button>
