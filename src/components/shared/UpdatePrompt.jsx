@@ -53,7 +53,10 @@ export function UpdatePrompt() {
     updateServiceWorker(true)
     // Respaldo: si el mensaje SKIP_WAITING no provoca el cambio de controller
     // (p. ej. el worker en espera ya no está disponible), forzamos la recarga igual.
-    setTimeout(() => reloadOnce('respaldo 3s (controllerchange nunca llegó)'), 3000)
+    // El ciclo skipWaiting → activating → activated → clientsClaim puede tardar
+    // varios segundos en completarse, así que le damos margen generoso antes
+    // de forzar nada (un respaldo corto le gana la carrera al flujo normal).
+    setTimeout(() => reloadOnce('respaldo 15s (controllerchange nunca llegó)'), 15000)
   }
 
   return (
