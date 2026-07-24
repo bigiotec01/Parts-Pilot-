@@ -8,7 +8,6 @@ export function UpdatePrompt() {
 
   const {
     needRefresh: [needRefresh],
-    updateServiceWorker,
   } = useRegisterSW({
     onRegisteredSW(swUrl, registration) {
       console.log('[PWA] Service worker registrado:', swUrl, registration)
@@ -36,9 +35,14 @@ export function UpdatePrompt() {
 
   if (!needRefresh) return null
 
-  const handleUpdate = () => {
-    console.log('[PWA] Click en Actualizar. registration.waiting antes del mensaje:',
-      navigator.serviceWorker.controller?.scriptURL)
+  const handleUpdate = async () => {
+    // Pedimos el registro fresco en vez de confiar en la referencia interna de
+    // workbox-window: tras varios ciclos de instalación puede quedar desactualizada
+    // y su mensaje SKIP_WAITING no llega a ningún lado.
+    const reg = await navigator.serviceWorker.getRegistration()
+    const waitingSW = reg?.waiting
+    console.log('[PWA] Click en Actualizar. waiting worker:', waitingSW)
+
     let reloaded = false
     const reloadOnce = (origen) => {
       if (reloaded) return
@@ -50,12 +54,16 @@ export function UpdatePrompt() {
       console.log('[PWA] controllerchange disparado, nuevo controller:', navigator.serviceWorker.controller?.scriptURL)
       reloadOnce('controllerchange')
     }, { once: true })
-    updateServiceWorker(true)
-    // Respaldo: si el mensaje SKIP_WAITING no provoca el cambio de controller
-    // (p. ej. el worker en espera ya no está disponible), forzamos la recarga igual.
-    // El ciclo skipWaiting → activating → activated → clientsClaim puede tardar
-    // varios segundos en completarse, así que le damos margen generoso antes
-    // de forzar nada (un respaldo corto le gana la carrera al flujo normal).
+
+    if (waitingSW) {
+      waitingSW.postMessage({ type: 'SKIP_WAITING' })
+    } else {
+      console.warn('[PWA] No había ningún worker en espera al hacer clic.')
+    }
+    // Respaldo: si el mensaje SKIP_WAITING no provoca el cambio de controller,
+    // forzamos la recarga igual. El ciclo skipWaiting → activating → activated →
+    // clientsClaim puede tardar varios segundos en completarse, así que le damos
+    // margen generoso antes de forzar nada.
     setTimeout(() => reloadOnce('respaldo 15s (controllerchange nunca llegó)'), 15000)
   }
 
