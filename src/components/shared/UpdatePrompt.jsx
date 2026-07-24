@@ -1,6 +1,6 @@
 import { useRegisterSW } from 'virtual:pwa-register/react'
 
-const CHECK_INTERVAL_MS = 60 * 60 * 1000 // 1 hora
+const CHECK_INTERVAL_MS = 10 * 1000 // TEST: 10 segundos (cambiar a 60 * 60 * 1000 en producción)
 
 export function UpdatePrompt() {
   const {
