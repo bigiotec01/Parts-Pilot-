@@ -228,14 +228,30 @@ function useEmpresaStats(tenantId) {
 
 function AccionesMenu({ empresa: e, busy, onEditar, onToggleEstado, onEliminar }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const [pos, setPos] = useState(null);
+  const btnRef = useRef(null);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
-    const onClickFuera = (ev) => { if (ref.current && !ref.current.contains(ev.target)) setOpen(false); };
+    const onClickFuera = (ev) => {
+      if (menuRef.current?.contains(ev.target) || btnRef.current?.contains(ev.target)) return;
+      setOpen(false);
+    };
     document.addEventListener('mousedown', onClickFuera);
     return () => document.removeEventListener('mousedown', onClickFuera);
   }, [open]);
+
+  // El listado de empresas tiene overflow-hidden (para redondear las esquinas), lo que
+  // recortaría un menú "absolute" — se posiciona "fixed" con las coordenadas del botón
+  // para escapar de ese recorte.
+  const toggle = () => {
+    if (!open && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 4, right: window.innerWidth - r.right });
+    }
+    setOpen(o => !o);
+  };
 
   const item = (icon, label, onClick, color) => (
     <button
@@ -249,9 +265,10 @@ function AccionesMenu({ empresa: e, busy, onEditar, onToggleEstado, onEliminar }
   );
 
   return (
-    <div className="relative" ref={ref}>
+    <>
       <button
-        onClick={() => setOpen(o => !o)}
+        ref={btnRef}
+        onClick={toggle}
         disabled={busy}
         className="w-8 h-8 rounded-[8px] flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-50"
         style={{ color: 'var(--pp-text2)' }}
@@ -259,14 +276,18 @@ function AccionesMenu({ empresa: e, busy, onEditar, onToggleEstado, onEliminar }
       >
         <MoreVertical className="w-4 h-4" />
       </button>
-      {open && (
-        <div className="absolute right-0 mt-1 w-[190px] rounded-[10px] border shadow-lg z-10 overflow-hidden" style={{ borderColor: 'var(--pp-border2)', background: 'var(--pp-card)' }}>
+      {open && pos && (
+        <div
+          ref={menuRef}
+          className="fixed w-[190px] rounded-[10px] border shadow-lg z-50 overflow-hidden"
+          style={{ top: pos.top, right: pos.right, borderColor: 'var(--pp-border2)', background: 'var(--pp-card)' }}
+        >
           {item(<Pencil className="w-3.5 h-3.5" />, 'Editar', onEditar)}
           {item(<Power className="w-3.5 h-3.5" />, e.estado === 'activa' ? 'Suspender' : 'Activar', onToggleEstado)}
           {e.id !== 'mana-auto' && item(<Trash2 className="w-3.5 h-3.5" />, 'Eliminar', onEliminar, '#ef4444')}
         </div>
       )}
-    </div>
+    </>
   );
 }
 
