@@ -17,6 +17,7 @@ import { AdminApp } from './components/admin/AdminApp';
 import { ClientApp } from './components/client/ClientApp';
 import { SuperAdminApp } from './components/superadmin/SuperAdminApp';
 import { MigrationScreen } from './components/superadmin/MigrationScreen';
+import { UpdatePrompt } from './components/shared/UpdatePrompt';
 
 function AppContent() {
   const { user, perfil, cargando, error, login, logout, setError } = useAuth();
@@ -169,6 +170,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <AppContent />
+      <UpdatePrompt />
     </ThemeProvider>
   );
 }
