@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import {
-  CheckCircle2, Plus, X, ChevronRight, Archive, RotateCcw, Trash2, Settings
+  CheckCircle2, Plus, X, ChevronRight, Archive, RotateCcw, Trash2, Settings, Printer
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Modal } from '../shared/Modal';
@@ -241,6 +241,62 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
     } finally { setSaving(false); }
   };
 
+  const handlePrint = () => {
+    const rows = todasNoArch.map(f => `
+      <tr style="background:${Number(f.pendiente) > 0 ? '#fffbf5' : '#fff'}">
+        <td>${fmtDateDisp(f.fechaFactura)}</td>
+        <td>${f.numeroFactura}</td>
+        <td>${f.poTag || ''}</td>
+        <td style="text-align:right">$${Number(f.valor || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+        <td style="text-align:right;color:${Number(f.pagado) > 0 ? '#059669' : '#aab0b9'};font-weight:600">${Number(f.pagado) > 0 ? '$' + Number(f.pagado).toLocaleString('en-US', { minimumFractionDigits: 2 }) : ''}</td>
+        <td style="text-align:right;color:${Number(f.pendiente) > 0 ? '#b7791f' : '#059669'};font-weight:600">$${Number(f.pendiente || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+        <td>${f.numeroCheck || ''}</td>
+        <td>${fmtDateDisp(f.fechaPago)}</td>
+      </tr>`).join('');
+
+    const html = `<!DOCTYPE html><html lang="es"><head>
+      <meta charset="utf-8">
+      <title>Lista de Facturas ${marca} · ${tallerActual?.nombre || ''}</title>
+      <style>
+        *{box-sizing:border-box} body{font-family:Arial,sans-serif;font-size:11px;margin:0;padding:28px;color:#1c1917}
+        h1{font-size:22px;font-weight:bold;text-align:center;margin:0 0 4px;text-transform:uppercase;letter-spacing:.04em}
+        .sub{text-align:center;font-size:12px;color:#57534e;margin-bottom:22px}
+        table{width:100%;border-collapse:collapse;font-size:10.5px}
+        thead th{background:#1c1917;color:#fff;text-align:left;padding:7px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+        thead th:nth-child(n+4):nth-child(-n+6){text-align:right}
+        td{padding:6px 10px;border-bottom:1px solid #e7e5e4;vertical-align:top}
+        td:nth-child(n+4):nth-child(-n+6){text-align:right}
+        tfoot td{font-weight:bold;border-top:2px solid #1c1917;padding-top:8px;background:#fafaf9}
+        @media print{@page{size:landscape;margin:1.2cm}body{padding:0}}
+      </style>
+    </head><body>
+      <h1>Lista de Facturas ${marca}</h1>
+      <div class="sub">${tallerActual?.nombre || ''}&nbsp;&nbsp;|&nbsp;&nbsp;# de Cuenta: ${numeroCuenta}</div>
+      <table>
+        <thead><tr>
+          <th>Fecha Factura</th><th># Factura</th><th>PO Tag</th>
+          <th>Valor Factura</th><th>Pagado</th><th>Pendiente de Pago</th>
+          <th># Check</th><th>Fecha de Pago</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr>
+          <td colspan="3">TOTAL</td>
+          <td style="text-align:right">$${totals.valor.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          <td style="text-align:right;color:#059669">$${totals.pagado.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          <td style="text-align:right;color:${totals.pendiente > 0 ? '#b7791f' : '#059669'}">$${totals.pendiente.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          <td colspan="2"></td>
+        </tr></tfoot>
+      </table>
+    </body></html>`;
+
+    const w = window.open('', '_blank', 'width=1100,height=750');
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 500);
+  };
+
   const saveCuenta = async (num) => {
     if (!tallerSel) return;
     await onUpdateTaller(tallerSel, { [`numeroCuentas.${marca}`]: num });
@@ -378,6 +434,9 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
           )}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <button onClick={handlePrint} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border transition-colors hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+            <Printer className="w-4 h-4" /> Imprimir / PDF
+          </button>
           {pagadasSinArch.length > 0 && !readOnly && (
             <button onClick={handleArchivarPagadas} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border transition-colors" style={{ borderColor: '#059669', color: '#34d399', background: 'rgba(16,185,129,0.08)' }} onMouseEnter={e => e.currentTarget.style.background='rgba(16,185,129,0.15)'} onMouseLeave={e => e.currentTarget.style.background='rgba(16,185,129,0.08)'}>
               <CheckCircle2 className="w-4 h-4" /> Archivar pagadas ({pagadasSinArch.length})
