@@ -1,9 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { ArrowLeft, Eye, Receipt, Users, Wrench } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronsUpDown, ChevronUp, Eye, Receipt, Users, Wrench } from 'lucide-react';
 import { db } from '../../firebase';
 import { formatDate } from '../../utils/format';
 import { StatusBadge } from '../shared/StatusBadge';
+
+const toMs = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime();
+
+function SortTh({ label, campo, sortBy, sortDir, onSort, className }) {
+  const activo = sortBy === campo;
+  return (
+    <th
+      onClick={() => onSort(campo)}
+      className={`text-left py-2 font-medium cursor-pointer select-none ${className || 'px-3'}`}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        {activo
+          ? (sortDir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)
+          : <ChevronsUpDown className="w-3 h-3 opacity-30" />}
+      </span>
+    </th>
+  );
+}
 
 function useTenantCollection(tenantId, name) {
   const [docs, setDocs] = useState([]);
@@ -38,13 +57,36 @@ export function TenantSupportView({ empresa, onExit }) {
   const facturas = useTenantCollection(empresa.id, 'facturas');
   const equipo = useTenantCollection(empresa.id, 'admins');
 
+  const [sortBy, setSortBy] = useState('fecha');
+  const [sortDir, setSortDir] = useState('desc');
+
   const getTaller = (id) => talleres.find(t => t.uid === id);
-  const pedidosRecientes = [...pedidos]
-    .sort((a, b) => {
-      const t = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime();
-      return t(b.fecha) - t(a.fecha);
-    })
-    .slice(0, 25);
+
+  const onSort = (campo) => {
+    if (sortBy === campo) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
+    else { setSortBy(campo); setSortDir('asc'); }
+  };
+
+  const pedidosRecientes = useMemo(() => {
+    // Los 25 más recientes primero, y sobre esos se aplica el orden elegido en el header.
+    const recientes = [...pedidos].sort((a, b) => toMs(b.fecha) - toMs(a.fecha)).slice(0, 25);
+    const valorDe = (p) => {
+      switch (sortBy) {
+        case 'folio':    return p.folio || p.id;
+        case 'taller':   return getTaller(p.tallerId)?.nombre || '';
+        case 'vehiculo': return p.vehiculo || '';
+        case 'estado':   return p.estado || '';
+        case 'fecha':    return toMs(p.fecha);
+        default:         return '';
+      }
+    };
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return recientes.sort((a, b) => {
+      const va = valorDe(a), vb = valorDe(b);
+      if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir;
+      return String(va).localeCompare(String(vb), 'es') * dir;
+    });
+  }, [pedidos, talleres, sortBy, sortDir]);
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--pp-bg)' }}>
@@ -87,11 +129,11 @@ export function TenantSupportView({ empresa, onExit }) {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--pp-text4)' }}>
-                    <th className="text-left px-5 py-2 font-medium">Folio</th>
-                    <th className="text-left px-3 py-2 font-medium">Taller</th>
-                    <th className="text-left px-3 py-2 font-medium">Vehículo</th>
-                    <th className="text-left px-3 py-2 font-medium">Estado</th>
-                    <th className="text-left px-3 py-2 font-medium">Fecha</th>
+                    <SortTh label="Folio" campo="folio" sortBy={sortBy} sortDir={sortDir} onSort={onSort} className="px-5" />
+                    <SortTh label="Taller" campo="taller" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
+                    <SortTh label="Vehículo" campo="vehiculo" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
+                    <SortTh label="Estado" campo="estado" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
+                    <SortTh label="Fecha" campo="fecha" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
                   </tr>
                 </thead>
                 <tbody>
