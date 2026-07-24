@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import {
-  CheckCircle2, Plus, X, ChevronRight, Archive, RotateCcw, Trash2, Settings, Printer
+  CheckCircle2, Plus, X, ChevronRight, Archive, RotateCcw, Trash2, Settings, Printer, Calculator
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Modal } from '../shared/Modal';
@@ -69,6 +69,103 @@ function EditarMarcasModal({ marcas, onGuardar, onClose }) {
   );
 }
 
+// Calculadora simple desplegable — solo aritmética básica, sin conexión con los campos del formulario.
+function CalculadoraPopover({ onClose }) {
+  const [display, setDisplay] = useState('0');
+  const [prev, setPrev] = useState(null);
+  const [operador, setOperador] = useState(null);
+  const [esperandoOperando, setEsperandoOperando] = useState(false);
+
+  const ingresarDigito = (d) => {
+    if (esperandoOperando) { setDisplay(d); setEsperandoOperando(false); }
+    else setDisplay(display === '0' ? d : display + d);
+  };
+
+  const ingresarPunto = () => {
+    if (esperandoOperando) { setDisplay('0.'); setEsperandoOperando(false); return; }
+    if (!display.includes('.')) setDisplay(display + '.');
+  };
+
+  const calcular = (a, b, op) => {
+    switch (op) {
+      case '+': return a + b;
+      case '-': return a - b;
+      case '×': return a * b;
+      case '÷': return b === 0 ? 0 : a / b;
+      default:  return b;
+    }
+  };
+
+  const elegirOperador = (op) => {
+    const valor = parseFloat(display);
+    if (prev !== null && operador && !esperandoOperando) {
+      const resultado = calcular(prev, valor, operador);
+      setDisplay(String(resultado));
+      setPrev(resultado);
+    } else {
+      setPrev(valor);
+    }
+    setOperador(op);
+    setEsperandoOperando(true);
+  };
+
+  const igual = () => {
+    if (prev === null || operador === null) return;
+    const resultado = calcular(prev, parseFloat(display), operador);
+    setDisplay(String(resultado));
+    setPrev(null);
+    setOperador(null);
+    setEsperandoOperando(true);
+  };
+
+  const limpiar = () => { setDisplay('0'); setPrev(null); setOperador(null); setEsperandoOperando(false); };
+  const retroceder = () => setDisplay(d => (d.length > 1 ? d.slice(0, -1) : '0'));
+
+  const btn = (label, onClick, opts = {}) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`h-10 rounded-[9px] text-[15px] font-semibold flex items-center justify-center transition-colors hover:brightness-110 ${opts.className || ''}`}
+      style={{ background: 'var(--pp-input-bg)', color: 'var(--pp-text)', border: '1px solid var(--pp-border4)', ...opts.style }}
+    >
+      {label}
+    </button>
+  );
+
+  return (
+    <div className="absolute right-0 top-full mt-2 w-[240px] rounded-[14px] border shadow-lg z-50 p-3" style={{ borderColor: 'var(--pp-border2)', background: 'var(--pp-card)' }}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[11.5px] font-bold uppercase" style={{ color: 'var(--pp-text3)', letterSpacing: '.05em' }}>Calculadora</span>
+        <button type="button" onClick={onClose} style={{ color: 'var(--pp-text3)' }}><X className="w-3.5 h-3.5" /></button>
+      </div>
+      <div className="rounded-[9px] px-3 py-2.5 mb-2 text-right font-mono text-[20px] font-bold truncate" style={{ background: 'var(--pp-input-bg)', color: 'var(--pp-text)' }}>
+        {display}
+      </div>
+      <div className="grid grid-cols-4 gap-1.5">
+        {btn('C', limpiar, { style: { color: '#ef4444' } })}
+        {btn('⌫', retroceder)}
+        {btn('%', () => setDisplay(String(parseFloat(display) / 100)))}
+        {btn('÷', () => elegirOperador('÷'), { style: { color: 'var(--pp-accent)' } })}
+        {btn('7', () => ingresarDigito('7'))}
+        {btn('8', () => ingresarDigito('8'))}
+        {btn('9', () => ingresarDigito('9'))}
+        {btn('×', () => elegirOperador('×'), { style: { color: 'var(--pp-accent)' } })}
+        {btn('4', () => ingresarDigito('4'))}
+        {btn('5', () => ingresarDigito('5'))}
+        {btn('6', () => ingresarDigito('6'))}
+        {btn('-', () => elegirOperador('-'), { style: { color: 'var(--pp-accent)' } })}
+        {btn('1', () => ingresarDigito('1'))}
+        {btn('2', () => ingresarDigito('2'))}
+        {btn('3', () => ingresarDigito('3'))}
+        {btn('+', () => elegirOperador('+'), { style: { color: 'var(--pp-accent)' } })}
+        {btn('0', () => ingresarDigito('0'), { className: 'col-span-2' })}
+        {btn('.', ingresarPunto)}
+        {btn('=', igual, { style: { background: 'var(--pp-accent)', color: '#fff', borderColor: 'var(--pp-accent)' } })}
+      </div>
+    </div>
+  );
+}
+
 export function FacturaInlineRow({ form, setForm, onSave, onCancel, saving }) {
   const inp = "px-2 py-1 rounded-[8px] border text-[16px] outline-none focus:border-[#a0a0a0]";
   // Si aún no hay monto pagado, asumimos que un # de cheque o fecha de pago
@@ -112,6 +209,15 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
   const fileRef = useRef();
   const [showArchived, setShowArchived] = useState(false);
   const [showEditarMarcas, setShowEditarMarcas] = useState(false);
+  const [showCalc, setShowCalc] = useState(false);
+  const calcRef = useRef(null);
+
+  useEffect(() => {
+    if (!showCalc) return;
+    const onClickFuera = (ev) => { if (calcRef.current && !calcRef.current.contains(ev.target)) setShowCalc(false); };
+    document.addEventListener('mousedown', onClickFuera);
+    return () => document.removeEventListener('mousedown', onClickFuera);
+  }, [showCalc]);
 
   // Si la marca seleccionada deja de existir (se quitó desde el editor), cae a la primera disponible.
   useEffect(() => {
@@ -437,6 +543,12 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
           <button onClick={handlePrint} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border transition-colors hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
             <Printer className="w-4 h-4" /> Imprimir / PDF
           </button>
+          <div className="relative" ref={calcRef}>
+            <button onClick={() => setShowCalc(v => !v)} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border transition-colors hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+              <Calculator className="w-4 h-4" /> Calculadora
+            </button>
+            {showCalc && <CalculadoraPopover onClose={() => setShowCalc(false)} />}
+          </div>
           {pagadasSinArch.length > 0 && !readOnly && (
             <button onClick={handleArchivarPagadas} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border transition-colors" style={{ borderColor: '#059669', color: '#34d399', background: 'rgba(16,185,129,0.08)' }} onMouseEnter={e => e.currentTarget.style.background='rgba(16,185,129,0.15)'} onMouseLeave={e => e.currentTarget.style.background='rgba(16,185,129,0.08)'}>
               <CheckCircle2 className="w-4 h-4" /> Archivar pagadas ({pagadasSinArch.length})
