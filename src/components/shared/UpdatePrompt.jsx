@@ -26,6 +26,9 @@ export function UpdatePrompt() {
         if (resp?.status === 200) await registration.update()
       }, CHECK_INTERVAL_MS)
     },
+    onNeedRefresh() {
+      console.log('[PWA] Actualización detectada (needRefresh = true)')
+    },
     onRegisterError(error) {
       console.error('[PWA] Error registrando el service worker:', error)
     },
@@ -34,10 +37,23 @@ export function UpdatePrompt() {
   if (!needRefresh) return null
 
   const handleUpdate = () => {
+    console.log('[PWA] Click en Actualizar. registration.waiting antes del mensaje:',
+      navigator.serviceWorker.controller?.scriptURL)
+    let reloaded = false
+    const reloadOnce = (origen) => {
+      if (reloaded) return
+      reloaded = true
+      console.log('[PWA] Recargando página, origen:', origen)
+      window.location.reload()
+    }
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      console.log('[PWA] controllerchange disparado, nuevo controller:', navigator.serviceWorker.controller?.scriptURL)
+      reloadOnce('controllerchange')
+    }, { once: true })
     updateServiceWorker(true)
-    // Respaldo: si el mensaje SKIP_WAITING no provoca la recarga (p. ej. el
-    // worker en espera ya no está disponible), forzamos la recarga igual.
-    setTimeout(() => window.location.reload(), 3000)
+    // Respaldo: si el mensaje SKIP_WAITING no provoca el cambio de controller
+    // (p. ej. el worker en espera ya no está disponible), forzamos la recarga igual.
+    setTimeout(() => reloadOnce('respaldo 3s (controllerchange nunca llegó)'), 3000)
   }
 
   return (
