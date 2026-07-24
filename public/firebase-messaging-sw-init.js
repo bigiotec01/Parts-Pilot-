@@ -1,37 +1,45 @@
 // Firebase Messaging SW — este archivo se inyecta en el SW de Vite PWA via importScripts
 // NO lo renombres a firebase-messaging-sw.js; ese nombre tiene significado especial en Firebase.
 
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
+// Si algo bloquea estos scripts externos (ad-blocker, offline, etc.), el try/catch
+// evita que la excepción tumbe el resto del service worker generado por Vite PWA
+// (que se concatena después de este archivo vía workbox.importScripts) — de lo
+// contrario ni las actualizaciones de la app ni el cache funcionarían.
+try {
+  importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
+  importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-firebase.initializeApp({
-  apiKey: 'AIzaSyAWmTOV17ojzGOxi6RSLEzf46zFiPktyjo',
-  authDomain: 'partspilot-ec37a.firebaseapp.com',
-  projectId: 'partspilot-ec37a',
-  storageBucket: 'partspilot-ec37a.firebasestorage.app',
-  messagingSenderId: '956365583546',
-  appId: '1:956365583546:web:8345158e5faa7ad44fbe83',
-});
-
-const messaging = firebase.messaging();
-
-// Mensajes recibidos cuando la app está cerrada o en background.
-// Usamos payload.data porque los mensajes se envían como data-only
-// para evitar que iOS muestre la notificación dos veces (APNs + SW).
-messaging.onBackgroundMessage((payload) => {
-  const title = payload.data?.title || payload.notification?.title || 'Parts Pilot';
-  const body  = payload.data?.body  || payload.notification?.body  || '';
-
-  return self.registration.showNotification(title, {
-    body,
-    icon:    '/pwa-192x192.png',
-    badge:   '/pwa-64x64.png',
-    tag:     payload.data?.pedidoId || 'pp-notif',
-    data:    payload.data || {},
-    vibrate: [200, 100, 200],
-    requireInteraction: false,
+  firebase.initializeApp({
+    apiKey: 'AIzaSyAWmTOV17ojzGOxi6RSLEzf46zFiPktyjo',
+    authDomain: 'partspilot-ec37a.firebaseapp.com',
+    projectId: 'partspilot-ec37a',
+    storageBucket: 'partspilot-ec37a.firebasestorage.app',
+    messagingSenderId: '956365583546',
+    appId: '1:956365583546:web:8345158e5faa7ad44fbe83',
   });
-});
+
+  const messaging = firebase.messaging();
+
+  // Mensajes recibidos cuando la app está cerrada o en background.
+  // Usamos payload.data porque los mensajes se envían como data-only
+  // para evitar que iOS muestre la notificación dos veces (APNs + SW).
+  messaging.onBackgroundMessage((payload) => {
+    const title = payload.data?.title || payload.notification?.title || 'Parts Pilot';
+    const body  = payload.data?.body  || payload.notification?.body  || '';
+
+    return self.registration.showNotification(title, {
+      body,
+      icon:    '/pwa-192x192.png',
+      badge:   '/pwa-64x64.png',
+      tag:     payload.data?.pedidoId || 'pp-notif',
+      data:    payload.data || {},
+      vibrate: [200, 100, 200],
+      requireInteraction: false,
+    });
+  });
+} catch (err) {
+  console.error('[SW] No se pudo inicializar Firebase Messaging:', err);
+}
 
 // Clic en la notificación → abrir/enfocar la app
 self.addEventListener('notificationclick', (event) => {
