@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import {
-  CheckCircle2, Plus, X, ChevronRight, Archive, RotateCcw, Trash2, Settings, Printer, Calculator
+  CheckCircle2, Plus, X, ChevronRight, Archive, RotateCcw, Trash2, Settings, Printer, Calculator, GripHorizontal
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Modal } from '../shared/Modal';
@@ -70,11 +70,50 @@ function EditarMarcasModal({ marcas, onGuardar, onClose }) {
 }
 
 // Calculadora simple desplegable — solo aritmética básica, sin conexión con los campos del formulario.
-function CalculadoraPopover({ onClose }) {
+// Se puede arrastrar desde la barra de título a cualquier punto de la pantalla.
+function CalculadoraPopover({ onClose, anchorRef }) {
   const [display, setDisplay] = useState('0');
   const [prev, setPrev] = useState(null);
   const [operador, setOperador] = useState(null);
   const [esperandoOperando, setEsperandoOperando] = useState(false);
+
+  const ANCHO = 240;
+  const [pos, setPos] = useState(() => {
+    const r = anchorRef?.current?.getBoundingClientRect();
+    if (!r) return { top: 80, left: 80 };
+    return { top: r.bottom + 8, left: Math.max(8, Math.min(r.right - ANCHO, window.innerWidth - ANCHO - 8)) };
+  });
+  const draggingRef = useRef(null);
+
+  useEffect(() => {
+    const puntero = (ev) => (ev.touches ? ev.touches[0] : ev);
+    const onMove = (ev) => {
+      if (!draggingRef.current) return;
+      ev.preventDefault();
+      const { offsetX, offsetY } = draggingRef.current;
+      const { clientX, clientY } = puntero(ev);
+      setPos({
+        left: Math.min(Math.max(0, clientX - offsetX), window.innerWidth - ANCHO),
+        top: Math.min(Math.max(0, clientY - offsetY), window.innerHeight - 60),
+      });
+    };
+    const onUp = () => { draggingRef.current = null; };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onUp);
+    return () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onUp);
+    };
+  }, []);
+
+  const startDrag = (ev) => {
+    const { clientX, clientY } = ev.touches ? ev.touches[0] : ev;
+    draggingRef.current = { offsetX: clientX - pos.left, offsetY: clientY - pos.top };
+  };
 
   const ingresarDigito = (d) => {
     if (esperandoOperando) { setDisplay(d); setEsperandoOperando(false); }
@@ -133,10 +172,17 @@ function CalculadoraPopover({ onClose }) {
   );
 
   return (
-    <div className="absolute right-0 top-full mt-2 w-[240px] rounded-[14px] border shadow-lg z-50 p-3" style={{ borderColor: 'var(--pp-border2)', background: 'var(--pp-card)' }}>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[11.5px] font-bold uppercase" style={{ color: 'var(--pp-text3)', letterSpacing: '.05em' }}>Calculadora</span>
-        <button type="button" onClick={onClose} style={{ color: 'var(--pp-text3)' }}><X className="w-3.5 h-3.5" /></button>
+    <div className="fixed w-[240px] rounded-[14px] border shadow-lg z-50 p-3" style={{ top: pos.top, left: pos.left, borderColor: 'var(--pp-border2)', background: 'var(--pp-card)' }}>
+      <div
+        className="flex items-center justify-between mb-2 cursor-move select-none"
+        style={{ touchAction: 'none' }}
+        onMouseDown={startDrag}
+        onTouchStart={startDrag}
+      >
+        <span className="flex items-center gap-1.5 text-[11.5px] font-bold uppercase" style={{ color: 'var(--pp-text3)', letterSpacing: '.05em' }}>
+          <GripHorizontal className="w-3.5 h-3.5" /> Calculadora
+        </span>
+        <button type="button" onClick={onClose} onMouseDown={ev => ev.stopPropagation()} style={{ color: 'var(--pp-text3)' }}><X className="w-3.5 h-3.5" /></button>
       </div>
       <div className="rounded-[9px] px-3 py-2.5 mb-2 text-right font-mono text-[20px] font-bold truncate" style={{ background: 'var(--pp-input-bg)', color: 'var(--pp-text)' }}>
         {display}
@@ -547,7 +593,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
             <button onClick={() => setShowCalc(v => !v)} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border transition-colors hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
               <Calculator className="w-4 h-4" /> Calculadora
             </button>
-            {showCalc && <CalculadoraPopover onClose={() => setShowCalc(false)} />}
+            {showCalc && <CalculadoraPopover onClose={() => setShowCalc(false)} anchorRef={calcRef} />}
           </div>
           {pagadasSinArch.length > 0 && !readOnly && (
             <button onClick={handleArchivarPagadas} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border transition-colors" style={{ borderColor: '#059669', color: '#34d399', background: 'rgba(16,185,129,0.08)' }} onMouseEnter={e => e.currentTarget.style.background='rgba(16,185,129,0.15)'} onMouseLeave={e => e.currentTarget.style.background='rgba(16,185,129,0.08)'}>
