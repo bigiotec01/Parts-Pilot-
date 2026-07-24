@@ -73,8 +73,11 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
     const url = `${window.location.origin}${window.location.pathname}?order=${order.id}`;
     const folio = order.folio || order.id.slice(0, 8);
     const ref = order.numeroPO || folio;
-    const subject = encodeURIComponent(`Estado de tu pedido ${ref} – Parts Pilot`);
-    const body = encodeURIComponent(`Hola${taller?.contacto ? ` ${taller.contacto}` : ''},\n\nPuedes ver el estado de tu pedido "${order.vehiculo}" (${ref}) aquí:\n\n${url}\n\nSaludos.`);
+    const esEstimado = ['pendiente', 'cotizando'].includes(order.estado);
+    const subject = encodeURIComponent(esEstimado ? `Estimado ${ref} – Parts Pilot` : `Estado de tu pedido ${ref} – Parts Pilot`);
+    const body = encodeURIComponent(esEstimado
+      ? `Hola${taller?.contacto ? ` ${taller.contacto}` : ''},\n\nYa está listo el estimado para tu "${order.vehiculo}" (${ref}). Puedes verlo aquí:\n\n${url}\n\nSaludos.`
+      : `Hola${taller?.contacto ? ` ${taller.contacto}` : ''},\n\nPuedes ver el estado de tu pedido "${order.vehiculo}" (${ref}) aquí:\n\n${url}\n\nSaludos.`);
     const to = taller?.email ? `&to=${encodeURIComponent(taller.email)}` : '';
     window.open(`https://mail.google.com/mail/?view=cm${to}&su=${subject}&body=${body}`, '_blank');
   };
