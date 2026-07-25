@@ -55,9 +55,13 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
   const enEstimados  = [...solicitudes, ...cotizando];
   const todosPedidos = pedidos.filter(p => !esperandoCotizar(p) && p.estado !== 'cotizando');
   const solosPedidos = todosPedidos.filter(p => p.estado !== 'entregado' && p.estado !== 'rechazado');
+  // Pedidos "activos" para Mensajes: incluye estimados/solicitudes (a diferencia de
+  // solosPedidos), pero deja fuera lo ya completado o rechazado — esas conversaciones
+  // ya cerraron y no deben seguir apareciendo en la bandeja.
+  const pedidosActivosParaMensajes = pedidos.filter(p => p.estado !== 'entregado' && p.estado !== 'rechazado');
   const pedidosCount     = solosPedidos.filter(p => hasNewActivity('admin', p)).length;
   const solicitudesCount = enEstimados.filter(p => hasNewActivity('admin', p)).length;
-  const mensajesCount    = pedidos.filter(p => unreadTallerCount(p) > 0).length;
+  const mensajesCount    = pedidosActivosParaMensajes.filter(p => unreadTallerCount(p) > 0).length;
 
   const filteredPedidos = solosPedidos.filter(p => {
     if (filterTaller !== 'todos' && String(p.tallerId) !== filterTaller) return false;
@@ -144,7 +148,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
           {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} isSuperadmin={isSuperadmin} backups={backups} onCrearBackup={onCrearBackup} onRestaurarBackup={onRestaurarBackup} onEliminarBackup={onEliminarBackup} marcasFactura={empresa?.marcasFactura} onActualizarMarcasFactura={onActualizarMarcasFactura} />}
           {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} talleres={talleres} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
           {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} />}
-          {activeTab === 'mensajes' && <AdminMensajes pedidos={pedidos} getTaller={getTaller} onSelect={(id) => selectOrder(id, 'mensajes')} />}
+          {activeTab === 'mensajes' && <AdminMensajes pedidos={pedidosActivosParaMensajes} getTaller={getTaller} onSelect={(id) => selectOrder(id, 'mensajes')} />}
         </div>
       </main>
     </div>
@@ -196,7 +200,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
             {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} isSuperadmin={isSuperadmin} backups={backups} onCrearBackup={onCrearBackup} onRestaurarBackup={onRestaurarBackup} onEliminarBackup={onEliminarBackup} marcasFactura={empresa?.marcasFactura} onActualizarMarcasFactura={onActualizarMarcasFactura} />}
             {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} talleres={talleres} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
           {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} />}
-            {activeTab === 'mensajes' && <AdminMensajes pedidos={pedidos} getTaller={getTaller} onSelect={(id) => selectOrder(id, 'mensajes')} />}
+            {activeTab === 'mensajes' && <AdminMensajes pedidos={pedidosActivosParaMensajes} getTaller={getTaller} onSelect={(id) => selectOrder(id, 'mensajes')} />}
           </div>
         </main>
 
