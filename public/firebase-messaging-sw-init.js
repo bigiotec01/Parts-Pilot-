@@ -1,7 +1,7 @@
 // Firebase Messaging SW — este archivo se inyecta en el SW de Vite PWA via importScripts
 // NO lo renombres a firebase-messaging-sw.js; ese nombre tiene significado especial en Firebase.
 
-console.log('[SW] firebase-messaging-sw-init.js: evaluación inicial arrancando');
+console.log('[SW] firebase-messaging-sw-init.js: evaluación inicial arrancando. BUILD MARKER: v1.3.1');
 
 // Listener redundante para el mensaje de actualización de la PWA, independiente
 // del que genera automáticamente Vite PWA/Workbox más abajo en el sw.js final.
