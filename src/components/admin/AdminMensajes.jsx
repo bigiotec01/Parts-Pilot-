@@ -47,7 +47,7 @@ export function AdminMensajes({ pedidos, getTaller, onSelect }) {
     if (filter === 'noleidos' && unread === 0) return false;
     if (search) {
       const nombreTaller = getTaller(p.tallerId)?.nombre || '';
-      const q = `${nombreTaller} ${p.folio || ''} ${p.vehiculo || ''}`.toLowerCase();
+      const q = `${nombreTaller} ${p.folio || ''} ${p.numeroPO || ''} ${p.numeroOrden || ''} ${p.vehiculo || ''}`.toLowerCase();
       if (!q.includes(search.toLowerCase())) return false;
     }
     return true;
@@ -90,6 +90,7 @@ export function AdminMensajes({ pedidos, getTaller, onSelect }) {
             const mensajes = p.mensajes || [];
             const ultimo = mensajes[mensajes.length - 1];
             const preview = ultimo?.attachment ? `📎 ${ultimo.attachment.name}` : (ultimo?.texto || '');
+            const referencia = [p.numeroPO && `PO ${p.numeroPO}`, p.numeroOrden && `Orden ${p.numeroOrden}`].filter(Boolean).join(' · ') || p.folio || p.id.slice(0, 8);
             return (
               <button
                 key={p.id}
@@ -103,7 +104,7 @@ export function AdminMensajes({ pedidos, getTaller, onSelect }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="text-[13.5px] truncate" style={{ color: 'var(--pp-text)', fontWeight: unread > 0 ? 800 : 600 }}>{taller?.nombre || 'Taller'}</span>
-                    <span className="text-[10.5px] font-mono flex-shrink-0" style={{ color: 'var(--pp-text3)' }}>{p.folio || p.id.slice(0, 8)}</span>
+                    <span className="text-[10.5px] font-mono flex-shrink-0 truncate" style={{ color: 'var(--pp-text3)' }}>{referencia}</span>
                   </div>
                   <p className="text-[12.5px] truncate" style={{ color: unread > 0 ? 'var(--pp-text7)' : 'var(--pp-text3)', fontWeight: unread > 0 ? 600 : 400 }}>
                     {ultimo?.from === 'admin' ? 'Tú: ' : ''}{preview || 'Sin mensajes de texto'}
