@@ -23,12 +23,12 @@ export function AdminHistorial({ pedidos, talleres, getTaller, onSelect }) {
       <p className="text-[13px]" style={{ color: 'var(--pp-text2)' }}>
         <strong style={{ color: 'var(--pp-text)' }}>{historial.length}</strong> pedido{historial.length !== 1 ? 's' : ''} en el historial
       </p>
-      <div className="rounded-[16px] overflow-hidden border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+      <div className="rounded-[16px] overflow-x-auto border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', WebkitOverflowScrolling: 'touch' }}>
         <table className="w-full border-collapse">
           <thead>
             <tr style={{ borderBottom: '1px solid var(--pp-border2)' }}>
               {['Folio', 'Taller', 'Vehículo / Pieza', 'Fecha', 'Resultado'].map((h, i) => (
-                <th key={h} className={`text-left py-3 text-[10.5px] font-bold uppercase ${i === 0 ? 'pl-6' : 'px-3'} ${i === 4 ? 'pr-6' : ''}`} style={{ color: 'var(--pp-text3)', letterSpacing: '.06em' }}>{h}</th>
+                <th key={h} className={`text-left py-3 text-[10.5px] font-bold uppercase ${i === 0 ? 'pl-6' : 'px-3'} ${i === 4 ? 'pr-6' : ''} ${i === 2 ? 'hidden sm:table-cell' : ''}`} style={{ color: 'var(--pp-text3)', letterSpacing: '.06em' }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -39,7 +39,7 @@ export function AdminHistorial({ pedidos, talleres, getTaller, onSelect }) {
               <tr key={p.id} onClick={() => onSelect(p.id)} className="cursor-pointer hover:bg-[#1e1e1e] transition-colors" style={{ borderTop: '1px solid var(--pp-border2)' }}>
                 <td className="py-3.5 pl-6 pr-3 font-mono text-[12.5px] font-semibold whitespace-nowrap" style={{ color: 'var(--pp-text)' }}>{p.folio || p.id.slice(0,8)}</td>
                 <td className="py-3.5 px-3 text-[13px] max-w-[150px] truncate" style={{ color: 'var(--pp-text2)' }}>{getTaller(p.tallerId)?.nombre || '—'}</td>
-                <td className="py-3.5 px-3 max-w-[220px]">
+                <td className="py-3.5 px-3 max-w-[220px] hidden sm:table-cell">
                   <div className="text-[13px] font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo || '—'}</div>
                   {p.pieza && <div className="text-[11.5px] truncate" style={{ color: 'var(--pp-text2)' }}>{p.pieza}</div>}
                 </td>

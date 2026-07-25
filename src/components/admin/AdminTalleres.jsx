@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  CheckCircle2, Plus, Building2, Phone, X, ChevronRight, AlertCircle, Mail, Pencil
+  CheckCircle2, Plus, Building2, Phone, X, ChevronRight, ChevronDown, AlertCircle, Mail, Pencil, KeyRound
 } from 'lucide-react';
 import { Header } from '../shared/Header';
 import { FormField } from '../shared/FormField';
@@ -130,7 +130,7 @@ export function TallerSubUsuarios({ tallerId, tallerEmail, usuarios, onCrear, on
   );
 }
 
-export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos, onCreateTaller, onDeleteTaller, onUpdateTaller, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario }) {
+export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos, onCreateTaller, onDeleteTaller, onUpdateTaller, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario, onResetPassword }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ nombre: '', contacto: '', telefono: '', email: '', usuario: '', password: '' });
   const [error, setError] = useState('');
@@ -140,6 +140,21 @@ export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos,
   const [editForm, setEditForm] = useState({});
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState('');
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
+  const [resetInfo, setResetInfo] = useState({});
+
+  const toggleExpanded = (uid) => setExpandedIds(prev => {
+    const next = new Set(prev);
+    if (next.has(uid)) next.delete(uid); else next.add(uid);
+    return next;
+  });
+
+  const handleResetPassword = async (t) => {
+    if (!t.email) return;
+    setResetInfo(prev => ({ ...prev, [t.uid]: { loading: true } }));
+    const res = await onResetPassword(t.email);
+    setResetInfo(prev => ({ ...prev, [t.uid]: res.ok ? { ok: true } : { error: res.error } }));
+  };
 
   const handleChange = (field, value) => setForm(f => ({ ...f, [field]: value }));
   const handleEditChange = (field, value) => setEditForm(f => ({ ...f, [field]: value }));
@@ -283,6 +298,22 @@ export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos,
                 </div>
                 <FormField label="Correo"><input type="email" value={editForm.email} onChange={e => handleEditChange('email', e.target.value)} className={inputClass} /></FormField>
                 <FormField label="Usuario"><input value={editForm.usuario} onChange={e => handleEditChange('usuario', e.target.value)} className={`${inputClass} font-mono`} /></FormField>
+                {onResetPassword && (
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      disabled={!t.email || resetInfo[t.uid]?.loading}
+                      onClick={() => handleResetPassword(t)}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 rounded-[10px] border text-[12.5px] font-semibold transition-colors hover:bg-[#1e1e1e] disabled:opacity-50"
+                      style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}
+                    >
+                      <KeyRound className="w-3.5 h-3.5" /> {resetInfo[t.uid]?.loading ? 'Enviando…' : 'Enviar enlace para restablecer contraseña'}
+                    </button>
+                    {!t.email && <p className="text-[11px] mt-1" style={{ color: 'var(--pp-text3)' }}>Este taller no tiene correo registrado.</p>}
+                    {resetInfo[t.uid]?.ok && <p className="text-[11.5px] mt-1 font-semibold" style={{ color: '#10b981' }}>Correo enviado a {t.email}.</p>}
+                    {resetInfo[t.uid]?.error && <p className="text-[11.5px] mt-1 font-semibold" style={{ color: '#ef4444' }}>{resetInfo[t.uid].error}</p>}
+                  </div>
+                )}
                 {editError && <div className="flex items-center gap-2 text-[13px] px-3 py-2 rounded-[11px]" style={{ background: '#fdecec', color: '#dc2626' }}><AlertCircle className="w-4 h-4 flex-shrink-0" />{editError}</div>}
                 <div className="flex gap-2 pt-1">
                   <button onClick={handleUpdate} disabled={editSaving} className="flex-1 py-[10px] rounded-[11px] text-white text-[13px] font-bold transition-all hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
@@ -296,18 +327,21 @@ export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos,
             );
           }
 
+          const expanded = expandedIds.has(t.uid);
+
           return (
             <div key={t.uid} className="rounded-[15px] border p-[18px]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
-              {/* Cabecera */}
-              <div className="flex items-center gap-3 mb-4">
+              {/* Cabecera (clic para desplegar/contraer) */}
+              <button type="button" onClick={() => toggleExpanded(t.uid)} className="w-full flex items-center gap-3 mb-4 text-left">
                 <div className="w-11 h-11 rounded-[12px] flex items-center justify-center text-[15px] font-extrabold flex-shrink-0" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text2)' }}>
                   {initials(t.nombre)}
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-[14px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{t.nombre}</h3>
-                  <p className="text-[12px]" style={{ color: 'var(--pp-text2)' }}>{t.contacto}</p>
+                  <p className="text-[12px] truncate" style={{ color: 'var(--pp-text2)' }}>{t.contacto}</p>
                 </div>
-              </div>
+                <ChevronDown className={`w-4 h-4 flex-shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`} style={{ color: 'var(--pp-text3)' }} />
+              </button>
 
               {/* Datos de contacto */}
               <div className="space-y-1.5 mb-4">
@@ -346,15 +380,17 @@ export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos,
                 </div>
               </div>
 
-              {/* Sub-usuarios del taller */}
-              <TallerSubUsuarios
-                tallerId={t.uid}
-                tallerEmail={t.email}
-                usuarios={tallerUsuarios}
-                onCrear={onCrearSubUsuario}
-                onEliminar={onEliminarSubUsuario}
-                onActualizar={onActualizarSubUsuario}
-              />
+              {/* Sub-usuarios del taller — solo al desplegar la tarjeta */}
+              {expanded && (
+                <TallerSubUsuarios
+                  tallerId={t.uid}
+                  tallerEmail={t.email}
+                  usuarios={tallerUsuarios}
+                  onCrear={onCrearSubUsuario}
+                  onEliminar={onEliminarSubUsuario}
+                  onActualizar={onActualizarSubUsuario}
+                />
+              )}
             </div>
           );
         })}

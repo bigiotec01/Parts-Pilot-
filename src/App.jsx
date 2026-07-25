@@ -135,6 +135,7 @@ function AppContent() {
           onCrearSubUsuario={(tallerId, data) => crearTallerUsuario(tallerId, data)}
           onEliminarSubUsuario={(uid) => eliminarTallerUsuario(uid)}
           onActualizarSubUsuario={(uid, data) => actualizarTallerUsuario(uid, data)}
+          onResetPassword={resetPassword}
           backups={backups}
           onCrearBackup={() => crearBackupFacturas(facturas, perfil?.tenantId)}
           onRestaurarBackup={(backupId) => restaurarBackupFacturas(backupId, perfil?.tenantId)}

@@ -26,7 +26,7 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-bold text-[14.5px] truncate" style={{ color: 'var(--pp-text)' }}>{cardTitle}</h3>
+            <h3 className="font-bold text-[14.5px] truncate min-w-0 max-w-full" style={{ color: 'var(--pp-text)' }}>{cardTitle}</h3>
             {hasActivity && (
               <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>
                 <span className="relative flex h-2 w-2">

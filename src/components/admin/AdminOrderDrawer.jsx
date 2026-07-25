@@ -336,7 +336,7 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
             <div className="flex items-center gap-3 px-5 pb-3">
               <div className="min-w-0 flex-1">
                 <div className="font-mono text-[11px] font-semibold" style={{ color: 'var(--pp-text3)' }}>{order.folio || order.id?.slice(0,8)}</div>
-                <h2 className="text-[17px] font-bold" style={{ color: 'var(--pp-text)' }}>{order.vehiculo}</h2>
+                <h2 className="text-[17px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{order.vehiculo}</h2>
               </div>
               <StatusBadge estado={estado} />
               <button onClick={onClose} className="w-8 h-8 rounded-[9px] border flex items-center justify-center flex-shrink-0" style={{ borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}><X className="w-4 h-4" /></button>
@@ -371,7 +371,7 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
         <div className="flex items-center gap-4 px-7 py-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--pp-border2)' }}>
           <div className="min-w-0 flex-1">
             <div className="font-mono text-[12px] font-semibold" style={{ color: 'var(--pp-text3)' }}>{order.folio || order.id?.slice(0,8)}</div>
-            <h2 className="text-[19px] font-bold leading-tight" style={{ color: 'var(--pp-text)', letterSpacing: '-.02em' }}>{order.vehiculo || '—'}</h2>
+            <h2 className="text-[19px] font-bold leading-tight truncate" style={{ color: 'var(--pp-text)', letterSpacing: '-.02em' }}>{order.vehiculo || '—'}</h2>
           </div>
           <StatusBadge estado={estado} />
           <button onClick={onClose} className="w-9 h-9 rounded-[10px] border flex items-center justify-center hover:bg-[#1e1e1e] transition-colors flex-shrink-0" style={{ borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>

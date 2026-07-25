@@ -30,9 +30,9 @@ export function ClientOrderDetail({ order, onRespond }) {
   return (
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="font-bold text-lg" style={{ color: 'var(--pp-text)' }}>{order.referencia || order.vehiculo}</h3>
-          {order.referencia && <p className="text-sm" style={{ color: 'var(--pp-text2)' }}>{order.vehiculo}</p>}
+        <div className="min-w-0">
+          <h3 className="font-bold text-lg truncate" style={{ color: 'var(--pp-text)' }}>{order.referencia || order.vehiculo}</h3>
+          {order.referencia && <p className="text-sm truncate" style={{ color: 'var(--pp-text2)' }}>{order.vehiculo}</p>}
         </div>
         <button onClick={handlePrint} className="flex items-center gap-1.5 text-xs border rounded-lg px-2.5 py-1.5 transition-colors flex-shrink-0 hover:border-[#a0a0a0]" style={{ color: 'var(--pp-text2)', borderColor: 'var(--pp-border)', background: 'var(--pp-card)' }}>
           <Printer className="w-3.5 h-3.5" /> Imprimir
