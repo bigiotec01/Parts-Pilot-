@@ -1,15 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  FileText, LogOut, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt, ChevronUp, Building2
+  FileText, LogOut, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt, ChevronUp, Building2, MessageCircle
 } from 'lucide-react';
 import { APP_VERSION } from '../../constants/app';
 import { ThemeToggleBtn } from '../shared/ThemeToggleBtn';
 
-export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onLogout, canView, canEdit, canManageEquipo, perfil, isSuperadmin, isPlatformSuperAdmin, onOpenSuperAdmin }) {
+export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, mensajesCount, onLogout, canView, canEdit, canManageEquipo, perfil, isSuperadmin, isPlatformSuperAdmin, onOpenSuperAdmin }) {
   const primaryItems = [
     { id: 'dashboard',                     label: 'Resumen',    icon: LayoutDashboard },
     canView('pedidos')   && { id: 'pedidos',    label: 'Pedidos',    icon: ClipboardList, badge: pedidosCount },
     canView('estimados') && { id: 'estimados',  label: 'Estimados',  icon: FileText, badge: solicitudesCount, accent: true },
+    canView('pedidos')   && { id: 'mensajes',   label: 'Mensajes',   icon: MessageCircle, badge: mensajesCount },
     canView('talleres')  && { id: 'talleres',   label: 'Talleres',   icon: Users },
     canView('pedidos')   && { id: 'historial',  label: 'Historial',  icon: History },
   ].filter(Boolean);

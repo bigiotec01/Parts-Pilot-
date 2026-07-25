@@ -29,8 +29,8 @@ function TallerNotes({ text }) {
   );
 }
 
-export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstimate, onDeleteOrder, onUpdateNotes, onUpdateReferencias, onSendMessage, onDeleteMessage, pedidos = [] }) {
-  const [tab, setTab] = useState('detalles');
+export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstimate, onDeleteOrder, onUpdateNotes, onUpdateReferencias, onSendMessage, onDeleteMessage, pedidos = [], initialTab = 'detalles' }) {
+  const [tab, setTab] = useState(initialTab);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth < 768);

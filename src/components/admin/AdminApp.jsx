@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  FileText, LogOut, LayoutDashboard, ClipboardList, History, Receipt, Building2
+  FileText, LogOut, LayoutDashboard, ClipboardList, History, Receipt, Building2, MessageCircle
 } from 'lucide-react';
 import { getAdminNotifications, hasNewActivity, saveOrderSeen } from '../../utils/activity';
 import { AdminSidebar } from './AdminSidebar';
@@ -17,6 +17,7 @@ import { AdminFacturas } from './AdminFacturas';
 import { AdminEquipo } from './AdminEquipo';
 import { AdminOrderDrawer } from './AdminOrderDrawer';
 import { AdminHistorial } from './AdminHistorial';
+import { AdminMensajes, unreadTallerCount } from './AdminMensajes';
 
 export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, empresa, onActualizarMarcasFactura, currentUid, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onDeleteMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onAgregarFactura, onActualizarFactura, onEliminarFactura, backups, onCrearBackup, onRestaurarBackup, onEliminarBackup, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario, isPlatformSuperAdmin, onOpenSuperAdmin }) {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -56,6 +57,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
   const solosPedidos = todosPedidos.filter(p => p.estado !== 'entregado' && p.estado !== 'rechazado');
   const pedidosCount     = solosPedidos.filter(p => hasNewActivity('admin', p)).length;
   const solicitudesCount = enEstimados.filter(p => hasNewActivity('admin', p)).length;
+  const mensajesCount    = pedidos.filter(p => unreadTallerCount(p) > 0).length;
 
   const filteredPedidos = solosPedidos.filter(p => {
     if (filterTaller !== 'todos' && String(p.tallerId) !== filterTaller) return false;
@@ -74,15 +76,18 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
     facturas:   { title: 'Facturas',           sub: 'Cuentas corrientes por taller y marca' },
     equipo:     { title: 'Equipo',             sub: 'Usuarios y permisos de acceso' },
     historial:  { title: 'Historial',          sub: 'Órdenes completadas y estimados rechazados' },
+    mensajes:   { title: 'Mensajes',           sub: 'Conversaciones de todos los pedidos' },
   };
   const meta = PAGE_META[activeTab] || PAGE_META.dashboard;
 
   const goTo = (tab) => { setActiveTab(tab); setSelectedId(null); };
 
-  const selectOrder = (id) => {
+  const [selectedDrawerTab, setSelectedDrawerTab] = useState('detalles');
+  const selectOrder = (id, drawerTab = 'detalles') => {
     const order = pedidos.find(p => p.id === id);
     if (order) saveOrderSeen('admin', order);
     setSelectedId(id);
+    setSelectedDrawerTab(drawerTab);
   };
 
   const allPedidos = pedidos;
@@ -139,6 +144,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
           {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} isSuperadmin={isSuperadmin} backups={backups} onCrearBackup={onCrearBackup} onRestaurarBackup={onRestaurarBackup} onEliminarBackup={onEliminarBackup} marcasFactura={empresa?.marcasFactura} onActualizarMarcasFactura={onActualizarMarcasFactura} />}
           {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} talleres={talleres} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
           {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} />}
+          {activeTab === 'mensajes' && <AdminMensajes pedidos={pedidos} getTaller={getTaller} onSelect={(id) => selectOrder(id, 'mensajes')} />}
         </div>
       </main>
     </div>
@@ -152,6 +158,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
       canView('estimados') && { id: 'estimados',label: 'Estimados', icon: FileText, badge: solicitudesCount, accent: true },
       canView('facturas')  && { id: 'facturas',  label: 'Facturas',  icon: Receipt },
       canView('pedidos')   && { id: 'historial', label: 'Historial', icon: History },
+      canView('pedidos')   && { id: 'mensajes',  label: 'Mensajes',  icon: MessageCircle, badge: mensajesCount },
     ].filter(Boolean);
 
     return (
@@ -189,6 +196,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
             {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} isSuperadmin={isSuperadmin} backups={backups} onCrearBackup={onCrearBackup} onRestaurarBackup={onRestaurarBackup} onEliminarBackup={onEliminarBackup} marcasFactura={empresa?.marcasFactura} onActualizarMarcasFactura={onActualizarMarcasFactura} />}
             {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} talleres={talleres} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
           {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} />}
+            {activeTab === 'mensajes' && <AdminMensajes pedidos={pedidos} getTaller={getTaller} onSelect={(id) => selectOrder(id, 'mensajes')} />}
           </div>
         </main>
 
@@ -212,6 +220,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
 
         {selectedOrder && (
           <AdminOrderDrawer
+            key={selectedId}
             order={selectedOrder}
             taller={getTaller(selectedOrder.tallerId)}
             onClose={() => setSelectedId(null)}
@@ -223,6 +232,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
             onSendMessage={onSendMessage}
             onDeleteMessage={onDeleteMessage}
             pedidos={todosPedidos}
+            initialTab={selectedDrawerTab}
           />
         )}
         {showReporte && <ReporteModal pedidos={pedidos} talleres={talleres} onClose={() => setShowReporte(false)} />}
@@ -237,6 +247,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
         onChange={goTo}
         solicitudesCount={solicitudesCount}
         pedidosCount={pedidosCount}
+        mensajesCount={mensajesCount}
         onLogout={onLogout}
         canView={canView}
         canEdit={canEdit}
@@ -249,6 +260,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
       {mainContent}
       {selectedOrder && (
         <AdminOrderDrawer
+          key={selectedId}
           order={selectedOrder}
           taller={getTaller(selectedOrder.tallerId)}
           onClose={() => setSelectedId(null)}
@@ -259,6 +271,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
           onUpdateReferencias={onUpdateReferencias}
           onSendMessage={onSendMessage}
           onDeleteMessage={onDeleteMessage}
+          initialTab={selectedDrawerTab}
         />
       )}
       {showReporte && <ReporteModal pedidos={pedidos} talleres={talleres} onClose={() => setShowReporte(false)} />}
