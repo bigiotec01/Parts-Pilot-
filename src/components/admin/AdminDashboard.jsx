@@ -140,9 +140,9 @@ export function AdminDashboard({ pedidos, solicitudes, talleres, getTaller, onSe
                     </span>
                   </td>
                   <td className="py-3.5 px-3 text-[13px] max-w-[150px] truncate" style={{ color: 'var(--pp-text2)' }}>{getTaller(p.tallerId)?.nombre || '—'}</td>
-                  <td className="py-3.5 px-3 hidden sm:table-cell">
-                    <div className="text-[13px] font-semibold" style={{ color: 'var(--pp-text)' }}>{p.vehiculo || '—'}</div>
-                    {p.pieza && <div className="text-[11.5px]" style={{ color: 'var(--pp-text2)' }}>{p.pieza}</div>}
+                  <td className="py-3.5 px-3 hidden sm:table-cell max-w-[220px]">
+                    <div className="text-[13px] font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo || '—'}</div>
+                    {p.pieza && <div className="text-[11.5px] truncate" style={{ color: 'var(--pp-text2)' }}>{p.pieza}</div>}
                   </td>
                   <td className="py-3.5 px-3"><StatusBadge estado={p.estado} /></td>
                   <td className="py-3.5 pr-6 text-right text-[12.5px] whitespace-nowrap" style={{ color: 'var(--pp-text2)' }}>{formatDate(p.fecha)}</td>

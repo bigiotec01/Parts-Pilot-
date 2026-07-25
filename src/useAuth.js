@@ -3,7 +3,8 @@ import { auth, db } from './firebase';
 import {
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -113,5 +114,20 @@ export function useAuth() {
 
   const logout = () => signOut(auth);
 
-  return { user, perfil, cargando, error, login, logout, setError };
+  const resetPassword = async (email) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      return { ok: true };
+    } catch (e) {
+      if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-email') {
+        return { ok: false, error: 'No existe una cuenta con ese correo.' };
+      }
+      if (e.code === 'auth/too-many-requests') {
+        return { ok: false, error: 'Demasiados intentos. Espera unos minutos e intenta de nuevo.' };
+      }
+      return { ok: false, error: 'Error al enviar el correo: ' + e.message };
+    }
+  };
+
+  return { user, perfil, cargando, error, login, logout, resetPassword, setError };
 }

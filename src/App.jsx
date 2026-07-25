@@ -20,7 +20,7 @@ import { MigrationScreen } from './components/superadmin/MigrationScreen';
 import { UpdatePrompt } from './components/shared/UpdatePrompt';
 
 function AppContent() {
-  const { user, perfil, cargando, error, login, logout, setError } = useAuth();
+  const { user, perfil, cargando, error, login, logout, resetPassword, setError } = useAuth();
   const pedidos        = usePedidos(user);
   const talleres       = useTalleres(user);
   const facturas       = useFacturas(user);
@@ -79,6 +79,7 @@ function AppContent() {
     return (
       <LoginScreen
         onLogin={(email, password) => login(email, password)}
+        onResetPassword={resetPassword}
         error={error}
       />
     );

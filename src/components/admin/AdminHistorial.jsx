@@ -39,9 +39,9 @@ export function AdminHistorial({ pedidos, talleres, getTaller, onSelect }) {
               <tr key={p.id} onClick={() => onSelect(p.id)} className="cursor-pointer hover:bg-[#1e1e1e] transition-colors" style={{ borderTop: '1px solid var(--pp-border2)' }}>
                 <td className="py-3.5 pl-6 pr-3 font-mono text-[12.5px] font-semibold whitespace-nowrap" style={{ color: 'var(--pp-text)' }}>{p.folio || p.id.slice(0,8)}</td>
                 <td className="py-3.5 px-3 text-[13px] max-w-[150px] truncate" style={{ color: 'var(--pp-text2)' }}>{getTaller(p.tallerId)?.nombre || '—'}</td>
-                <td className="py-3.5 px-3">
-                  <div className="text-[13px] font-semibold" style={{ color: 'var(--pp-text)' }}>{p.vehiculo || '—'}</div>
-                  {p.pieza && <div className="text-[11.5px]" style={{ color: 'var(--pp-text2)' }}>{p.pieza}</div>}
+                <td className="py-3.5 px-3 max-w-[220px]">
+                  <div className="text-[13px] font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo || '—'}</div>
+                  {p.pieza && <div className="text-[11.5px] truncate" style={{ color: 'var(--pp-text2)' }}>{p.pieza}</div>}
                 </td>
                 <td className="py-3.5 px-3 text-[12.5px] whitespace-nowrap" style={{ color: 'var(--pp-text2)' }}>{formatDate(p.fecha)}</td>
                 <td className="py-3.5 pr-6 px-3 text-[12.5px] whitespace-nowrap">

@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import {
-  Clock, FileText, Building2, Paperclip
+  Clock, FileText, Building2, Paperclip, LayoutGrid, List
 } from 'lucide-react';
 import { hasNewActivity } from '../../utils/activity';
 import { formatDate, cleanText, filesOf } from '../../utils/format';
 
 export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
+  const [view, setView] = useState('tarjetas');
+
   if (solicitudes.length === 0) return (
     <div className="text-center py-14" style={{ color: 'var(--pp-text9)' }}>
       <FileText className="w-10 h-10 mx-auto mb-2 opacity-40" />
@@ -69,22 +72,75 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
     );
   };
 
+  const Row = ({ p }) => {
+    const taller = getTaller(p.tallerId);
+    const isCotizando = p.estado === 'cotizando';
+    const hasAct = hasNewActivity('admin', p);
+    return (
+      <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left flex items-center gap-3 px-4 py-3 border-b last:border-b-0 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03]" style={{ borderColor: 'var(--pp-border2)', background: hasAct ? 'rgba(245,158,11,0.06)' : 'transparent' }}>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-[13.5px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</h3>
+            {p.pieza && <span className="text-[12.5px] truncate" style={{ color: 'var(--pp-text2)' }}>· {p.pieza}</span>}
+          </div>
+          <p className="text-[11.5px] flex items-center gap-1 mt-0.5 truncate" style={{ color: 'var(--pp-text3)' }}>
+            <Building2 className="w-3 h-3 flex-shrink-0" />{taller?.nombre || '—'}
+            {(p.numeroPO || p.numeroOrden) && ` · ${p.numeroPO ? `PO# ${p.numeroPO}` : `Orden ${p.numeroOrden}`}`}
+          </p>
+        </div>
+        {hasAct && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#f59e0b' }} />}
+        {isCotizando ? (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0" style={{ background: '#eef4ff', color: '#2563eb' }}>
+            <FileText className="w-3 h-3" /> Cotizando
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0" style={{ background: 'var(--pp-active-bg)', color: 'var(--pp-text8)' }}>
+            <Clock className="w-3 h-3" /> Sin estimado
+          </span>
+        )}
+        <p className="font-mono text-[11px] flex-shrink-0 hidden sm:block" style={{ color: 'var(--pp-text3)' }}>{formatDate(p.fecha)}</p>
+      </button>
+    );
+  };
+
   return (
     <div className="space-y-6">
+      <div className="flex gap-1 p-1 rounded-[10px] w-fit" style={{ background: 'var(--pp-card)' }}>
+        <button onClick={() => setView('tarjetas')} title="Vista de tarjetas" className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12.5px] font-bold transition-all"
+          style={view === 'tarjetas' ? { background: 'var(--pp-accent)', color: '#fff' } : { background: 'transparent', color: 'var(--pp-text3)' }}>
+          <LayoutGrid className="w-3.5 h-3.5" /> Tarjetas
+        </button>
+        <button onClick={() => setView('lista')} title="Vista de lista" className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12.5px] font-bold transition-all"
+          style={view === 'lista' ? { background: 'var(--pp-accent)', color: '#fff' } : { background: 'transparent', color: 'var(--pp-text3)' }}>
+          <List className="w-3.5 h-3.5" /> Lista
+        </button>
+      </div>
       {sinEstimado.length > 0 && (
         <div>
           <p className="text-[11px] font-bold uppercase mb-3" style={{ color: 'var(--pp-text9)', letterSpacing: '.06em' }}>Sin estimado · {sinEstimado.length}</p>
-          <div className="grid sm:grid-cols-2 gap-3.5">
-            {[...sinEstimado].sort((a,b) => { const t=f=>f?.toDate?f.toDate().getTime():new Date(f+'T00:00:00').getTime(); return t(a.fecha)-t(b.fecha); }).map(p => <Card key={p.id} p={p} />)}
-          </div>
+          {view === 'lista' ? (
+            <div className="rounded-[15px] border overflow-hidden" style={{ borderColor: 'var(--pp-border)' }}>
+              {[...sinEstimado].sort((a,b) => { const t=f=>f?.toDate?f.toDate().getTime():new Date(f+'T00:00:00').getTime(); return t(a.fecha)-t(b.fecha); }).map(p => <Row key={p.id} p={p} />)}
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-3.5">
+              {[...sinEstimado].sort((a,b) => { const t=f=>f?.toDate?f.toDate().getTime():new Date(f+'T00:00:00').getTime(); return t(a.fecha)-t(b.fecha); }).map(p => <Card key={p.id} p={p} />)}
+            </div>
+          )}
         </div>
       )}
       {cotizando.length > 0 && (
         <div>
           <p className="text-[11px] font-bold uppercase mb-3" style={{ color: 'var(--pp-text9)', letterSpacing: '.06em' }}>Cotizando — esperando respuesta · {cotizando.length}</p>
-          <div className="grid sm:grid-cols-2 gap-3.5">
-            {[...cotizando].sort((a,b) => { const t=f=>f?.toDate?f.toDate().getTime():new Date(f+'T00:00:00').getTime(); return t(a.fecha)-t(b.fecha); }).map(p => <Card key={p.id} p={p} />)}
-          </div>
+          {view === 'lista' ? (
+            <div className="rounded-[15px] border overflow-hidden" style={{ borderColor: 'var(--pp-border)' }}>
+              {[...cotizando].sort((a,b) => { const t=f=>f?.toDate?f.toDate().getTime():new Date(f+'T00:00:00').getTime(); return t(a.fecha)-t(b.fecha); }).map(p => <Row key={p.id} p={p} />)}
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-3.5">
+              {[...cotizando].sort((a,b) => { const t=f=>f?.toDate?f.toDate().getTime():new Date(f+'T00:00:00').getTime(); return t(a.fecha)-t(b.fecha); }).map(p => <Card key={p.id} p={p} />)}
+            </div>
+          )}
         </div>
       )}
     </div>
