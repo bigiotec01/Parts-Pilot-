@@ -1,30 +1,6 @@
 // Firebase Messaging SW — este archivo se inyecta en el SW de Vite PWA via importScripts
 // NO lo renombres a firebase-messaging-sw.js; ese nombre tiene significado especial en Firebase.
 
-console.log('[SW] firebase-messaging-sw-init.js: evaluación inicial arrancando. BUILD MARKER: v1.3.7');
-console.log('[SW] self.registration.active al arrancar:', self.registration && self.registration.active && self.registration.active.state);
-console.log('[SW] self.registration.waiting al arrancar:', self.registration && self.registration.waiting && self.registration.waiting.state);
-
-// Listener redundante para el mensaje de actualización de la PWA, independiente
-// del que genera automáticamente Vite PWA/Workbox más abajo en el sw.js final.
-// Lo ponemos aquí (en un archivo que controlamos por completo) para diagnosticar
-// y, de paso, no depender de un único punto de fallo para algo tan crítico como
-// poder saltar la espera de una actualización.
-self.addEventListener('message', (event) => {
-  console.log('[SW] mensaje recibido:', event.data);
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('[SW] ejecutando self.skipWaiting()');
-    self.skipWaiting().then(
-      () => console.log('[SW] skipWaiting() RESUELTO OK'),
-      (err) => console.error('[SW] skipWaiting() RECHAZADO:', err)
-    );
-  }
-});
-
-self.addEventListener('activate', (event) => {
-  console.log('[SW] >>> EVENTO ACTIVATE DISPARADO <<<');
-});
-
 // Si algo bloquea estos scripts externos (ad-blocker, offline, etc.), el try/catch
 // evita que la excepción tumbe el resto del service worker generado por Vite PWA
 // (que se concatena después de este archivo vía workbox.importScripts) — de lo
