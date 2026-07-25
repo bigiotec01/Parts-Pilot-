@@ -39,7 +39,13 @@ export function ClientOrderDetail({ order, onRespond }) {
         </button>
       </div>
 
-      <ClientProgressBar estado={order.estado} />
+      {order.estado === 'rechazado' ? (
+        <div className="flex items-center gap-2 px-3 py-2.5 rounded-[10px] text-sm font-medium" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
+          Rechazaste el estimado de este pedido.
+        </div>
+      ) : (
+        <ClientProgressBar estado={order.estado} />
+      )}
 
       <div className="grid grid-cols-2 gap-2 text-sm">
         <InfoItem label="Fecha" value={formatDate(order.fecha)} />
@@ -64,10 +70,12 @@ export function ClientOrderDetail({ order, onRespond }) {
         </div>
       )}
 
-      <div>
-        <p className="font-medium text-sm mb-3" style={{ color: 'var(--pp-text)' }}>Estatus del pedido</p>
-        <StatusStepper estado={order.estado} />
-      </div>
+      {order.estado !== 'rechazado' && (
+        <div>
+          <p className="font-medium text-sm mb-3" style={{ color: 'var(--pp-text)' }}>Estatus del pedido</p>
+          <StatusStepper estado={order.estado} />
+        </div>
+      )}
 
       {order.estimado && (
         <div className="pt-4 border-t border-dashed" style={{ borderColor: 'var(--pp-border)' }}>

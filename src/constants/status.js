@@ -1,5 +1,5 @@
 import {
-  Package, Truck, CheckCircle2, Clock, FileText, PackageCheck, Hourglass
+  Package, Truck, CheckCircle2, Clock, FileText, PackageCheck, Hourglass, XCircle
 } from 'lucide-react';
 
 export const STATUS_ORDER = ['pendiente', 'cotizando', 'pedido_fabrica', 'ordenadas', 'esperando_piezas', 'en_transito', 'recibido', 'entregado'];
@@ -13,6 +13,9 @@ export const STATUS_CONFIG = {
   en_transito:      { label: 'En tránsito',          short: 'En camino',  dot: '#eab308', bg: 'rgba(234,179,8,0.15)',  tx: '#eab308', icon: Truck },
   recibido:         { label: 'Recibido en Tienda',   short: 'En Tienda',  dot: '#10b981', bg: 'rgba(16,185,129,0.15)', tx: '#34d399', icon: Package },
   entregado:        { label: 'Orden Completa',       short: 'Completa',   dot: '#14b8a6', bg: 'rgba(20,184,166,0.15)', tx: '#2dd4bf', icon: CheckCircle2 },
+  // Terminal, fuera de STATUS_ORDER a propósito: no forma parte de la línea de progreso
+  // normal de un pedido (Kanban/stepper), solo se usa para el badge en Historial.
+  rechazado:        { label: 'Estimado rechazado',   short: 'Rechazado',  dot: '#ef4444', bg: 'rgba(239,68,68,0.15)',  tx: '#ef4444', icon: XCircle },
 };
 
 export const STATUS_CONFIG_LIGHT = {
@@ -24,6 +27,7 @@ export const STATUS_CONFIG_LIGHT = {
   en_transito:      { ...STATUS_CONFIG.en_transito,      bg: '#FEFCE8',  dot: '#A16207', tx: '#A16207' },
   recibido:         { ...STATUS_CONFIG.recibido,         bg: '#ECFDF5',  dot: '#059669', tx: '#059669' },
   entregado:        { ...STATUS_CONFIG.entregado,        bg: '#F0FDFA',  dot: '#0D9488', tx: '#0D9488' },
+  rechazado:        { ...STATUS_CONFIG.rechazado,        bg: '#FEF2F2',  dot: '#DC2626', tx: '#DC2626' },
 };
 
 /* ── Avance rápido de estado ── */

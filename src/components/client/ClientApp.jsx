@@ -29,8 +29,8 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
   const esperandoCotizar = (p) => p.estado === 'pendiente' && p.tipo === 'solicitud';
   const solicitudes = pedidos.filter(esperandoCotizar);
   const misPedidos = pedidos.filter(p => !esperandoCotizar(p) && p.estado !== 'cotizando');
-  const pedidosActivos = misPedidos.filter(p => p.estado !== 'entregado');
-  const pedidosHistorial = misPedidos.filter(p => p.estado === 'entregado');
+  const pedidosActivos = misPedidos.filter(p => p.estado !== 'entregado' && p.estado !== 'rechazado');
+  const pedidosHistorial = misPedidos.filter(p => p.estado === 'entregado' || p.estado === 'rechazado');
   const cotizacionesPendientes = pedidos.filter(p => p.estado === 'cotizando');
   const toMs = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime();
   const pedidosOrdenados = [...pedidosActivos].sort((a, b) => toMs(b.fecha) - toMs(a.fecha));
@@ -128,7 +128,7 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
           {[
             { val: pedidosActivos.length,  label: 'Activos',     color: 'var(--pp-text8)' },
             { val: totalEstimados,         label: 'Estimados',   color: totalEstimados > 0 ? '#b7791f' : 'var(--pp-text3)' },
-            { val: pedidosHistorial.length,label: 'Completados', color: '#0d9488' },
+            { val: pedidosHistorial.length,label: 'Historial',   color: '#0d9488' },
           ].map(({ val, label, color }) => (
             <div key={label} className="rounded-[14px] px-3 py-3 text-center border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
               <p className="text-[24px] font-extrabold leading-none" style={{ color }}>{val}</p>

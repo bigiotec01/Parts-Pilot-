@@ -166,10 +166,12 @@ export function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate
             </div>
           )}
 
-          <div className="rounded-[12px] p-3" style={{ background: 'var(--pp-card)' }}>
-            <p className="text-[10.5px] font-bold uppercase mb-3" style={{ color: 'var(--pp-text3)', letterSpacing: '.06em' }}>Progreso</p>
-            <StatusStepper estado={estado} />
-          </div>
+          {estado !== 'rechazado' && (
+            <div className="rounded-[12px] p-3" style={{ background: 'var(--pp-card)' }}>
+              <p className="text-[10.5px] font-bold uppercase mb-3" style={{ color: 'var(--pp-text3)', letterSpacing: '.06em' }}>Progreso</p>
+              <StatusStepper estado={estado} />
+            </div>
+          )}
 
           <div className="rounded-[12px] p-3" style={{ background: 'var(--pp-card)' }}>
             <p className="text-[10.5px] font-bold uppercase mb-2 flex items-center gap-1.5" style={{ color: 'var(--pp-text3)', letterSpacing: '.05em' }}>

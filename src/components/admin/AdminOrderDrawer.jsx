@@ -162,10 +162,12 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
         </button>
       </div>
 
-      <div>
-        <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: 'var(--pp-text9)', letterSpacing: '.06em' }}>Progreso <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>· clic en un paso para cambiar el estado</span></p>
-        <StatusStepper estado={estado} onSelect={handleEstadoChange} />
-      </div>
+      {estado !== 'rechazado' && (
+        <div>
+          <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: 'var(--pp-text9)', letterSpacing: '.06em' }}>Progreso <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>· clic en un paso para cambiar el estado</span></p>
+          <StatusStepper estado={estado} onSelect={handleEstadoChange} />
+        </div>
+      )}
 
       {['pedido_fabrica','ordenadas','esperando_piezas','en_transito','recibido','entregado'].includes(estado) && (
         <FormField label="Fecha estimada de entrega">
