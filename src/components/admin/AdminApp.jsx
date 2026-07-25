@@ -53,7 +53,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
   const cotizando    = pedidos.filter(p => p.estado === 'cotizando');
   const enEstimados  = [...solicitudes, ...cotizando];
   const todosPedidos = pedidos.filter(p => !esperandoCotizar(p) && p.estado !== 'cotizando');
-  const solosPedidos = todosPedidos.filter(p => p.estado !== 'entregado');
+  const solosPedidos = todosPedidos.filter(p => p.estado !== 'entregado' && p.estado !== 'rechazado');
   const pedidosCount     = solosPedidos.filter(p => hasNewActivity('admin', p)).length;
   const solicitudesCount = enEstimados.filter(p => hasNewActivity('admin', p)).length;
 
@@ -73,7 +73,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
     cotizacion: { title: 'Nueva cotización',   sub: 'Crea una cotización con estimado incluido' },
     facturas:   { title: 'Facturas',           sub: 'Cuentas corrientes por taller y marca' },
     equipo:     { title: 'Equipo',             sub: 'Usuarios y permisos de acceso' },
-    historial:  { title: 'Historial',          sub: 'Órdenes completadas' },
+    historial:  { title: 'Historial',          sub: 'Órdenes completadas y estimados rechazados' },
   };
   const meta = PAGE_META[activeTab] || PAGE_META.dashboard;
 
