@@ -149,9 +149,9 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
               </button>
             )}
           </div>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {pedidosFiltrados.length === 0
-              ? <div className="col-span-2"><EmptyState text={search ? 'Sin resultados.' : 'Aún no tienes pedidos activos.'} /></div>
+              ? <div className="sm:col-span-2"><EmptyState text={search ? 'Sin resultados.' : 'Aún no tienes pedidos activos.'} /></div>
               : pedidosFiltrados.map(p => <OrderCard key={p.id} order={p} onClick={() => handleSelect(p.id)} unreadCount={getUnread(p)} activityRole="taller" />)
             }
           </div>

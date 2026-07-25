@@ -35,8 +35,8 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
       )}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[11.5px] flex items-center gap-1 mb-1 truncate" style={{ color: 'var(--pp-text2)' }}>
-              <Building2 className="w-3 h-3 flex-shrink-0" />{taller?.nombre || '—'}
+            <p className="text-[11.5px] flex items-center gap-1 mb-1 min-w-0" style={{ color: 'var(--pp-text2)' }}>
+              <Building2 className="w-3 h-3 flex-shrink-0" /><span className="truncate">{taller?.nombre || '—'}</span>
             </p>
             <h3 className="text-[14.5px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</h3>
             {p.pieza && <p className="text-[12.5px] mt-0.5" style={{ color: 'var(--pp-text2)' }}>{p.pieza}</p>}
@@ -79,13 +79,16 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
     return (
       <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left flex items-center gap-3 px-4 py-3 border-b last:border-b-0 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03]" style={{ borderColor: 'var(--pp-border2)', background: hasAct ? 'rgba(245,158,11,0.06)' : 'transparent' }}>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="text-[13.5px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</h3>
-            {p.pieza && <span className="text-[12.5px] truncate" style={{ color: 'var(--pp-text2)' }}>· {p.pieza}</span>}
+          <div className="flex items-center gap-2 min-w-0">
+            <h3 className="text-[13.5px] font-bold truncate min-w-0" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</h3>
+            {p.pieza && <span className="text-[12.5px] truncate flex-shrink-0" style={{ color: 'var(--pp-text2)' }}>· {p.pieza}</span>}
           </div>
-          <p className="text-[11.5px] flex items-center gap-1 mt-0.5 truncate" style={{ color: 'var(--pp-text3)' }}>
-            <Building2 className="w-3 h-3 flex-shrink-0" />{taller?.nombre || '—'}
-            {(p.numeroPO || p.numeroOrden) && ` · ${p.numeroPO ? `PO# ${p.numeroPO}` : `Orden ${p.numeroOrden}`}`}
+          <p className="text-[11.5px] flex items-center gap-1 mt-0.5 min-w-0" style={{ color: 'var(--pp-text3)' }}>
+            <Building2 className="w-3 h-3 flex-shrink-0" />
+            <span className="truncate">
+              {taller?.nombre || '—'}
+              {(p.numeroPO || p.numeroOrden) && ` · ${p.numeroPO ? `PO# ${p.numeroPO}` : `Orden ${p.numeroOrden}`}`}
+            </span>
           </p>
         </div>
         {hasAct && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#f59e0b' }} />}
@@ -123,7 +126,7 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
               {[...sinEstimado].sort((a,b) => { const t=f=>f?.toDate?f.toDate().getTime():new Date(f+'T00:00:00').getTime(); return t(a.fecha)-t(b.fecha); }).map(p => <Row key={p.id} p={p} />)}
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {[...sinEstimado].sort((a,b) => { const t=f=>f?.toDate?f.toDate().getTime():new Date(f+'T00:00:00').getTime(); return t(a.fecha)-t(b.fecha); }).map(p => <Card key={p.id} p={p} />)}
             </div>
           )}
@@ -137,7 +140,7 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
               {[...cotizando].sort((a,b) => { const t=f=>f?.toDate?f.toDate().getTime():new Date(f+'T00:00:00').getTime(); return t(a.fecha)-t(b.fecha); }).map(p => <Row key={p.id} p={p} />)}
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {[...cotizando].sort((a,b) => { const t=f=>f?.toDate?f.toDate().getTime():new Date(f+'T00:00:00').getTime(); return t(a.fecha)-t(b.fecha); }).map(p => <Card key={p.id} p={p} />)}
             </div>
           )}

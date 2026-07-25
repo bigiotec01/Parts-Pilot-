@@ -61,9 +61,9 @@ export function TallerSubUsuarios({ tallerId, tallerEmail, usuarios, onCrear, on
 
         {/* Cuenta principal */}
         <div className="grid gap-2 items-center px-2.5 py-2" style={{ gridTemplateColumns: userTableCols, borderTop: '1px solid var(--pp-border2)' }}>
-          <span className="flex items-center gap-1.5 min-w-0 text-[12px] font-semibold truncate" style={{ color: 'var(--pp-text)' }}>
+          <span className="flex items-center gap-1.5 min-w-0 text-[12px] font-semibold" style={{ color: 'var(--pp-text)' }}>
             <span className="w-5 h-5 rounded-[6px] flex items-center justify-center text-[9.5px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #f97316, #ea580c)', color: '#fff' }}>P</span>
-            Cuenta principal
+            <span className="truncate">Cuenta principal</span>
           </span>
           <span className="text-[10.5px] font-semibold truncate" style={{ color: 'var(--pp-text8)' }}>Admin taller</span>
           <span className="text-[11px] truncate" style={{ color: 'var(--pp-text3)' }}>{tallerEmail || '—'}</span>
@@ -87,11 +87,11 @@ export function TallerSubUsuarios({ tallerId, tallerEmail, usuarios, onCrear, on
             </div>
           ) : (
             <div key={u.uid} className="grid gap-2 items-center px-2.5 py-2" style={{ gridTemplateColumns: userTableCols, borderTop: '1px solid var(--pp-border2)' }}>
-              <span className="flex items-center gap-1.5 min-w-0 text-[12px] font-semibold truncate" style={{ color: 'var(--pp-text)' }}>
+              <span className="flex items-center gap-1.5 min-w-0 text-[12px] font-semibold" style={{ color: 'var(--pp-text)' }}>
                 <span className="w-5 h-5 rounded-[6px] flex items-center justify-center text-[9.5px] font-bold flex-shrink-0" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text2)' }}>
                   {(u.nombre || u.email || '?')[0].toUpperCase()}
                 </span>
-                {u.nombre}
+                <span className="truncate">{u.nombre}</span>
               </span>
               <span className="text-[10.5px] font-semibold truncate" style={{ color: 'var(--pp-text3)' }}>Miembro</span>
               <span className="text-[11px] truncate" style={{ color: 'var(--pp-text3)' }}>{u.email}</span>
@@ -279,7 +279,7 @@ export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos,
       )}
 
       {/* Grid de talleres */}
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {talleres.map(t => {
           const pedidosTaller = pedidos.filter(p => p.tallerId === t.uid);
           const activos = pedidosTaller.filter(p => p.estado !== 'entregado').length;
@@ -351,8 +351,8 @@ export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos,
                   </p>
                 )}
                 {t.email && (
-                  <p className="flex items-center gap-2 text-[12.5px] truncate" style={{ color: 'var(--pp-text2)' }}>
-                    <Mail className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--pp-text3)' }} />{t.email}
+                  <p className="flex items-center gap-2 text-[12.5px] min-w-0" style={{ color: 'var(--pp-text2)' }}>
+                    <Mail className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--pp-text3)' }} /><span className="truncate">{t.email}</span>
                   </p>
                 )}
               </div>

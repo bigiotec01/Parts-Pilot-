@@ -103,7 +103,7 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
           <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--pp-text2)' }}>
             Cotizaciones por responder · {cotizaciones.length}
           </p>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {cotizaciones.map(p => {
               const hasAct = hasNewActivity('taller', p);
               return (
@@ -168,7 +168,7 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
           {cotizaciones.length > 0 && (
             <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--pp-text2)' }}>Solicitudes enviadas · {solicitudes.length}</p>
           )}
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[...solicitudes].sort((a, b) => {
               const t = f => f?.toDate ? f.toDate().getTime() : new Date(f + 'T00:00:00').getTime();
               return t(b.fecha) - t(a.fecha);

@@ -170,7 +170,7 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
       {equipoFiltrado.length === 0 ? (
         <div className="text-center py-14 text-[13px]" style={{ color: 'var(--pp-text3)' }}>Sin usuarios que coincidan con "{search}".</div>
       ) : (
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {equipoFiltrado.map(u => (
           <div key={u.uid} className="rounded-[15px] border p-5" style={{ background: 'var(--pp-card)', borderColor: editId === u.uid ? 'var(--pp-accent)' : 'var(--pp-border)', boxShadow: editId === u.uid ? '0 0 0 3px var(--pp-active-bg)' : 'none' }}>
             <div className={`flex items-start justify-between gap-3 ${expandedId === u.uid || editId === u.uid ? 'mb-4' : ''}`}>

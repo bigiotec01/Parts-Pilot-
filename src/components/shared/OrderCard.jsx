@@ -77,7 +77,7 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
         <div className="flex items-center justify-between flex-1 gap-3 text-[11.5px] min-w-0" style={{ color: 'var(--pp-text2)' }}>
           <span className="font-mono font-semibold flex-shrink-0" style={{ color: 'var(--pp-text2)' }}>{order.folio || order.id?.slice(0, 8)}</span>
           {showTaller && taller && (
-            <span className="flex items-center gap-1 truncate min-w-0"><Building2 className="w-3.5 h-3.5 flex-shrink-0" />{taller.nombre}</span>
+            <span className="flex items-center gap-1 min-w-0"><Building2 className="w-3.5 h-3.5 flex-shrink-0" /><span className="truncate">{taller.nombre}</span></span>
           )}
           <span className="flex items-center gap-1 flex-shrink-0"><Calendar className="w-3 h-3 flex-shrink-0" />{formatDate(order.fecha)}</span>
         </div>

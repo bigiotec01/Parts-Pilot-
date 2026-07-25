@@ -104,7 +104,7 @@ export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFi
       ) : view === 'tablero' ? (
         <KanbanBoard pedidos={pedidos} getTaller={getTaller} onSelect={onSelect} onChangeStatus={onChangeStatus} hideEmpty={hideEmpty} />
       ) : (
-        <div className="grid sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {pedidos.map(p => <OrderCard key={p.id} order={p} taller={getTaller(p.tallerId)} showTaller onClick={() => onSelect(p.id)} activityRole="admin" onChangeStatus={onChangeStatus} />)}
         </div>
       )}
