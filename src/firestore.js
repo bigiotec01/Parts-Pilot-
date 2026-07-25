@@ -231,6 +231,12 @@ export async function responderEstimado(pedidoId, respuesta) {
   if (respuesta === 'aceptado') {
     datos.estado = 'pedido_fabrica';
     datos.tipo = 'pedido';
+  } else if (respuesta === 'rechazado') {
+    // Sin esto el pedido se quedaba en 'cotizando' para siempre: tanto la vista
+    // del taller como la del admin filtran por ese estado sin mirar la respuesta,
+    // así que la tarjeta de "esperando respuesta" nunca desaparecía. Regresarlo a
+    // 'pendiente' lo manda de vuelta a la cola de "necesita cotización" del admin.
+    datos.estado = 'pendiente';
   }
   await updateDoc(doc(db, 'pedidos', pedidoId), datos);
 }
