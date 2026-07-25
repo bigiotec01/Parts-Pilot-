@@ -393,32 +393,34 @@ export function SuperAdminApp({ onLogout, onExit }) {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--pp-bg)' }}>
-      <header className="h-[70px] flex items-center gap-3 px-[30px] border-b" style={{ borderColor: 'var(--pp-border2)' }}>
-        <Building2 className="w-5 h-5" style={{ color: 'var(--pp-text)' }} />
-        <div>
-          <h1 className="text-[17px] font-bold" style={{ color: 'var(--pp-text)' }}>Empresas</h1>
-          <p className="text-[12px]" style={{ color: 'var(--pp-text2)' }}>Panel de Super Admin</p>
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-          {onExit && (
-            <button onClick={onExit} className="flex items-center gap-1.5 px-3.5 py-[9px] rounded-[10px] text-[13px] font-semibold" style={{ color: 'var(--pp-text2)' }}>
-              <ArrowLeft className="w-4 h-4" /> Volver
+      <div className="safe-top" style={{ background: 'var(--pp-bg)' }}>
+        <header className="h-[70px] flex items-center gap-3 px-[30px] border-b" style={{ borderColor: 'var(--pp-border2)' }}>
+          <Building2 className="w-5 h-5" style={{ color: 'var(--pp-text)' }} />
+          <div>
+            <h1 className="text-[17px] font-bold" style={{ color: 'var(--pp-text)' }}>Empresas</h1>
+            <p className="text-[12px]" style={{ color: 'var(--pp-text2)' }}>Panel de Super Admin</p>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            {onExit && (
+              <button onClick={onExit} className="flex items-center gap-1.5 px-3.5 py-[9px] rounded-[10px] text-[13px] font-semibold" style={{ color: 'var(--pp-text2)' }}>
+                <ArrowLeft className="w-4 h-4" /> Volver
+              </button>
+            )}
+            <button onClick={() => setShowNotas(true)} className="flex items-center gap-1.5 px-3.5 py-[9px] rounded-[10px] text-[13px] font-semibold border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+              <StickyNote className="w-4 h-4" /> Notas
             </button>
-          )}
-          <button onClick={() => setShowNotas(true)} className="flex items-center gap-1.5 px-3.5 py-[9px] rounded-[10px] text-[13px] font-semibold border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
-            <StickyNote className="w-4 h-4" /> Notas
-          </button>
-          <button onClick={() => setShowLogs(true)} className="flex items-center gap-1.5 px-3.5 py-[9px] rounded-[10px] text-[13px] font-semibold border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
-            <ScrollText className="w-4 h-4" /> Logs
-          </button>
-          <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
-            <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva empresa
-          </button>
-          <button onClick={onLogout} className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }} title="Cerrar sesión">
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
-      </header>
+            <button onClick={() => setShowLogs(true)} className="flex items-center gap-1.5 px-3.5 py-[9px] rounded-[10px] text-[13px] font-semibold border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+              <ScrollText className="w-4 h-4" /> Logs
+            </button>
+            <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
+              <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva empresa
+            </button>
+            <button onClick={onLogout} className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }} title="Cerrar sesión">
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </header>
+      </div>
 
       <div className="p-[30px] max-w-[980px]">
         <KpiBar empresas={empresas} />

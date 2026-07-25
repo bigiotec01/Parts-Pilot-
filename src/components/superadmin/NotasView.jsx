@@ -66,16 +66,18 @@ export function NotasView({ onExit }) {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--pp-bg)' }}>
-      <header className="h-[70px] flex items-center gap-3 px-[30px] border-b" style={{ borderColor: 'var(--pp-border2)' }}>
-        <button onClick={onExit} className="w-9 h-9 rounded-[10px] flex items-center justify-center border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
-          <ArrowLeft className="w-4 h-4" />
-        </button>
-        <StickyNote className="w-5 h-5" style={{ color: 'var(--pp-text)' }} />
-        <div>
-          <h1 className="text-[17px] font-bold" style={{ color: 'var(--pp-text)' }}>Notas</h1>
-          <p className="text-[12px]" style={{ color: 'var(--pp-text2)' }}>Errores y acciones nuevas a implementar en Parts Pilot</p>
-        </div>
-      </header>
+      <div className="safe-top" style={{ background: 'var(--pp-bg)' }}>
+        <header className="h-[70px] flex items-center gap-3 px-[30px] border-b" style={{ borderColor: 'var(--pp-border2)' }}>
+          <button onClick={onExit} className="w-9 h-9 rounded-[10px] flex items-center justify-center border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+          <StickyNote className="w-5 h-5" style={{ color: 'var(--pp-text)' }} />
+          <div>
+            <h1 className="text-[17px] font-bold" style={{ color: 'var(--pp-text)' }}>Notas</h1>
+            <p className="text-[12px]" style={{ color: 'var(--pp-text2)' }}>Errores y acciones nuevas a implementar en Parts Pilot</p>
+          </div>
+        </header>
+      </div>
 
       <div className="p-[30px] max-w-[720px]">
         <form onSubmit={agregar} className="mb-6 space-y-2">
