@@ -1,14 +1,24 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
-  ChevronRight, Printer
+  ChevronRight, Printer, Calculator
 } from 'lucide-react';
 import { EmptyState } from '../shared/FormField';
+import { CalculadoraPopover } from '../shared/CalculadoraPopover';
 import { fmtCur, fmtDateDisp } from '../../utils/format';
 
 export function ClientFacturas({ facturas, taller }) {
   const marcasDisponibles = [...new Set(facturas.map(f => f.marca))].sort();
   const [marca, setMarca] = useState(marcasDisponibles[0] || 'KIA');
   const [verHistorial, setVerHistorial] = useState(false);
+  const [showCalc, setShowCalc] = useState(false);
+  const calcRef = useRef(null);
+
+  useEffect(() => {
+    if (!showCalc) return;
+    const onClickFuera = (ev) => { if (calcRef.current && !calcRef.current.contains(ev.target)) setShowCalc(false); };
+    document.addEventListener('mousedown', onClickFuera);
+    return () => document.removeEventListener('mousedown', onClickFuera);
+  }, [showCalc]);
 
   const todasMarca = [...facturas]
     .filter(f => f.marca === marca)
@@ -102,9 +112,17 @@ export function ClientFacturas({ facturas, taller }) {
             </button>
           ))}
         </div>
-        <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border transition-colors hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
-          <Printer className="w-4 h-4" /> Imprimir / PDF
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border transition-colors hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+            <Printer className="w-4 h-4" /> Imprimir / PDF
+          </button>
+          <div className="relative" ref={calcRef}>
+            <button onClick={() => setShowCalc(v => !v)} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold border transition-colors hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+              <Calculator className="w-4 h-4" /> Calculadora
+            </button>
+            {showCalc && <CalculadoraPopover onClose={() => setShowCalc(false)} anchorRef={calcRef} />}
+          </div>
+        </div>
       </div>
 
       {numeroCuenta && (
