@@ -1,7 +1,29 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  FileText, Plus, Search, ChevronRight, MessageSquare, Bell
+  FileText, Plus, Search, ChevronRight, MessageSquare, Bell, Clock
 } from 'lucide-react';
+
+function useNow() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
+
+function FechaHora() {
+  const now = useNow();
+  const fechaRaw = now.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' });
+  const fecha = fechaRaw.charAt(0).toUpperCase() + fechaRaw.slice(1);
+  const hora = now.toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit' });
+  return (
+    <div className="hidden lg:flex items-center gap-1.5 px-3 py-[9px] rounded-[10px] text-[12.5px] font-medium whitespace-nowrap border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-surface)', color: 'var(--pp-text2)' }} title={now.toLocaleString('es-MX')}>
+      <Clock className="w-[15px] h-[15px]" strokeWidth={1.8} style={{ color: 'var(--pp-text3)' }} />
+      {fecha} · {hora}
+    </div>
+  );
+}
 
 export function NotificationPanel({ notifications, onSelect, onDismissAll }) {
   return (
@@ -52,6 +74,7 @@ export function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo,
         <p className="text-[12.5px] font-medium" style={{ color: 'var(--pp-text2)' }}>{pageSub}</p>
       </div>
       <div className="ml-auto flex items-center gap-3">
+        <FechaHora />
         <div className="relative flex items-center">
           <Search className="w-4 h-4 absolute left-3 pointer-events-none" style={{ color: 'var(--pp-text3)' }} />
           <input placeholder="Buscar pedido, vehículo, folio…" className="pl-9 pr-3 py-[9px] rounded-[10px] text-[13px] border outline-none transition-[width] focus:w-[280px] focus:border-[#a0a0a0] focus:ring-2 focus:ring-[#a0a0a0]/10" style={{ width: 240, background: 'var(--pp-card)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }} />
