@@ -24,21 +24,23 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
     const hasAct = hasNewActivity('admin', p);
     return (
       <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[15px] p-[17px] border-2 transition-all hover:border-[#a0a0a0] hover:shadow-[0_8px_24px_-14px_rgba(160,160,160,0.25)] relative" style={{ background: hasAct ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasAct ? '#f59e0b' : isCotizando ? 'rgba(160,160,160,0.25)' : 'var(--pp-border)', boxShadow: hasAct ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : 'none' }}>
-      {hasAct && (
-        <span className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-md" style={{ background: '#f59e0b' }}>
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-          </span>
-          Actualizado
-        </span>
-      )}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11.5px] flex items-center gap-1 mb-1 min-w-0" style={{ color: 'var(--pp-text2)' }}>
               <Building2 className="w-3 h-3 flex-shrink-0" /><span className="truncate">{taller?.nombre || '—'}</span>
             </p>
-            <h3 className="text-[14.5px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-[14.5px] font-bold truncate min-w-0 max-w-full" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</h3>
+              {hasAct && (
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                  </span>
+                  Actualizado
+                </span>
+              )}
+            </div>
             {p.pieza && <p className="text-[12.5px] mt-0.5" style={{ color: 'var(--pp-text2)' }}>{p.pieza}</p>}
             {(p.numeroPO || p.numeroOrden) && (
               <div className="flex items-center gap-1.5 mt-1 flex-wrap">

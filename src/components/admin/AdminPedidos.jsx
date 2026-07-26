@@ -50,7 +50,7 @@ export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFi
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
         <div className="flex gap-1 p-1 rounded-[10px] flex-shrink-0" style={{ background: 'var(--pp-card)' }}>
           <button onClick={() => setView('tarjetas')} title="Vista de tarjetas" className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12.5px] font-bold transition-all"
             style={view === 'tarjetas' ? { background: 'var(--pp-accent)', color: '#fff' } : { background: 'transparent', color: 'var(--pp-text3)' }}>
@@ -67,7 +67,7 @@ export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFi
             <span className="text-[12px] font-semibold whitespace-nowrap" style={{ color: 'var(--pp-text2)' }}>Ocultar columnas vacías</span>
           </label>
         )}
-        <div className="relative flex-1">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--pp-text3)' }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio..." className={`${inputClass} pl-9`} />
         </div>

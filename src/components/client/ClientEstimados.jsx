@@ -108,18 +108,20 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
               const hasAct = hasNewActivity('taller', p);
               return (
               <div key={p.id} onClick={() => onSelect?.(p.id)} className="rounded-xl p-4 space-y-3 border-2 cursor-pointer hover:border-[#a0a0a0] transition-colors relative" style={{ background: hasAct ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasAct ? '#f59e0b' : 'var(--pp-accent)', boxShadow: hasAct ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : '0 0 0 1px rgba(200,200,200,0.07)' }}>
-                {hasAct && (
-                  <span className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-md" style={{ background: '#f59e0b' }}>
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-                    </span>
-                    Actualizado
-                  </span>
-                )}
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <h3 className="text-[15px] font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{humanize(p.vehiculo)}</h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-[15px] font-semibold truncate min-w-0 max-w-full" style={{ color: 'var(--pp-text)' }}>{humanize(p.vehiculo)}</h3>
+                      {hasAct && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                          </span>
+                          Actualizado
+                        </span>
+                      )}
+                    </div>
                     {(p.numeroPO || p.numeroOrden) && (
                       <div className="flex gap-1.5 mt-1 flex-wrap">
                         {p.numeroPO && <span className="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md font-medium">PO# {p.numeroPO}</span>}
@@ -176,18 +178,20 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
               const hasAct = hasNewActivity('taller', p);
               return (
               <div key={p.id} onClick={() => onSelect?.(p.id)} className="rounded-xl border-2 p-4 cursor-pointer hover:border-[#a0a0a0] transition-colors relative" style={{ background: hasAct ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasAct ? '#f59e0b' : 'var(--pp-border)', boxShadow: hasAct ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : 'none' }}>
-                {hasAct && (
-                  <span className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-md" style={{ background: '#f59e0b' }}>
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-                    </span>
-                    Actualizado
-                  </span>
-                )}
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="min-w-0">
-                    <h3 className="text-[15px] font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{humanize(p.vehiculo)}</h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-[15px] font-semibold truncate min-w-0 max-w-full" style={{ color: 'var(--pp-text)' }}>{humanize(p.vehiculo)}</h3>
+                      {hasAct && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                          </span>
+                          Actualizado
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <StatusBadge estado={p.estado} />
                 </div>

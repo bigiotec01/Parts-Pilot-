@@ -58,7 +58,7 @@ export function LoginScreen({ onLogin, onResetPassword, error }) {
 
         <p className="text-center mt-6 text-[11.5px] leading-loose" style={{ color: 'var(--pp-text2)' }}>
           © 2026 Parts Pilot · Todos los derechos reservados.<br />
-          Soporte: <a href="mailto:Bigio_tec@me.com" style={{ color: 'var(--pp-text9)' }}>Bigio_tec@me.com</a>
+          Soporte: <a href="mailto:bigio_tec@me.com" style={{ color: 'var(--pp-text9)' }}>bigio_tec@me.com</a>
         </p>
       </div>
     </div>

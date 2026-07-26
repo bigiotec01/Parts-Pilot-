@@ -73,9 +73,9 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
 
   const PAGE_META = {
     dashboard:  { title: 'Resumen',           sub: 'Vista general de la operación' },
-    pedidos:    { title: 'Pedidos',            sub: `${solosPedidos.length} pedidos en total` },
+    pedidos:    { title: 'Pedidos',            sub: solosPedidos.length === 1 ? '1 pedido en total' : `${solosPedidos.length} pedidos en total` },
     estimados:  { title: 'Estimados',          sub: 'Solicitudes esperando cotización' },
-    talleres:   { title: 'Talleres',           sub: `${talleres.length} talleres registrados` },
+    talleres:   { title: 'Talleres',           sub: talleres.length === 1 ? '1 taller registrado' : `${talleres.length} talleres registrados` },
     nuevo:      { title: 'Nuevo pedido',       sub: 'Registra un folio a nombre de un taller' },
     cotizacion: { title: 'Nueva cotización',   sub: 'Crea una cotización con estimado incluido' },
     facturas:   { title: 'Facturas',           sub: 'Cuentas corrientes por taller y marca' },
