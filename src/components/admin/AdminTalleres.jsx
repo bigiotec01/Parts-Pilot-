@@ -278,11 +278,13 @@ export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos,
         </form>
       )}
 
-      {/* Grid de talleres */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      {/* Grid de talleres — auto-fit para que las tarjetas se repartan el ancho
+          disponible en vez de quedar apretadas a 1/3 de la fila cuando hay pocas. */}
+      <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
         {talleres.map(t => {
           const pedidosTaller = pedidos.filter(p => p.tallerId === t.uid);
           const activos = pedidosTaller.filter(p => p.estado !== 'entregado').length;
+          const subUsuarios = tallerUsuarios.filter(u => u.tallerId === t.uid).length;
 
           if (editingId === t.uid) {
             return (
@@ -330,54 +332,59 @@ export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos,
           const expanded = expandedIds.has(t.uid);
 
           return (
-            <div key={t.uid} className="rounded-[15px] border p-[18px]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+            <div key={t.uid} className="rounded-[18px] border p-6" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
               {/* Cabecera (clic para desplegar/contraer) */}
-              <button type="button" onClick={() => toggleExpanded(t.uid)} className="w-full flex items-center gap-3 mb-4 text-left">
-                <div className="w-11 h-11 rounded-[12px] flex items-center justify-center text-[15px] font-extrabold flex-shrink-0" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text2)' }}>
+              <button type="button" onClick={() => toggleExpanded(t.uid)} className="w-full flex items-center gap-3.5 mb-5 text-left">
+                <div className="w-[54px] h-[54px] rounded-[15px] flex items-center justify-center text-[18px] font-extrabold flex-shrink-0" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text2)', border: '1px solid var(--pp-border3)' }}>
                   {initials(t.nombre)}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-[14px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{t.nombre}</h3>
-                  <p className="text-[12px] truncate" style={{ color: 'var(--pp-text2)' }}>{t.contacto}</p>
+                  <h3 className="text-[16.5px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{t.nombre}</h3>
+                  <p className="text-[12.5px] truncate" style={{ color: 'var(--pp-text2)' }}>{t.contacto || 'Sin contacto asignado'}</p>
                 </div>
-                <ChevronDown className={`w-4 h-4 flex-shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`} style={{ color: 'var(--pp-text3)' }} />
+                <ChevronDown className={`w-4.5 h-4.5 flex-shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`} style={{ color: 'var(--pp-text3)' }} />
               </button>
 
+              {/* Mini-estadísticas */}
+              <div className="grid grid-cols-2 gap-2.5 mb-5">
+                <div className="rounded-[12px] px-3 py-3 text-center" style={{ background: 'var(--pp-surface)' }}>
+                  <p className="text-[21px] font-extrabold leading-none" style={{ color: activos > 0 ? '#3b82f6' : 'var(--pp-text)' }}>{activos}</p>
+                  <p className="text-[11px] mt-1.5 font-medium" style={{ color: 'var(--pp-text2)' }}>Pedido{activos !== 1 ? 's' : ''} activo{activos !== 1 ? 's' : ''}</p>
+                </div>
+                <div className="rounded-[12px] px-3 py-3 text-center" style={{ background: 'var(--pp-surface)' }}>
+                  <p className="text-[21px] font-extrabold leading-none" style={{ color: 'var(--pp-text)' }}>{subUsuarios + 1}</p>
+                  <p className="text-[11px] mt-1.5 font-medium" style={{ color: 'var(--pp-text2)' }}>Usuario{subUsuarios !== 0 ? 's' : ''}</p>
+                </div>
+              </div>
+
               {/* Datos de contacto */}
-              <div className="space-y-1.5 mb-4">
+              <div className="space-y-2 mb-5">
                 {t.telefono && (
-                  <p className="flex items-center gap-2 text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>
+                  <p className="flex items-center gap-2 text-[13px]" style={{ color: 'var(--pp-text2)' }}>
                     <Phone className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--pp-text3)' }} />{t.telefono}
                   </p>
                 )}
                 {t.email && (
-                  <p className="flex items-center gap-2 text-[12.5px] min-w-0" style={{ color: 'var(--pp-text2)' }}>
+                  <p className="flex items-center gap-2 text-[13px] min-w-0" style={{ color: 'var(--pp-text2)' }}>
                     <Mail className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--pp-text3)' }} /><span className="truncate">{t.email}</span>
                   </p>
                 )}
+                <p className="text-[12px]" style={{ color: 'var(--pp-text3)' }}>
+                  Usuario: <span className="font-mono font-semibold" style={{ color: 'var(--pp-text2)' }}>{t.usuario || '—'}</span>
+                </p>
               </div>
 
-              {/* Pie */}
-              <div className="flex flex-col gap-2 pt-3" style={{ borderTop: '1px dashed var(--pp-border)' }}>
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <span className="text-[11.5px] truncate" style={{ color: 'var(--pp-text2)' }}>
-                    Usuario: <span className="font-mono font-semibold" style={{ color: 'var(--pp-text2)' }}>{t.usuario || '—'}</span>
-                  </span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-[7px] whitespace-nowrap flex-shrink-0" style={{ background: activos > 0 ? 'rgba(59,130,246,0.12)' : 'var(--pp-card)', color: activos > 0 ? '#3b82f6' : 'var(--pp-text3)' }}>
-                    {activos} pedido{activos !== 1 ? 's' : ''} activo{activos !== 1 ? 's' : ''}
-                  </span>
-                </div>
-                <div className="flex items-center justify-end gap-1">
-                  <button onClick={() => onVerPedidos(t.uid)} className="flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[12px] font-bold transition-colors hover:bg-[#1e1e1e] mr-auto" style={{ color: 'var(--pp-text)' }}>
-                    Ver <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                  <button onClick={() => startEdit(t)} className="w-7 h-7 rounded-[8px] flex items-center justify-center transition-colors hover:bg-[#1e1e1e] hover:text-[#a0a0a0]" style={{ color: 'var(--pp-text3)' }} title="Editar">
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
-                  <button onClick={() => { if (window.confirm(`¿Eliminar el taller "${t.nombre}"? Esta acción no se puede deshacer.`)) onDeleteTaller(t.uid); }} className="w-7 h-7 rounded-[8px] flex items-center justify-center transition-colors hover:bg-red-900/30 hover:text-red-400" style={{ color: 'var(--pp-text3)' }} title="Eliminar">
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+              {/* Pie: acciones */}
+              <div className="flex items-center gap-1 pt-4" style={{ borderTop: '1px dashed var(--pp-border)' }}>
+                <button onClick={() => onVerPedidos(t.uid)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-[8px] text-[12.5px] font-bold transition-colors hover:bg-[#1e1e1e] mr-auto" style={{ color: 'var(--pp-text)' }}>
+                  Ver pedidos <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+                <button onClick={() => startEdit(t)} className="w-8 h-8 rounded-[9px] flex items-center justify-center transition-colors hover:bg-[#1e1e1e] hover:text-[#a0a0a0]" style={{ color: 'var(--pp-text3)' }} title="Editar">
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+                <button onClick={() => { if (window.confirm(`¿Eliminar el taller "${t.nombre}"? Esta acción no se puede deshacer.`)) onDeleteTaller(t.uid); }} className="w-8 h-8 rounded-[9px] flex items-center justify-center transition-colors hover:bg-red-900/30 hover:text-red-400" style={{ color: 'var(--pp-text3)' }} title="Eliminar">
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </div>
 
               {/* Sub-usuarios del taller — solo al desplegar la tarjeta */}
