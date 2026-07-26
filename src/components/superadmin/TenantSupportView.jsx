@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { ArrowLeft, ChevronDown, ChevronsUpDown, ChevronUp, Eye, Receipt, Users, Wrench } from 'lucide-react';
-import { db } from '../../firebase';
+import { httpsCallable } from 'firebase/functions';
+import { ArrowLeft, ChevronDown, ChevronsUpDown, ChevronUp, Eye, KeyRound, Receipt, Users, Wrench, X } from 'lucide-react';
+import { db, functions } from '../../firebase';
 import { formatDate } from '../../utils/format';
 import { StatusBadge } from '../shared/StatusBadge';
+import { inputClass } from '../../constants/styles';
 
 const toMs = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime();
 
@@ -51,6 +53,90 @@ function Section({ icon: Icon, title, count, children }) {
   );
 }
 
+function ResetPasswordModal({ miembro, tenantId, onClose }) {
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState('');
+  const [exito, setExito] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (password.length < 6) { setError('La contraseña debe tener al menos 6 caracteres.'); return; }
+    if (password !== confirmPassword) { setError('Las contraseñas no coinciden.'); return; }
+    setGuardando(true);
+    try {
+      const fn = httpsCallable(functions, 'resetearPasswordAdmin');
+      await fn({ uid: miembro.uid || miembro.id, nuevaPassword: password, tenantId });
+      setExito(true);
+      setTimeout(onClose, 1800);
+    } catch (err) {
+      setError(err.message || 'No se pudo resetear la contraseña.');
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
+      <form onSubmit={submit} className="w-full max-w-[400px] rounded-[18px] p-6 space-y-4" style={{ background: 'var(--pp-card)' }}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-[16px] font-bold flex items-center gap-2" style={{ color: 'var(--pp-text)' }}>
+              <KeyRound className="w-4 h-4" /> Resetear contraseña
+            </h2>
+            <p className="text-[12px] mt-0.5" style={{ color: 'var(--pp-text3)' }}>{miembro.nombre} · {miembro.email}</p>
+          </div>
+          <button type="button" onClick={onClose}><X className="w-4 h-4" style={{ color: 'var(--pp-text3)' }} /></button>
+        </div>
+
+        {exito ? (
+          <div className="py-4 text-center text-[14px] font-semibold" style={{ color: '#10b981' }}>
+            ✓ Contraseña actualizada correctamente
+          </div>
+        ) : (
+          <>
+            <div className="space-y-3">
+              <div>
+                <label className="text-[12px] font-semibold mb-1 block" style={{ color: 'var(--pp-text2)' }}>Nueva contraseña</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="mínimo 6 caracteres"
+                  className={inputClass}
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-[12px] font-semibold mb-1 block" style={{ color: 'var(--pp-text2)' }}>Confirmar contraseña</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="repite la contraseña"
+                  className={inputClass}
+                  required
+                />
+              </div>
+            </div>
+            {error && <p className="text-[12.5px]" style={{ color: '#dc2626' }}>{error}</p>}
+            <button
+              type="submit"
+              disabled={guardando}
+              className="w-full py-[11px] rounded-[11px] text-white font-bold text-[14px] disabled:opacity-50"
+              style={{ background: 'var(--pp-accent)' }}
+            >
+              {guardando ? 'Actualizando…' : 'Actualizar contraseña'}
+            </button>
+          </>
+        )}
+      </form>
+    </div>
+  );
+}
+
 export function TenantSupportView({ empresa, onExit }) {
   const talleres = useTenantCollection(empresa.id, 'talleres');
   const pedidos = useTenantCollection(empresa.id, 'pedidos');
@@ -59,6 +145,7 @@ export function TenantSupportView({ empresa, onExit }) {
 
   const [sortBy, setSortBy] = useState('fecha');
   const [sortDir, setSortDir] = useState('desc');
+  const [resetTarget, setResetTarget] = useState(null);
 
   const getTaller = (id) => talleres.find(t => t.uid === id);
 
@@ -86,6 +173,7 @@ export function TenantSupportView({ empresa, onExit }) {
       if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir;
       return String(va).localeCompare(String(vb), 'es') * dir;
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pedidos, talleres, sortBy, sortDir]);
 
   return (
@@ -160,9 +248,19 @@ export function TenantSupportView({ empresa, onExit }) {
           ) : (
             <div className="divide-y" style={{ borderColor: 'var(--pp-border2)' }}>
               {equipo.map(m => (
-                <div key={m.uid} className="flex items-center justify-between px-5 py-2.5">
-                  <span className="text-[13px] font-semibold" style={{ color: 'var(--pp-text)' }}>{m.nombre}</span>
-                  <span className="text-[12px]" style={{ color: 'var(--pp-text3)' }}>{m.email} · {m.rol === 'admin' ? 'Administrador' : 'Miembro'}</span>
+                <div key={m.uid || m.id} className="flex items-center justify-between px-5 py-2.5">
+                  <div>
+                    <span className="text-[13px] font-semibold" style={{ color: 'var(--pp-text)' }}>{m.nombre}</span>
+                    <span className="text-[12px] ml-2" style={{ color: 'var(--pp-text3)' }}>{m.email} · {m.rol === 'admin' ? 'Administrador' : 'Miembro'}</span>
+                  </div>
+                  <button
+                    onClick={() => setResetTarget(m)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                    style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}
+                    title="Resetear contraseña"
+                  >
+                    <KeyRound className="w-3.5 h-3.5" /> Resetear
+                  </button>
                 </div>
               ))}
             </div>
@@ -175,6 +273,14 @@ export function TenantSupportView({ empresa, onExit }) {
           )}
         </Section>
       </div>
+
+      {resetTarget && (
+        <ResetPasswordModal
+          miembro={resetTarget}
+          tenantId={empresa.id}
+          onClose={() => setResetTarget(null)}
+        />
+      )}
     </div>
   );
 }

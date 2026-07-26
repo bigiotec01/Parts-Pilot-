@@ -9,6 +9,7 @@ const ACCION_LABELS = {
   editar_empresa: 'Editó la empresa',
   cambiar_estado_empresa: 'Cambió el estado de la empresa',
   eliminar_empresa: 'Eliminó la empresa',
+  resetear_password_admin: 'Reseteo contraseña de un admin',
 };
 
 function detalleTexto(log) {
@@ -22,6 +23,8 @@ function detalleTexto(log) {
       return `${d.tenantId} → ${d.estado === 'activa' ? 'Activa' : 'Suspendida'}`;
     case 'eliminar_empresa':
       return `${d.tenantId} · ${d.documentosEliminados ?? 0} documentos, ${d.cuentasAuthEliminadas ?? 0} cuentas`;
+    case 'resetear_password_admin':
+      return `uid: ${d.uid}${d.tenantId ? ` · empresa: ${d.tenantId}` : ''}`;
     default:
       return d.tenantId || '';
   }

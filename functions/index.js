@@ -157,6 +157,35 @@ exports.actualizarEstadoEmpresa = onCall(async (request) => {
   return { ok: true };
 });
 
+const SUPERADMIN_OWNER_EMAIL = 'bigio_tec@me.com';
+
+// Resetea la contraseña de un admin de una empresa.
+// Restringido exclusivamente a la cuenta propietaria de la plataforma.
+exports.resetearPasswordAdmin = onCall(async (request) => {
+  await requireSuperAdmin(request);
+  const callerEmail = request.auth?.token?.email || '';
+  if (callerEmail !== SUPERADMIN_OWNER_EMAIL) {
+    throw new HttpsError('permission-denied', 'Solo el propietario de la plataforma puede resetear contraseñas.');
+  }
+  const { uid, nuevaPassword, tenantId } = request.data || {};
+  if (!uid) throw new HttpsError('invalid-argument', 'Falta el uid del usuario.');
+  if (!nuevaPassword || String(nuevaPassword).length < 6) {
+    throw new HttpsError('invalid-argument', 'La contraseña debe tener al menos 6 caracteres.');
+  }
+  // Verificar que el usuario pertenece al tenant indicado (seguridad extra)
+  if (tenantId) {
+    const adminSnap = await db.collection('admins').doc(uid).get();
+    const tallerSnap = await db.collection('tallerUsuarios').doc(uid).get();
+    const doc = adminSnap.exists ? adminSnap : tallerSnap.exists ? tallerSnap : null;
+    if (!doc || doc.data().tenantId !== tenantId) {
+      throw new HttpsError('permission-denied', 'El usuario no pertenece a esta empresa.');
+    }
+  }
+  await admin.auth().updateUser(uid, { password: nuevaPassword });
+  await registrarAuditLog(request, 'resetear_password_admin', { uid, tenantId: tenantId || null });
+  return { ok: true };
+});
+
 // Edita datos básicos de una empresa ya creada. Solo el Super Admin.
 exports.actualizarEmpresa = onCall(async (request) => {
   await requireSuperAdmin(request);
