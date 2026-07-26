@@ -51,7 +51,7 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
           </div>
           {isCotizando ? (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0" style={{ background: '#eef4ff', color: '#2563eb' }}>
-              <FileText className="w-3 h-3" /> Cotizando
+              <FileText className="w-3 h-3" /> Esperando aprobación
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0" style={{ background: 'var(--pp-active-bg)', color: 'var(--pp-text8)' }}>
@@ -96,7 +96,7 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
         {hasAct && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#f59e0b' }} />}
         {isCotizando ? (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0" style={{ background: '#eef4ff', color: '#2563eb' }}>
-            <FileText className="w-3 h-3" /> Cotizando
+            <FileText className="w-3 h-3" /> Esperando aprobación
           </span>
         ) : (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0" style={{ background: 'var(--pp-active-bg)', color: 'var(--pp-text8)' }}>
@@ -136,7 +136,7 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
       )}
       {cotizando.length > 0 && (
         <div>
-          <p className="text-[11px] font-bold uppercase mb-3" style={{ color: 'var(--pp-text9)', letterSpacing: '.06em' }}>Cotizando — esperando respuesta · {cotizando.length}</p>
+          <p className="text-[11px] font-bold uppercase mb-3" style={{ color: 'var(--pp-text9)', letterSpacing: '.06em' }}>Esperando aprobación del taller · {cotizando.length}</p>
           {view === 'lista' ? (
             <div className="rounded-[15px] border overflow-hidden" style={{ borderColor: 'var(--pp-border)' }}>
               {[...cotizando].sort((a,b) => { const t=f=>f?.toDate?f.toDate().getTime():new Date(f+'T00:00:00').getTime(); return t(a.fecha)-t(b.fecha); }).map(p => <Row key={p.id} p={p} />)}
