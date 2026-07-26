@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { ArrowLeft, ChevronDown, ChevronsUpDown, ChevronUp, Eye, KeyRound, Receipt, Users, Wrench, X } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronsUpDown, ChevronUp, Eye, KeyRound, Receipt, User, Users, Wrench, X } from 'lucide-react';
 import { db, functions } from '../../firebase';
 import { formatDate } from '../../utils/format';
 import { StatusBadge } from '../shared/StatusBadge';
@@ -32,7 +32,7 @@ function useTenantCollection(tenantId, name) {
     if (!tenantId) return;
     const unsub = onSnapshot(
       query(collection(db, name), where('tenantId', '==', tenantId)),
-      (snap) => setDocs(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      (snap) => setDocs(snap.docs.map(d => ({ id: d.id, uid: d.id, ...d.data() }))),
       (err) => console.error(`TenantSupportView ${name}:`, err.code)
     );
     return unsub;
@@ -142,6 +142,7 @@ export function TenantSupportView({ empresa, onExit }) {
   const pedidos = useTenantCollection(empresa.id, 'pedidos');
   const facturas = useTenantCollection(empresa.id, 'facturas');
   const equipo = useTenantCollection(empresa.id, 'admins');
+  const tallerUsuarios = useTenantCollection(empresa.id, 'tallerUsuarios');
 
   const [sortBy, setSortBy] = useState('fecha');
   const [sortDir, setSortDir] = useState('desc');
@@ -203,8 +204,45 @@ export function TenantSupportView({ empresa, onExit }) {
             <div className="divide-y" style={{ borderColor: 'var(--pp-border2)' }}>
               {talleres.map(t => (
                 <div key={t.uid} className="flex items-center justify-between px-5 py-2.5" style={{ borderColor: 'var(--pp-border2)' }}>
-                  <span className="text-[13px] font-semibold" style={{ color: 'var(--pp-text)' }}>{t.nombre}</span>
-                  <span className="text-[12px]" style={{ color: 'var(--pp-text3)' }}>{t.contacto || t.telefono || '—'}</span>
+                  <div>
+                    <span className="text-[13px] font-semibold" style={{ color: 'var(--pp-text)' }}>{t.nombre}</span>
+                    <span className="text-[12px] ml-2" style={{ color: 'var(--pp-text3)' }}>{t.contacto || t.telefono || '—'}</span>
+                  </div>
+                  {t.email && (
+                    <button
+                      onClick={() => setResetTarget(t)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                      style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}
+                      title="Resetear contraseña"
+                    >
+                      <KeyRound className="w-3.5 h-3.5" /> Resetear
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+
+        <Section icon={User} title="Usuarios de talleres" count={tallerUsuarios.length}>
+          {tallerUsuarios.length === 0 ? (
+            <p className="px-5 py-6 text-[13px]" style={{ color: 'var(--pp-text3)' }}>Sin sub-usuarios registrados.</p>
+          ) : (
+            <div className="divide-y" style={{ borderColor: 'var(--pp-border2)' }}>
+              {tallerUsuarios.map(tu => (
+                <div key={tu.uid} className="flex items-center justify-between px-5 py-2.5">
+                  <div>
+                    <span className="text-[13px] font-semibold" style={{ color: 'var(--pp-text)' }}>{tu.nombre}</span>
+                    <span className="text-[12px] ml-2" style={{ color: 'var(--pp-text3)' }}>{tu.email} · {getTaller(tu.tallerId)?.nombre || 'taller desconocido'}</span>
+                  </div>
+                  <button
+                    onClick={() => setResetTarget(tu)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                    style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}
+                    title="Resetear contraseña"
+                  >
+                    <KeyRound className="w-3.5 h-3.5" /> Resetear
+                  </button>
                 </div>
               ))}
             </div>

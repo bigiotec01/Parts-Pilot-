@@ -174,9 +174,12 @@ exports.resetearPasswordAdmin = onCall(async (request) => {
   }
   // Verificar que el usuario pertenece al tenant indicado (seguridad extra)
   if (tenantId) {
-    const adminSnap = await db.collection('admins').doc(uid).get();
-    const tallerSnap = await db.collection('tallerUsuarios').doc(uid).get();
-    const doc = adminSnap.exists ? adminSnap : tallerSnap.exists ? tallerSnap : null;
+    const [adminSnap, tallerUsuarioSnap, tallerSnap] = await Promise.all([
+      db.collection('admins').doc(uid).get(),
+      db.collection('tallerUsuarios').doc(uid).get(),
+      db.collection('talleres').doc(uid).get(),
+    ]);
+    const doc = adminSnap.exists ? adminSnap : tallerUsuarioSnap.exists ? tallerUsuarioSnap : tallerSnap.exists ? tallerSnap : null;
     if (!doc || doc.data().tenantId !== tenantId) {
       throw new HttpsError('permission-denied', 'El usuario no pertenece a esta empresa.');
     }
