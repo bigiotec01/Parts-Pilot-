@@ -1,8 +1,56 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read, write: if request.auth != null;
+
+    function pedido(pedidoId) {
+      return firestore.get(/databases/(default)/documents/pedidos/$(pedidoId)).data;
+    }
+
+    function tenantActiva(tenantId) {
+      return firestore.get(/databases/(default)/documents/empresas/$(tenantId)).data.estado == 'activa';
+    }
+
+    function callerAdminData() {
+      return firestore.get(/databases/(default)/documents/admins/$(request.auth.uid)).data;
+    }
+
+    // Admin/miembro de la misma empresa del pedido, con acceso a ese taller.
+    function isAdminOfPedido(pedidoId) {
+      let p = pedido(pedidoId);
+      return firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid)) &&
+        callerAdminData().tenantId == p.tenantId && tenantActiva(p.tenantId) &&
+        (callerAdminData().tallerIds == null || (p.tallerId in callerAdminData().tallerIds));
+    }
+
+    // El taller dueño del pedido, o un sub-usuario de ese mismo taller.
+    function isTallerMemberOfPedido(pedidoId) {
+      let tallerId = pedido(pedidoId).tallerId;
+      return request.auth.uid == tallerId ||
+        (firestore.exists(/databases/(default)/documents/tallerUsuarios/$(request.auth.uid)) &&
+         firestore.get(/databases/(default)/documents/tallerUsuarios/$(request.auth.uid)).data.tallerId == tallerId);
+    }
+
+    function canAccessPedido(pedidoId) {
+      return request.auth != null && (
+        isAdminOfPedido(pedidoId) ||
+        (isTallerMemberOfPedido(pedidoId) && tenantActiva(pedido(pedidoId).tenantId)) ||
+        firestore.exists(/databases/(default)/documents/superadmins/$(request.auth.uid))
+      );
+    }
+
+    // Fotos adjuntas a una solicitud nueva de un taller.
+    match /solicitudes/{pedidoId}/{fileName} {
+      allow read, write: if canAccessPedido(pedidoId);
+    }
+
+    // Archivos de la cotización/estimado de un pedido.
+    match /estimados/{pedidoId}/{fileName} {
+      allow read, write: if canAccessPedido(pedidoId);
+    }
+
+    // Adjuntos del chat de un pedido.
+    match /chats/{pedidoId}/{fileName} {
+      allow read, write: if canAccessPedido(pedidoId);
     }
   }
 }

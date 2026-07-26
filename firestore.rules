@@ -93,7 +93,13 @@ service cloud.firestore {
       allow read:   if request.auth != null &&
         (isAdminOfTenant(resource.data.tenantId) || request.auth.uid == uid || isPlatformSuperAdmin());
       allow create: if false;
-      allow update: if request.auth.uid == uid ||
+      // El propio usuario puede editar su doc (ej. su nombre), pero nunca su rol, permisos,
+      // tenant o talleres asignados — si no, un "miembro" podría auto-ascenderse a admin.
+      allow update: if (request.auth.uid == uid &&
+          request.resource.data.rol == resource.data.rol &&
+          request.resource.data.tenantId == resource.data.tenantId &&
+          request.resource.data.permisos == resource.data.permisos &&
+          request.resource.data.tallerIds == resource.data.tallerIds) ||
         (isAdminOfTenant(resource.data.tenantId) && isSuperAdmin());
       allow delete: if isAdminOfTenant(resource.data.tenantId) && isSuperAdmin() && request.auth.uid != uid;
     }
@@ -104,7 +110,11 @@ service cloud.firestore {
       allow read:   if request.auth != null &&
         ((isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(uid)) || isTallerMember(uid) || request.auth.uid == uid || isPlatformSuperAdmin());
       allow create: if false;
-      allow update, delete: if isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(uid);
+      // El propio taller puede editar su perfil (nombre/contacto/teléfono/email), pero nunca
+      // cambiar su tenantId — eso rompería el aislamiento entre empresas.
+      allow update: if (isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(uid)) ||
+        (request.auth != null && request.auth.uid == uid && request.resource.data.tenantId == resource.data.tenantId);
+      allow delete: if isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(uid);
     }
 
     // Sub-usuarios: pueden leer su propio doc (para obtener tallerId en login).
@@ -112,7 +122,12 @@ service cloud.firestore {
     match /tallerUsuarios/{uid} {
       allow read:   if (isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(resource.data.tallerId)) || (request.auth != null && request.auth.uid == uid) || isPlatformSuperAdmin();
       allow create: if false;
-      allow update: if (isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(resource.data.tallerId)) || (request.auth != null && request.auth.uid == uid);
+      // El propio sub-usuario puede editar su doc (ej. su nombre), pero nunca su tallerId ni
+      // tenantId — si no, podría "mudarse" a otro taller/empresa y leer sus pedidos y facturas.
+      allow update: if (isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(resource.data.tallerId)) ||
+        (request.auth != null && request.auth.uid == uid &&
+          request.resource.data.tallerId == resource.data.tallerId &&
+          request.resource.data.tenantId == resource.data.tenantId);
       allow delete: if isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(resource.data.tallerId);
     }
 
