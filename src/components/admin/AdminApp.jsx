@@ -20,7 +20,7 @@ import { AdminOrderDrawer } from './AdminOrderDrawer';
 import { AdminHistorial } from './AdminHistorial';
 import { AdminMensajes, unreadTallerCount } from './AdminMensajes';
 
-export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, empresa, onActualizarMarcasFactura, currentUid, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onDeleteMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onAgregarFactura, onActualizarFactura, onEliminarFactura, backups, onCrearBackup, onRestaurarBackup, onEliminarBackup, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario, onResetPassword, isPlatformSuperAdmin, onOpenSuperAdmin }) {
+export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, empresa, onActualizarMarcasFactura, currentUid, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onDeleteMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onImportarPiezas, onAgregarFactura, onActualizarFactura, onEliminarFactura, backups, onCrearBackup, onRestaurarBackup, onEliminarBackup, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario, onResetPassword, isPlatformSuperAdmin, onOpenSuperAdmin }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
@@ -234,6 +234,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
             onDeleteOrder={async (id) => { await onDeleteOrder(id); setSelectedId(null); }}
             onUpdateNotes={onUpdateNotes}
             onUpdateReferencias={onUpdateReferencias}
+            onImportarPiezas={onImportarPiezas}
             onSendMessage={onSendMessage}
             onDeleteMessage={onDeleteMessage}
             pedidos={todosPedidos}
@@ -274,6 +275,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
           onDeleteOrder={async (id) => { await onDeleteOrder(id); setSelectedId(null); }}
           onUpdateNotes={onUpdateNotes}
           onUpdateReferencias={onUpdateReferencias}
+          onImportarPiezas={onImportarPiezas}
           onSendMessage={onSendMessage}
           onDeleteMessage={onDeleteMessage}
           initialTab={selectedDrawerTab}

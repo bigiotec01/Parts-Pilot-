@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
-  CheckCircle2, Clock, FileText, X, ThumbsUp, ThumbsDown, AlertCircle, ClipboardList, Calendar, Send, MessageSquare, Paperclip, Mail, Trash2, Share2, MessageCircle, ChevronDown, ChevronUp, Sparkles
+  CheckCircle2, Clock, FileText, X, ThumbsUp, ThumbsDown, AlertCircle, ClipboardList, Calendar, Send, MessageSquare, Paperclip, Mail, Trash2, Share2, MessageCircle, ChevronDown, ChevronUp, Sparkles, Hourglass, FileSpreadsheet
 } from 'lucide-react';
 import { STATUS_CONFIG, STATUS_ORDER } from '../../constants/status';
 import { StatusBadge, StatusStepper } from '../shared/StatusBadge';
@@ -8,7 +8,8 @@ import { OrderChat } from '../shared/OrderChat';
 import { FormField } from '../shared/FormField';
 import { Modal } from '../shared/Modal';
 import { inputClass } from '../../constants/styles';
-import { avgDeliveryLeadDays, suggestDeliveryDate, cleanText, filesOf } from '../../utils/format';
+import { avgDeliveryLeadDays, suggestDeliveryDate, cleanText, filesOf, formatDate } from '../../utils/format';
+import { parsePiezasExcel, mergePiezas } from '../../utils/piezasExcel';
 
 const AUTO_DATE_STATES = ['en_transito', 'recibido'];
 
@@ -29,7 +30,7 @@ function TallerNotes({ text }) {
   );
 }
 
-export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstimate, onDeleteOrder, onUpdateNotes, onUpdateReferencias, onSendMessage, onDeleteMessage, pedidos = [], initialTab = 'detalles' }) {
+export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstimate, onDeleteOrder, onUpdateNotes, onUpdateReferencias, onImportarPiezas, onSendMessage, onDeleteMessage, pedidos = [], initialTab = 'detalles' }) {
   const [tab, setTab] = useState(initialTab);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   useEffect(() => {
@@ -135,6 +136,26 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
 
   const handleRemoveFile = (idx) => setArchivos(prev => prev.filter((_, i) => i !== idx));
 
+  const [piezasImportando, setPiezasImportando] = useState(false);
+  const [piezasError, setPiezasError] = useState('');
+  const handleImportarPiezas = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    setPiezasError('');
+    setPiezasImportando(true);
+    try {
+      const buffer = await file.arrayBuffer();
+      const filas = parsePiezasExcel(buffer);
+      const piezas = mergePiezas(order.piezas, filas);
+      await onImportarPiezas(order.id, piezas);
+    } catch (err) {
+      setPiezasError(err.message || 'No se pudo leer el archivo.');
+    } finally {
+      setPiezasImportando(false);
+    }
+  };
+
   const openDatePicker = (e) => { try { e.target.showPicker(); } catch (_) {} };
 
   const initials = (n) => (n || '').split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
@@ -176,6 +197,47 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
             <p className="text-[11px] mt-1 flex items-center gap-1" style={{ color: '#a78bfa' }}><Sparkles className="w-3 h-3" /> Sugerida automáticamente{avgLeadDays ? ` (promedio histórico: ${avgLeadDays} días)` : ''}. Puedes ajustarla.</p>
           ) : fechaEntrega && <p className="text-[11px] mt-1 flex items-center gap-1" style={{ color: '#2563eb' }}><Calendar className="w-3 h-3" /> El taller verá esta fecha en su portal.</p>}
         </FormField>
+      )}
+
+      {(estado === 'esperando_piezas' || order.piezas?.length > 0) && (
+        <div className="rounded-[12px] p-3" style={{ background: 'var(--pp-card)' }}>
+          <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+            <p className="text-[10.5px] font-bold uppercase flex items-center gap-1.5" style={{ color: 'var(--pp-text9)', letterSpacing: '.05em' }}>
+              <Hourglass className="w-3.5 h-3.5" /> Piezas en espera
+              {order.piezas?.length > 0 && (
+                <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>
+                  · {order.piezas.filter(p => p.estado === 'recibida').length} de {order.piezas.length} recibidas
+                </span>
+              )}
+            </p>
+            {estado === 'esperando_piezas' && (
+              <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] border text-[12px] font-semibold cursor-pointer hover:bg-[#1e1e1e] transition-colors flex-shrink-0" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+                <FileSpreadsheet className="w-3.5 h-3.5" /> {piezasImportando ? 'Leyendo…' : 'Subir Excel'}
+                <input type="file" accept=".xlsx,.xls" onChange={handleImportarPiezas} disabled={piezasImportando} className="hidden" />
+              </label>
+            )}
+          </div>
+          {piezasError && <p className="text-[12px] mb-2" style={{ color: '#dc2626' }}>{piezasError}</p>}
+          {!order.piezas?.length ? (
+            <p className="text-[12.5px]" style={{ color: 'var(--pp-text3)' }}>Sube el reporte de piezas (.xlsx) para ver aquí cuáles ya llegaron.</p>
+          ) : (
+            <div className="space-y-1.5">
+              {order.piezas.map(p => (
+                <div key={p.numeroPieza} className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-[8px]" style={{ background: 'var(--pp-input-bg)' }}>
+                  <div className="min-w-0">
+                    <p className="text-[12.5px] font-mono font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.numeroPieza}</p>
+                    {p.descripcion && <p className="text-[11px] truncate" style={{ color: 'var(--pp-text3)' }}>{p.descripcion}</p>}
+                  </div>
+                  <span className="flex items-center gap-1 text-[11.5px] font-semibold flex-shrink-0 whitespace-nowrap">
+                    {p.estado === 'recibida'
+                      ? <span style={{ color: '#059669' }}>🟢 Recibida{p.fechaRecibida && <span className="font-normal" style={{ color: 'var(--pp-text3)' }}> · {formatDate(p.fechaRecibida)}</span>}</span>
+                      : <span style={{ color: '#d97706' }}>🟡 Pendiente</span>}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       <div className="grid grid-cols-2 gap-3">

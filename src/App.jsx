@@ -3,7 +3,7 @@ import { useAuth } from './useAuth';
 import {
   usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado,
   responderEstimado, enviarMensaje, eliminarMensaje, crearTaller, eliminarTaller, eliminarPedido,
-  actualizarTaller, actualizarNotasInternas, actualizarReferencias, useFacturas, agregarFactura,
+  actualizarTaller, actualizarNotasInternas, actualizarReferencias, importarPiezas, useFacturas, agregarFactura,
   actualizarFactura, eliminarFactura, archivarFactura, useAdminEquipo, crearAdminUsuario,
   actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario,
   eliminarTallerUsuario, actualizarTallerUsuario, guardarFCMToken, eliminarFCMToken,
@@ -126,6 +126,7 @@ function AppContent() {
           onUpdateTaller={(uid, data) => actualizarTaller(uid, data)}
           onUpdateNotes={(id, notas) => actualizarNotasInternas(id, notas)}
           onUpdateReferencias={(id, refs) => actualizarReferencias(id, refs)}
+          onImportarPiezas={(id, piezas) => importarPiezas(id, piezas)}
           onAgregarFactura={(data) => agregarFactura({ ...data, tenantId: perfil?.tenantId })}
           onActualizarFactura={(id, data) => actualizarFactura(id, data)}
           onEliminarFactura={(id) => eliminarFactura(id)}

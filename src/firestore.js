@@ -277,6 +277,14 @@ export async function actualizarReferencias(pedidoId, { numeroPO, numeroOrden })
   await updateDoc(doc(db, 'pedidos', pedidoId), { numeroPO, numeroOrden });
 }
 
+// ── Piezas en espera (importación de Excel "Esperando piezas") ─────
+// Reescribe el arreglo completo de piezas ya fusionado (ver mergePiezas en
+// utils/piezasExcel.js) — mismo patrón que eliminarMensaje: el merge se
+// calcula en el cliente y aquí solo se persiste el resultado.
+export async function importarPiezas(pedidoId, piezas) {
+  await updateDoc(doc(db, 'pedidos', pedidoId), { piezas, piezasUltimaImportacion: serverTimestamp() });
+}
+
 // ── Eliminar pedido (admin) ─────────────────────────────────────────
 export async function eliminarPedido(pedidoId) {
   await deleteDoc(doc(db, 'pedidos', pedidoId));
