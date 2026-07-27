@@ -79,12 +79,36 @@ export function mergePiezas(piezasActuales, filasExcel) {
       continue;
     }
     if (fila.descripcion && !existente.descripcion) existente.descripcion = fila.descripcion;
-    if (fila.recibida && existente.estado !== 'recibida') {
+    // Solo "pendiente" puede pasar a "recibida" vía Excel — una pieza agregada
+    // manualmente ("en_tienda") o ya recibida nunca se toca desde acá.
+    if (fila.recibida && existente.estado === 'pendiente') {
       existente.estado = 'recibida';
       existente.fechaRecibida = fila.fechaRecibida;
       existente.ultimaActualizacion = ahora;
     }
   }
 
+  return piezas;
+}
+
+// Agrega a mano una pieza que ya está físicamente en la tienda pero no pasó
+// por el reporte del proveedor (ej. quedó de un pedido anterior, stock propio).
+// Queda marcada "en_tienda" — distinta de "recibida" (que solo viene del Excel).
+export function agregarPiezaManual(piezasActuales, { numeroPieza, descripcion }) {
+  const numero = String(numeroPieza || '').trim();
+  if (!numero) throw new Error('Ingresa un número de pieza.');
+  const piezas = (piezasActuales || []).map(p => ({ ...p }));
+  if (piezas.some(p => p.numeroPieza === numero)) {
+    throw new Error(`La pieza ${numero} ya está en la lista.`);
+  }
+  const ahora = new Date();
+  piezas.push({
+    numeroPieza: numero,
+    descripcion: String(descripcion || '').trim(),
+    estado: 'en_tienda',
+    fechaRecibida: null,
+    primeraDeteccion: ahora,
+    ultimaActualizacion: ahora,
+  });
   return piezas;
 }

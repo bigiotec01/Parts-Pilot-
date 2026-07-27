@@ -1,15 +1,16 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
-  CheckCircle2, Clock, FileText, X, ThumbsUp, ThumbsDown, AlertCircle, ClipboardList, Calendar, Send, MessageSquare, Paperclip, Mail, Trash2, Share2, MessageCircle, ChevronDown, ChevronUp, Sparkles, Hourglass, FileSpreadsheet
+  CheckCircle2, Clock, FileText, X, ThumbsUp, ThumbsDown, AlertCircle, ClipboardList, Calendar, Send, MessageSquare, Paperclip, Mail, Trash2, Share2, MessageCircle, ChevronDown, ChevronUp, Sparkles, Hourglass, FileSpreadsheet, Plus
 } from 'lucide-react';
 import { STATUS_CONFIG, STATUS_ORDER } from '../../constants/status';
 import { StatusBadge, StatusStepper } from '../shared/StatusBadge';
 import { OrderChat } from '../shared/OrderChat';
 import { FormField } from '../shared/FormField';
 import { Modal } from '../shared/Modal';
+import { QuickActionsMenu } from '../shared/QuickActionsMenu';
 import { inputClass } from '../../constants/styles';
 import { avgDeliveryLeadDays, suggestDeliveryDate, cleanText, filesOf, formatDate } from '../../utils/format';
-import { parsePiezasExcel, mergePiezas } from '../../utils/piezasExcel';
+import { parsePiezasExcel, mergePiezas, agregarPiezaManual } from '../../utils/piezasExcel';
 
 const AUTO_DATE_STATES = ['en_transito', 'recibido'];
 
@@ -136,6 +137,7 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
 
   const handleRemoveFile = (idx) => setArchivos(prev => prev.filter((_, i) => i !== idx));
 
+  const piezasFileRef = useRef(null);
   const [piezasImportando, setPiezasImportando] = useState(false);
   const [piezasError, setPiezasError] = useState('');
   const handleImportarPiezas = async (e) => {
@@ -153,6 +155,26 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
       setPiezasError(err.message || 'No se pudo leer el archivo.');
     } finally {
       setPiezasImportando(false);
+    }
+  };
+
+  const [showAgregarPieza, setShowAgregarPieza] = useState(false);
+  const [manualNumero, setManualNumero] = useState('');
+  const [manualDescripcion, setManualDescripcion] = useState('');
+  const [manualError, setManualError] = useState('');
+  const [manualGuardando, setManualGuardando] = useState(false);
+  const handleAgregarPiezaManual = async (e) => {
+    e.preventDefault();
+    setManualError('');
+    setManualGuardando(true);
+    try {
+      const piezas = agregarPiezaManual(order.piezas, { numeroPieza: manualNumero, descripcion: manualDescripcion });
+      await onImportarPiezas(order.id, piezas);
+      setManualNumero(''); setManualDescripcion(''); setShowAgregarPieza(false);
+    } catch (err) {
+      setManualError(err.message || 'No se pudo agregar la pieza.');
+    } finally {
+      setManualGuardando(false);
     }
   };
 
@@ -206,20 +228,23 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
               <Hourglass className="w-3.5 h-3.5" /> Piezas en espera
               {order.piezas?.length > 0 && (
                 <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>
-                  · {order.piezas.filter(p => p.estado === 'recibida').length} de {order.piezas.length} recibidas
+                  · {order.piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda').length} de {order.piezas.length} en tienda
                 </span>
               )}
             </p>
             {estado === 'esperando_piezas' && (
-              <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] border text-[12px] font-semibold cursor-pointer hover:bg-[#1e1e1e] transition-colors flex-shrink-0" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
-                <FileSpreadsheet className="w-3.5 h-3.5" /> {piezasImportando ? 'Leyendo…' : 'Subir Excel'}
-                <input type="file" accept=".xlsx,.xls" onChange={handleImportarPiezas} disabled={piezasImportando} className="hidden" />
-              </label>
+              <>
+                <input ref={piezasFileRef} type="file" accept=".xlsx,.xls" onChange={handleImportarPiezas} disabled={piezasImportando} className="hidden" />
+                <QuickActionsMenu size="sm" items={[
+                  { label: piezasImportando ? 'Leyendo…' : 'Subir Excel', icon: FileSpreadsheet, disabled: piezasImportando, onClick: () => piezasFileRef.current?.click() },
+                  { label: 'Agregar pieza manualmente', icon: Plus, onClick: () => setShowAgregarPieza(true) },
+                ]} />
+              </>
             )}
           </div>
           {piezasError && <p className="text-[12px] mb-2" style={{ color: '#dc2626' }}>{piezasError}</p>}
           {!order.piezas?.length ? (
-            <p className="text-[12.5px]" style={{ color: 'var(--pp-text3)' }}>Sube el reporte de piezas (.xlsx) para ver aquí cuáles ya llegaron.</p>
+            <p className="text-[12.5px]" style={{ color: 'var(--pp-text3)' }}>Sube el reporte de piezas (.xlsx) o agrega una pieza manualmente para verla aquí.</p>
           ) : (
             <div className="space-y-1.5">
               {order.piezas.map(p => (
@@ -229,15 +254,33 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
                     {p.descripcion && <p className="text-[11px] truncate" style={{ color: 'var(--pp-text3)' }}>{p.descripcion}</p>}
                   </div>
                   <span className="flex items-center gap-1 text-[11.5px] font-semibold flex-shrink-0 whitespace-nowrap">
-                    {p.estado === 'recibida'
-                      ? <span style={{ color: '#059669' }}>🟢 Recibida{p.fechaRecibida && <span className="font-normal" style={{ color: 'var(--pp-text3)' }}> · {formatDate(p.fechaRecibida)}</span>}</span>
-                      : <span style={{ color: '#d97706' }}>🟡 En espera</span>}
+                    {p.estado === 'recibida' && <span style={{ color: '#059669' }}>🟢 Recibida{p.fechaRecibida && <span className="font-normal" style={{ color: 'var(--pp-text3)' }}> · {formatDate(p.fechaRecibida)}</span>}</span>}
+                    {p.estado === 'en_tienda' && <span style={{ color: '#2563eb' }}>🔵 En tienda</span>}
+                    {p.estado === 'pendiente' && <span style={{ color: '#d97706' }}>🟡 En espera</span>}
                   </span>
                 </div>
               ))}
             </div>
           )}
         </div>
+      )}
+
+      {showAgregarPieza && (
+        <Modal title="Agregar pieza manualmente" onClose={() => { setShowAgregarPieza(false); setManualError(''); }}>
+          <form onSubmit={handleAgregarPiezaManual} className="space-y-3">
+            <p className="text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>Para piezas que ya están en la tienda pero no vinieron en el reporte del proveedor.</p>
+            <FormField label="Número de pieza">
+              <input value={manualNumero} onChange={e => setManualNumero(e.target.value)} placeholder="ej. 86610-L2500" autoFocus className={inputClass} />
+            </FormField>
+            <FormField label="Descripción (opcional)">
+              <input value={manualDescripcion} onChange={e => setManualDescripcion(e.target.value)} placeholder="ej. Cover-Rr Bumper, Upr" className={inputClass} />
+            </FormField>
+            {manualError && <p className="text-[12.5px]" style={{ color: '#dc2626' }}>{manualError}</p>}
+            <button type="submit" disabled={manualGuardando || !manualNumero.trim()} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#707070] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: 'var(--pp-accent)' }}>
+              <Plus className="w-4 h-4" /> {manualGuardando ? 'Agregando…' : 'Agregar pieza · En tienda'}
+            </button>
+          </form>
+        </Modal>
       )}
 
       <div className="grid grid-cols-2 gap-3">
