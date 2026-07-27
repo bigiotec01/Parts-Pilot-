@@ -13,6 +13,7 @@ import {
 import { ThemeProvider } from './theme/ThemeContext';
 import { LoginScreen } from './components/shared/LoginScreen';
 import { NotifToast } from './components/shared/NotifToast';
+import { WhatsNewModal } from './components/shared/WhatsNewModal';
 import { AdminApp } from './components/admin/AdminApp';
 import { ClientApp } from './components/client/ClientApp';
 import { SuperAdminApp } from './components/superadmin/SuperAdminApp';
@@ -101,6 +102,7 @@ function AppContent() {
     return (
       <>
         {notifToast && <NotifToast toast={notifToast} onClose={() => setNotifToast(null)} />}
+        <WhatsNewModal role="admin" />
         <AdminApp
           isPlatformSuperAdmin={user.isPlatformSuperAdmin}
           onOpenSuperAdmin={() => setSuperAdminView(true)}
@@ -153,6 +155,7 @@ function AppContent() {
   return (
     <>
       {notifToast && <NotifToast toast={notifToast} onClose={() => setNotifToast(null)} />}
+      <WhatsNewModal role="taller" />
       <ClientApp
         taller={{ ...taller, id: user.uid, tallerId: user.tallerId || user.uid, isSubUser,
           contacto: isSubUser ? (perfil?.contacto || taller.contacto) : taller.contacto }}
