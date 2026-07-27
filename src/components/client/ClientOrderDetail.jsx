@@ -1,5 +1,5 @@
 import {
-  FileText, Calendar, Printer
+  FileText, Calendar, Printer, Hourglass
 } from 'lucide-react';
 import { STATUS_CONFIG } from '../../constants/status';
 import { formatDate, cleanText, filesOf } from '../../utils/format';
@@ -74,6 +74,32 @@ export function ClientOrderDetail({ order, onRespond }) {
         <div>
           <p className="font-medium text-sm mb-3" style={{ color: 'var(--pp-text)' }}>Estatus del pedido</p>
           <StatusStepper estado={order.estado} />
+        </div>
+      )}
+
+      {order.piezas?.length > 0 && (
+        <div className="rounded-lg p-3" style={{ background: 'var(--pp-card)' }}>
+          <p className="font-medium text-sm mb-2 flex items-center gap-2" style={{ color: 'var(--pp-text)' }}>
+            <Hourglass className="w-4 h-4" /> Piezas en espera
+            <span className="text-xs font-normal" style={{ color: 'var(--pp-text3)' }}>
+              · {order.piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda').length} de {order.piezas.length} en tienda
+            </span>
+          </p>
+          <div className="space-y-1.5">
+            {order.piezas.map(p => (
+              <div key={p.numeroPieza} className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-[8px]" style={{ background: 'var(--pp-input-bg)' }}>
+                <div className="min-w-0">
+                  <p className="text-[12.5px] font-mono font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.numeroPieza}</p>
+                  {p.descripcion && <p className="text-[11px] truncate" style={{ color: 'var(--pp-text3)' }}>{p.descripcion}</p>}
+                </div>
+                <span className="flex items-center gap-1 text-[11.5px] font-semibold flex-shrink-0 whitespace-nowrap">
+                  {p.estado === 'recibida' && <span style={{ color: '#059669' }}>🟢 Recibida{p.fechaRecibida && <span className="font-normal" style={{ color: 'var(--pp-text3)' }}> · {formatDate(p.fechaRecibida)}</span>}</span>}
+                  {p.estado === 'en_tienda' && <span style={{ color: '#2563eb' }}>🔵 En tienda</span>}
+                  {p.estado === 'pendiente' && <span style={{ color: '#d97706' }}>🟡 En espera</span>}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
