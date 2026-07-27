@@ -231,7 +231,7 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
                   <span className="flex items-center gap-1 text-[11.5px] font-semibold flex-shrink-0 whitespace-nowrap">
                     {p.estado === 'recibida'
                       ? <span style={{ color: '#059669' }}>🟢 Recibida{p.fechaRecibida && <span className="font-normal" style={{ color: 'var(--pp-text3)' }}> · {formatDate(p.fechaRecibida)}</span>}</span>
-                      : <span style={{ color: '#d97706' }}>🟡 Pendiente</span>}
+                      : <span style={{ color: '#d97706' }}>🟡 En espera</span>}
                   </span>
                 </div>
               ))}
