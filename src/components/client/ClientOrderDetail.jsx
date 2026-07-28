@@ -6,6 +6,7 @@ import { STATUS_CONFIG } from '../../constants/status';
 import { formatDate, cleanText, filesOf } from '../../utils/format';
 import { StatusStepper } from '../shared/StatusBadge';
 import { InfoItem } from '../shared/FormField';
+import { PiezasList } from '../shared/PiezasList';
 import { EstimateActions } from './ClientEstimados';
 import { ClientProgressBar } from './ClientHistorial';
 
@@ -95,20 +96,8 @@ export function ClientOrderDetail({ order, onRespond }) {
             {showPiezas ? <ChevronUp className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--pp-text3)' }} /> : <ChevronDown className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--pp-text3)' }} />}
           </button>
           {showPiezas && (
-            <div className="px-3 pb-3 space-y-1.5">
-              {order.piezas.map(p => (
-                <div key={p.numeroPieza} className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-[8px]" style={{ background: 'var(--pp-input-bg)' }}>
-                  <div className="min-w-0">
-                    <p className="text-[12.5px] font-mono font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.numeroPieza}</p>
-                    {p.descripcion && <p className="text-[11px] truncate" style={{ color: 'var(--pp-text3)' }}>{p.descripcion}</p>}
-                  </div>
-                  <span className="flex items-center gap-1 text-[11.5px] font-semibold flex-shrink-0 whitespace-nowrap">
-                    {p.estado === 'recibida' && <span style={{ color: '#059669' }}>🟢 Recibida{p.fechaRecibida && <span className="font-normal" style={{ color: 'var(--pp-text3)' }}> · {formatDate(p.fechaRecibida)}</span>}</span>}
-                    {p.estado === 'en_tienda' && <span style={{ color: '#2563eb' }}>🔵 En tienda</span>}
-                    {p.estado === 'pendiente' && <span style={{ color: '#d97706' }}>🟡 En espera</span>}
-                  </span>
-                </div>
-              ))}
+            <div className="px-3 pb-3">
+              <PiezasList piezas={order.piezas} />
             </div>
           )}
         </div>

@@ -32,6 +32,15 @@ export function formatDate(d) {
   return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+// Días transcurridos desde una fecha (Firestore Timestamp o Date) hasta hoy.
+// null si no hay fecha o es inválida — el llamador decide cómo omitirlo.
+export function daysSince(d) {
+  if (!d) return null;
+  const date = d?.toDate ? d.toDate() : new Date(d);
+  if (isNaN(date)) return null;
+  return Math.max(0, Math.floor((Date.now() - date.getTime()) / 86400000));
+}
+
 /* ------------------------------------------------------------------ */
 /*  COMPONENTES COMPARTIDOS                                            */
 /* ------------------------------------------------------------------ */

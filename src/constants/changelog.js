@@ -2,6 +2,13 @@
 // audience: 'admin' | 'taller' | 'all' — a quién se le muestra cada línea en el pop-up de Novedades.
 export const CHANGELOG = [
   {
+    version: '1.7.0',
+    items: [
+      { audience: 'all', text: 'La lista de piezas ahora separa "Pendientes" (arriba, para atención inmediata) de "Recibidas en tienda" (plegadas, para reducir el desorden visual).' },
+      { audience: 'all', text: 'Las piezas pendientes muestran hace cuántos días están en espera, para priorizar reclamos al proveedor.' },
+    ],
+  },
+  {
     version: '1.6.9',
     items: [
       { audience: 'all', text: 'Nuevo pop-up de "Novedades": al actualizar, verás un resumen de lo que cambió.' },
