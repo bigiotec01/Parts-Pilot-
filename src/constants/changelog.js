@@ -2,6 +2,12 @@
 // audience: 'admin' | 'taller' | 'all' — a quién se le muestra cada línea en el pop-up de Novedades.
 export const CHANGELOG = [
   {
+    version: '1.7.2',
+    items: [
+      { audience: 'admin', text: 'Nueva vista de "Lista" para Pedidos: cada pedido en una fila compacta con taller, folio, fechas y estado. Ahora es la vista por defecto.' },
+    ],
+  },
+  {
     version: '1.7.1',
     items: [
       { audience: 'all', text: 'La lista de piezas ahora se ve en un solo listado (pendientes primero), sin desplegables anidados.' },

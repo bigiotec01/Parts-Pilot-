@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import {
-  Search, Printer, X, LayoutGrid, Columns3
+  Search, Printer, X, LayoutGrid, Columns3, List
 } from 'lucide-react';
 import { STATUS_CONFIG, STATUS_ORDER } from '../../constants/status';
-import { OrderCard } from '../shared/OrderCard';
+import { OrderCard, OrderListHeader, OrderListRow } from '../shared/OrderCard';
 import { EmptyState } from '../shared/FormField';
 import { inputClass } from '../../constants/styles';
 
@@ -40,7 +40,7 @@ function KanbanBoard({ pedidos, getTaller, onSelect, onChangeStatus, hideEmpty }
 }
 
 export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFilterTaller, filterEstado, setFilterEstado, search, setSearch, onSelect, onExport, onChangeStatus }) {
-  const [view, setView] = useState('tarjetas');
+  const [view, setView] = useState('lista');
   const [hideEmpty, setHideEmpty] = useState(true);
   const chips = [
     filterTaller !== 'todos' && { key: 'taller', label: talleres.find(t => t.uid === filterTaller)?.nombre || filterTaller, clear: () => setFilterTaller('todos') },
@@ -59,6 +59,10 @@ export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFi
           <button onClick={() => setView('tablero')} title="Vista de tablero (Kanban)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12.5px] font-bold transition-all"
             style={view === 'tablero' ? { background: 'var(--pp-accent)', color: '#fff' } : { background: 'transparent', color: 'var(--pp-text3)' }}>
             <Columns3 className="w-3.5 h-3.5" /> Tablero
+          </button>
+          <button onClick={() => setView('lista')} title="Vista de lista" className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12.5px] font-bold transition-all"
+            style={view === 'lista' ? { background: 'var(--pp-accent)', color: '#fff' } : { background: 'transparent', color: 'var(--pp-text3)' }}>
+            <List className="w-3.5 h-3.5" /> Lista
           </button>
         </div>
         {view === 'tablero' && (
@@ -103,6 +107,11 @@ export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFi
         <EmptyState text="No hay pedidos que coincidan con los filtros." />
       ) : view === 'tablero' ? (
         <KanbanBoard pedidos={pedidos} getTaller={getTaller} onSelect={onSelect} onChangeStatus={onChangeStatus} hideEmpty={hideEmpty} />
+      ) : view === 'lista' ? (
+        <div className="rounded-[15px] border overflow-hidden" style={{ borderColor: 'var(--pp-border)', background: 'var(--pp-card)' }}>
+          <OrderListHeader showTaller />
+          {pedidos.map(p => <OrderListRow key={p.id} order={p} taller={getTaller(p.tallerId)} showTaller onClick={() => onSelect(p.id)} activityRole="admin" onChangeStatus={onChangeStatus} />)}
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {pedidos.map(p => <OrderCard key={p.id} order={p} taller={getTaller(p.tallerId)} showTaller onClick={() => onSelect(p.id)} activityRole="admin" onChangeStatus={onChangeStatus} />)}

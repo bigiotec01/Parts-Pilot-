@@ -102,3 +102,94 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
     </div>
   );
 }
+
+export function OrderListHeader({ showTaller }) {
+  return (
+    <div
+      className="hidden sm:grid grid-cols-[1.9fr_1fr_0.85fr_1fr_auto_28px] gap-x-3 px-4 py-2.5 text-[10.5px] font-bold uppercase"
+      style={{ color: 'var(--pp-text3)', letterSpacing: '.05em', borderBottom: '1px solid var(--pp-border2)' }}
+    >
+      <span>Vehículo</span>
+      <span>{showTaller ? 'Taller' : ''}</span>
+      <span>Folio</span>
+      <span>Fechas</span>
+      <span>Estado</span>
+      <span />
+    </div>
+  );
+}
+
+export function OrderListRow({ order, taller, showTaller, onClick, unreadCount = 0, activityRole, onChangeStatus }) {
+  const hasActivity = activityRole ? hasNewActivity(activityRole, order) : false;
+  const hasNewIds = order.numeroPO || order.numeroOrden;
+  const title = !hasNewIds ? (order.referencia || order.vehiculo) : order.vehiculo;
+  const next = getNextStatus(order.estado);
+
+  return (
+    <div
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
+      className="grid grid-cols-1 sm:grid-cols-[1.9fr_1fr_0.85fr_1fr_auto_28px] gap-x-3 gap-y-1.5 sm:items-center px-4 py-3 cursor-pointer transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
+      style={{ background: hasActivity ? 'rgba(245,158,11,0.06)' : 'transparent', borderBottom: '1px solid var(--pp-border2)' }}
+    >
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 flex-wrap min-w-0">
+          <span className="font-bold text-[13.5px] truncate" style={{ color: 'var(--pp-text)' }}>{title}</span>
+          {hasActivity && (
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>Actualizado</span>
+          )}
+          {unreadCount > 0 && (
+            <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>{unreadCount} nuevo{unreadCount !== 1 ? 's' : ''}</span>
+          )}
+        </div>
+        {hasNewIds && (
+          <p className="text-[11px] mt-0.5 truncate font-medium" style={{ color: 'var(--pp-text3)' }}>
+            {[order.numeroPO && `PO# ${order.numeroPO}`, order.numeroOrden && `Orden ${order.numeroOrden}`].filter(Boolean).join('  ·  ')}
+          </p>
+        )}
+      </div>
+
+      {showTaller && taller ? (
+        <div className="flex items-center gap-1.5 min-w-0 text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>
+          <Building2 className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--pp-text3)' }} />
+          <span className="truncate">{taller.nombre}</span>
+        </div>
+      ) : <div className="hidden sm:block" />}
+
+      <span className="font-mono font-semibold text-[12px]" style={{ color: 'var(--pp-text2)' }}>{order.folio || order.id?.slice(0, 8)}</span>
+
+      <div className="text-[12px]" style={{ color: 'var(--pp-text3)' }}>
+        <div className="flex items-center gap-1.5"><Calendar className="w-3 h-3 flex-shrink-0" />{formatDate(order.fecha)}</div>
+        {order.fechaEntrega && (
+          <div className="flex items-center gap-1.5 mt-0.5 font-semibold" style={{ color: '#2563eb' }}>
+            <Truck className="w-3 h-3 flex-shrink-0" />Entrega est.: {formatDate(order.fechaEntrega)}
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        <StatusBadge estado={order.estado} />
+        {order.mensajes?.length > 0 && (
+          <span className="flex items-center gap-1 text-[11px] font-bold">
+            <MessageSquare className="w-3.5 h-3.5" style={{ color: hasActivity ? '#f59e0b' : 'var(--pp-text3)' }} />
+            <span className="min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: hasActivity ? '#f59e0b' : 'var(--pp-text3)' }}>
+              {order.mensajes.length}
+            </span>
+          </span>
+        )}
+        {showTaller && order.notasInternas && <StickyNote className="w-3.5 h-3.5" style={{ color: 'var(--pp-text3)' }} />}
+      </div>
+
+      {onChangeStatus ? (
+        <div onClick={(e) => e.stopPropagation()} className="flex sm:justify-end">
+          <QuickActionsMenu size="sm" items={[
+            { label: 'Ver detalles', icon: Eye, onClick },
+            next && { label: `Avanzar a: ${STATUS_CONFIG[next].short}`, icon: ArrowRightCircle, onClick: () => onChangeStatus(order.id, next, order.fechaEntrega || '') },
+          ]} />
+        </div>
+      ) : <div className="hidden sm:block" />}
+    </div>
+  );
+}
