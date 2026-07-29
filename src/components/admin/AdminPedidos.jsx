@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Search, Printer, X, LayoutGrid, Columns3, List
 } from 'lucide-react';
@@ -6,6 +6,20 @@ import { STATUS_CONFIG, STATUS_ORDER } from '../../constants/status';
 import { OrderCard, OrderListHeader, OrderListRow } from '../shared/OrderCard';
 import { EmptyState } from '../shared/FormField';
 import { inputClass } from '../../constants/styles';
+
+const toTime = (d) => {
+  if (!d) return 0;
+  const date = d?.toDate ? d.toDate() : new Date(d + 'T00:00:00');
+  return isNaN(date) ? 0 : date.getTime();
+};
+
+const LIST_SORT_VALUE = {
+  vehiculo: (p) => ((p.numeroPO || p.numeroOrden) ? p.vehiculo : (p.referencia || p.vehiculo) || '').toLowerCase(),
+  taller: (p, getTaller) => (getTaller(p.tallerId)?.nombre || '').toLowerCase(),
+  folio: (p) => (p.folio || p.id || '').toLowerCase(),
+  fecha: (p) => toTime(p.fecha),
+  estado: (p) => STATUS_ORDER.indexOf(p.estado),
+};
 
 // Columnas del tablero: mismo universo de estados que llega a esta pantalla
 // (excluye 'cotizando', que vive en Estimados, y 'entregado', que vive en Historial).
@@ -42,6 +56,31 @@ function KanbanBoard({ pedidos, getTaller, onSelect, onChangeStatus, hideEmpty }
 export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFilterTaller, filterEstado, setFilterEstado, search, setSearch, onSelect, onExport, onChangeStatus }) {
   const [view, setView] = useState('lista');
   const [hideEmpty, setHideEmpty] = useState(true);
+  const [sortBy, setSortBy] = useState('fecha');
+  const [sortDir, setSortDir] = useState('desc');
+
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortDir('asc');
+    }
+  };
+
+  const pedidosOrdenados = useMemo(() => {
+    const getValue = LIST_SORT_VALUE[sortBy];
+    if (!getValue) return pedidos;
+    const arr = [...pedidos];
+    arr.sort((a, b) => {
+      const va = getValue(a, getTaller), vb = getValue(b, getTaller);
+      if (va < vb) return sortDir === 'asc' ? -1 : 1;
+      if (va > vb) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return arr;
+  }, [pedidos, sortBy, sortDir, getTaller]);
+
   const chips = [
     filterTaller !== 'todos' && { key: 'taller', label: talleres.find(t => t.uid === filterTaller)?.nombre || filterTaller, clear: () => setFilterTaller('todos') },
     filterEstado !== 'todos' && { key: 'estado', label: STATUS_CONFIG[filterEstado]?.label || filterEstado, clear: () => setFilterEstado('todos') },
@@ -109,8 +148,8 @@ export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFi
         <KanbanBoard pedidos={pedidos} getTaller={getTaller} onSelect={onSelect} onChangeStatus={onChangeStatus} hideEmpty={hideEmpty} />
       ) : view === 'lista' ? (
         <div className="rounded-[15px] border overflow-hidden sm:grid sm:grid-cols-[1.9fr_1fr_0.85fr_1fr_auto_28px]" style={{ borderColor: 'var(--pp-border)', background: 'var(--pp-card)' }}>
-          <OrderListHeader showTaller />
-          {pedidos.map(p => <OrderListRow key={p.id} order={p} taller={getTaller(p.tallerId)} showTaller onClick={() => onSelect(p.id)} activityRole="admin" onChangeStatus={onChangeStatus} />)}
+          <OrderListHeader showTaller sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
+          {pedidosOrdenados.map(p => <OrderListRow key={p.id} order={p} taller={getTaller(p.tallerId)} showTaller onClick={() => onSelect(p.id)} activityRole="admin" onChangeStatus={onChangeStatus} />)}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -1,5 +1,5 @@
 import {
-  Truck, Clock, Building2, Calendar, MessageSquare, StickyNote, Eye, ArrowRightCircle
+  Truck, Clock, Building2, Calendar, MessageSquare, StickyNote, Eye, ArrowRightCircle, ChevronUp, ChevronDown, ChevronsUpDown
 } from 'lucide-react';
 import { hasNewActivity } from '../../utils/activity';
 import { formatDate } from '../../utils/format';
@@ -103,17 +103,40 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
   );
 }
 
-export function OrderListHeader({ showTaller }) {
+const LIST_SORT_COLUMNS = [
+  { key: 'vehiculo', label: 'Vehículo' },
+  { key: 'taller', label: 'Taller' },
+  { key: 'folio', label: 'Folio' },
+  { key: 'fecha', label: 'Fechas' },
+  { key: 'estado', label: 'Estado' },
+];
+
+function SortIcon({ active, dir }) {
+  if (!active) return <ChevronsUpDown className="w-3 h-3 flex-shrink-0 opacity-40" />;
+  return dir === 'asc' ? <ChevronUp className="w-3 h-3 flex-shrink-0" /> : <ChevronDown className="w-3 h-3 flex-shrink-0" />;
+}
+
+export function OrderListHeader({ showTaller, sortBy, sortDir, onSort }) {
   return (
     <div
       className="hidden sm:grid sm:grid-cols-subgrid sm:col-span-full gap-x-3 px-4 py-2.5 text-[10.5px] font-bold uppercase"
       style={{ color: 'var(--pp-text3)', letterSpacing: '.05em', borderBottom: '1px solid var(--pp-border2)' }}
     >
-      <span>Vehículo</span>
-      <span>{showTaller ? 'Taller' : ''}</span>
-      <span>Folio</span>
-      <span>Fechas</span>
-      <span>Estado</span>
+      {LIST_SORT_COLUMNS.map(col => {
+        if (col.key === 'taller' && !showTaller) return <span key={col.key} />;
+        return (
+          <button
+            key={col.key}
+            type="button"
+            onClick={() => onSort(col.key)}
+            className="flex items-center gap-1 text-left uppercase"
+            style={{ color: sortBy === col.key ? 'var(--pp-text)' : 'var(--pp-text3)', letterSpacing: '.05em' }}
+          >
+            {col.label}
+            <SortIcon active={sortBy === col.key} dir={sortDir} />
+          </button>
+        );
+      })}
       <span />
     </div>
   );

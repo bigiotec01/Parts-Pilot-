@@ -2,6 +2,12 @@
 // audience: 'admin' | 'taller' | 'all' — a quién se le muestra cada línea en el pop-up de Novedades.
 export const CHANGELOG = [
   {
+    version: '1.7.5',
+    items: [
+      { audience: 'admin', text: 'La vista de Lista de Pedidos ahora se puede ordenar: toca "Vehículo", "Taller", "Folio", "Fechas" o "Estado" para ordenar por esa columna (y de nuevo para invertir el orden).' },
+    ],
+  },
+  {
     version: '1.7.2',
     items: [
       { audience: 'admin', text: 'Nueva vista de "Lista" para Pedidos: cada pedido en una fila compacta con taller, folio, fechas y estado. Ahora es la vista por defecto.' },
