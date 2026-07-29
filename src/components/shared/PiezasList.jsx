@@ -1,5 +1,3 @@
-import { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import { formatDate, daysSince } from '../../utils/format';
 
 function PiezaRow({ p }) {
@@ -23,35 +21,17 @@ function PiezaRow({ p }) {
   );
 }
 
-// Separa las piezas en "Pendientes" (arriba, siempre visibles, con días en
-// espera para priorizar reclamos a proveedor) y "Recibidas en tienda" (abajo,
-// plegadas por defecto para no saturar la vista cuando ya no requieren acción).
+// Un solo despliegue con todas las piezas juntas, ordenadas con las
+// pendientes primero (para priorizar reclamos a proveedor) y las ya
+// recibidas/en tienda después.
+const ORDEN_ESTADO = { pendiente: 0, en_tienda: 1, recibida: 2 };
+
 export function PiezasList({ piezas }) {
-  const [showRecibidas, setShowRecibidas] = useState(false);
-  const pendientes = piezas.filter(p => p.estado === 'pendiente');
-  const recibidas = piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda');
+  const ordenadas = [...piezas].sort((a, b) => (ORDEN_ESTADO[a.estado] ?? 99) - (ORDEN_ESTADO[b.estado] ?? 99));
 
   return (
-    <div className="space-y-2.5">
-      {pendientes.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-[10.5px] font-bold" style={{ color: '#d97706' }}>🟡 Pendientes ({pendientes.length})</p>
-          {pendientes.map(p => <PiezaRow key={p.numeroPieza} p={p} />)}
-        </div>
-      )}
-      {recibidas.length > 0 && (
-        <div>
-          <button type="button" onClick={() => setShowRecibidas(v => !v)} className="w-full flex items-center justify-between gap-2 py-1">
-            <span className="text-[10.5px] font-bold" style={{ color: '#059669' }}>🟢 Recibidas en tienda ({recibidas.length})</span>
-            {showRecibidas ? <ChevronUp className="w-3.5 h-3.5" style={{ color: 'var(--pp-text3)' }} /> : <ChevronDown className="w-3.5 h-3.5" style={{ color: 'var(--pp-text3)' }} />}
-          </button>
-          {showRecibidas && (
-            <div className="space-y-1.5 mt-1.5">
-              {recibidas.map(p => <PiezaRow key={p.numeroPieza} p={p} />)}
-            </div>
-          )}
-        </div>
-      )}
+    <div className="space-y-1.5">
+      {ordenadas.map(p => <PiezaRow key={p.numeroPieza} p={p} />)}
     </div>
   );
 }

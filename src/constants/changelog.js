@@ -2,6 +2,14 @@
 // audience: 'admin' | 'taller' | 'all' — a quién se le muestra cada línea en el pop-up de Novedades.
 export const CHANGELOG = [
   {
+    version: '1.7.1',
+    items: [
+      { audience: 'all', text: 'La lista de piezas ahora se ve en un solo listado (pendientes primero), sin desplegables anidados.' },
+      { audience: 'taller', text: 'El estatus de piezas ahora aparece más arriba en el detalle del pedido.' },
+      { audience: 'admin', text: 'Ahora puedes subir el reporte de Excel de piezas en cualquier estado del pedido, no solo en "Esperando piezas".' },
+    ],
+  },
+  {
     version: '1.7.0',
     items: [
       { audience: 'all', text: 'La lista de piezas ahora separa "Pendientes" (arriba, para atención inmediata) de "Recibidas en tienda" (plegadas, para reducir el desorden visual).' },

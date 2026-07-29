@@ -222,35 +222,29 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
         </FormField>
       )}
 
-      {(estado === 'esperando_piezas' || order.piezas?.length > 0) && (
-        <div className="rounded-[12px] p-3" style={{ background: 'var(--pp-card)' }}>
-          <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-            <p className="text-[10.5px] font-bold uppercase flex items-center gap-1.5" style={{ color: 'var(--pp-text9)', letterSpacing: '.05em' }}>
-              <Hourglass className="w-3.5 h-3.5" /> Piezas en espera
-              {order.piezas?.length > 0 && (
-                <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>
-                  · {order.piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda').length} de {order.piezas.length} en tienda
-                </span>
-              )}
-            </p>
-            {estado === 'esperando_piezas' && (
-              <>
-                <input ref={piezasFileRef} type="file" accept=".xlsx,.xls" onChange={handleImportarPiezas} disabled={piezasImportando} className="hidden" />
-                <QuickActionsMenu size="sm" items={[
-                  { label: piezasImportando ? 'Leyendo…' : 'Subir Excel', icon: FileSpreadsheet, disabled: piezasImportando, onClick: () => piezasFileRef.current?.click() },
-                  { label: 'Agregar pieza manualmente', icon: Plus, onClick: () => setShowAgregarPieza(true) },
-                ]} />
-              </>
+      <div className="rounded-[12px] p-3" style={{ background: 'var(--pp-card)' }}>
+        <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+          <p className="text-[10.5px] font-bold uppercase flex items-center gap-1.5" style={{ color: 'var(--pp-text9)', letterSpacing: '.05em' }}>
+            <Hourglass className="w-3.5 h-3.5" /> Piezas en espera
+            {order.piezas?.length > 0 && (
+              <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>
+                · {order.piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda').length} de {order.piezas.length} en tienda
+              </span>
             )}
-          </div>
-          {piezasError && <p className="text-[12px] mb-2" style={{ color: '#dc2626' }}>{piezasError}</p>}
-          {!order.piezas?.length ? (
-            <p className="text-[12.5px]" style={{ color: 'var(--pp-text3)' }}>Sube el reporte de piezas (.xlsx) o agrega una pieza manualmente para verla aquí.</p>
-          ) : (
-            <PiezasList piezas={order.piezas} />
-          )}
+          </p>
+          <input ref={piezasFileRef} type="file" accept=".xlsx,.xls" onChange={handleImportarPiezas} disabled={piezasImportando} className="hidden" />
+          <QuickActionsMenu size="sm" items={[
+            { label: piezasImportando ? 'Leyendo…' : 'Subir Excel', icon: FileSpreadsheet, disabled: piezasImportando, onClick: () => piezasFileRef.current?.click() },
+            { label: 'Agregar pieza manualmente', icon: Plus, onClick: () => setShowAgregarPieza(true) },
+          ]} />
         </div>
-      )}
+        {piezasError && <p className="text-[12px] mb-2" style={{ color: '#dc2626' }}>{piezasError}</p>}
+        {!order.piezas?.length ? (
+          <p className="text-[12.5px]" style={{ color: 'var(--pp-text3)' }}>Sube el reporte de piezas (.xlsx) o agrega una pieza manualmente para verla aquí.</p>
+        ) : (
+          <PiezasList piezas={order.piezas} />
+        )}
+      </div>
 
       {showAgregarPieza && (
         <Modal title="Agregar pieza manualmente" onClose={() => { setShowAgregarPieza(false); setManualError(''); }}>
