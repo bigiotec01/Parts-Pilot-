@@ -106,7 +106,7 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
 export function OrderListHeader({ showTaller }) {
   return (
     <div
-      className="hidden sm:grid grid-cols-[1.9fr_1fr_0.85fr_1fr_auto_28px] gap-x-3 px-4 py-2.5 text-[10.5px] font-bold uppercase"
+      className="hidden sm:grid sm:grid-cols-subgrid sm:col-span-full gap-x-3 px-4 py-2.5 text-[10.5px] font-bold uppercase"
       style={{ color: 'var(--pp-text3)', letterSpacing: '.05em', borderBottom: '1px solid var(--pp-border2)' }}
     >
       <span>Vehículo</span>
@@ -131,7 +131,7 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
-      className="grid grid-cols-1 sm:grid-cols-[1.9fr_1fr_0.85fr_1fr_auto_28px] gap-x-3 gap-y-1.5 sm:items-start px-4 py-3 cursor-pointer transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
+      className="grid grid-cols-1 sm:grid-cols-subgrid sm:col-span-full gap-x-3 gap-y-1.5 sm:items-start px-4 py-3 cursor-pointer transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
       style={{ background: hasActivity ? 'rgba(245,158,11,0.06)' : 'transparent', borderBottom: '1px solid var(--pp-border2)' }}
     >
       <div className="min-w-0">
