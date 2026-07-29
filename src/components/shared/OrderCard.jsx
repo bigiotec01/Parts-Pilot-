@@ -131,7 +131,7 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
-      className="grid grid-cols-1 sm:grid-cols-[1.9fr_1fr_0.85fr_1fr_auto_28px] gap-x-3 gap-y-1.5 sm:items-center px-4 py-3 cursor-pointer transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
+      className="grid grid-cols-1 sm:grid-cols-[1.9fr_1fr_0.85fr_1fr_auto_28px] gap-x-3 gap-y-1.5 sm:items-start px-4 py-3 cursor-pointer transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
       style={{ background: hasActivity ? 'rgba(245,158,11,0.06)' : 'transparent', borderBottom: '1px solid var(--pp-border2)' }}
     >
       <div className="min-w-0">
@@ -152,15 +152,15 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
       </div>
 
       {showTaller && taller ? (
-        <div className="flex items-center gap-1.5 min-w-0 text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>
+        <div className="flex items-center gap-1.5 min-w-0 text-[12.5px] sm:pt-0.5" style={{ color: 'var(--pp-text2)' }}>
           <Building2 className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--pp-text3)' }} />
           <span className="truncate">{taller.nombre}</span>
         </div>
       ) : <div className="hidden sm:block" />}
 
-      <span className="font-mono font-semibold text-[12px]" style={{ color: 'var(--pp-text2)' }}>{order.folio || order.id?.slice(0, 8)}</span>
+      <span className="font-mono font-semibold text-[12px] sm:pt-0.5" style={{ color: 'var(--pp-text2)' }}>{order.folio || order.id?.slice(0, 8)}</span>
 
-      <div className="text-[12px]" style={{ color: 'var(--pp-text3)' }}>
+      <div className="text-[12px] sm:pt-0.5" style={{ color: 'var(--pp-text3)' }}>
         <div className="flex items-center gap-1.5"><Calendar className="w-3 h-3 flex-shrink-0" />{formatDate(order.fecha)}</div>
         {order.fechaEntrega && (
           <div className="flex items-center gap-1.5 mt-0.5 font-semibold" style={{ color: '#2563eb' }}>
@@ -169,7 +169,7 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
         )}
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2 flex-wrap sm:pt-px">
         <StatusBadge estado={order.estado} />
         {order.mensajes?.length > 0 && (
           <span className="flex items-center gap-1 text-[11px] font-bold">
@@ -183,7 +183,7 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
       </div>
 
       {onChangeStatus ? (
-        <div onClick={(e) => e.stopPropagation()} className="flex sm:justify-end">
+        <div onClick={(e) => e.stopPropagation()} className="flex sm:justify-end sm:-mt-0.5">
           <QuickActionsMenu size="sm" items={[
             { label: 'Ver detalles', icon: Eye, onClick },
             next && { label: `Avanzar a: ${STATUS_CONFIG[next].short}`, icon: ArrowRightCircle, onClick: () => onChangeStatus(order.id, next, order.fechaEntrega || '') },
