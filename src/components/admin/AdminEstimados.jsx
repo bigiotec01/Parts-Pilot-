@@ -6,7 +6,7 @@ import { hasNewActivity } from '../../utils/activity';
 import { formatDate, cleanText, filesOf } from '../../utils/format';
 
 export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
-  const [view, setView] = useState('tarjetas');
+  const [view, setView] = useState('lista');
 
   if (solicitudes.length === 0) return (
     <div className="text-center py-14" style={{ color: 'var(--pp-text9)' }}>
