@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import {
   Clock, FileText, ThumbsUp, ThumbsDown, MessageSquare, MessageCircle, PackageCheck, PackageX, PackageSearch
 } from 'lucide-react';
 import { hasNewActivity } from '../../utils/activity';
 import { formatDate, cleanText, filesOf, humanize } from '../../utils/format';
 import { StatusBadge } from '../shared/StatusBadge';
+import { ViewToggle } from '../shared/ViewToggle';
 
 // Ícono + tono para la nota de disponibilidad, según palabras clave frecuentes en el texto
 // que escribe el admin (ninguna estructura de datos nueva, solo lectura del texto libre).
@@ -85,7 +87,67 @@ export function EstimateActions({ order, onRespond }) {
   );
 }
 
+function CotizacionListRow({ p, onRespond, onSelect }) {
+  const hasAct = hasNewActivity('taller', p);
+  return (
+    <div onClick={() => onSelect?.(p.id)} className="flex items-center gap-3 px-4 py-3 border-b last:border-b-0 cursor-pointer transition-colors hover:bg-[var(--pp-hover)]" style={{ borderColor: 'var(--pp-border2)', background: hasAct ? 'rgba(245,158,11,0.06)' : undefined }}>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 flex-wrap min-w-0">
+          <span className="font-bold text-[13.5px] truncate" style={{ color: 'var(--pp-text)' }}>{humanize(p.vehiculo)}</span>
+          {hasAct && (
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>Actualizado</span>
+          )}
+        </div>
+        {(p.numeroPO || p.numeroOrden) && (
+          <p className="text-[11px] mt-0.5 truncate font-medium" style={{ color: 'var(--pp-text3)' }}>
+            {[p.numeroPO && `PO# ${p.numeroPO}`, p.numeroOrden && `Orden ${p.numeroOrden}`].filter(Boolean).join('  ·  ')}
+          </p>
+        )}
+      </div>
+      {(p.mensajes?.length > 0) && (
+        <span className="hidden sm:flex items-center gap-1 text-[11px] flex-shrink-0" style={{ color: 'var(--pp-text3)' }}>
+          <MessageSquare className="w-3.5 h-3.5" />{p.mensajes.length}
+        </span>
+      )}
+      <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
+        <button onClick={() => onRespond(p.id, 'aceptado')} className="py-1.5 px-3 rounded-[8px] text-white text-[12px] font-semibold flex items-center gap-1.5 transition-colors hover:brightness-105" style={{ background: '#10b981' }}>
+          <ThumbsUp className="w-3.5 h-3.5" /> Aprobar
+        </button>
+        <button onClick={() => onRespond(p.id, 'rechazado')} className="text-[12px] font-medium flex items-center gap-1 transition-colors hover:opacity-80" style={{ color: '#ef4444' }}>
+          <ThumbsDown className="w-3.5 h-3.5" /> Rechazar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SolicitudListRow({ p, onSelect }) {
+  const hasAct = hasNewActivity('taller', p);
+  return (
+    <div onClick={() => onSelect?.(p.id)} className="flex items-center gap-3 px-4 py-3 border-b last:border-b-0 cursor-pointer transition-colors hover:bg-[var(--pp-hover)]" style={{ borderColor: 'var(--pp-border2)', background: hasAct ? 'rgba(245,158,11,0.06)' : undefined }}>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 flex-wrap min-w-0">
+          <span className="font-bold text-[13.5px] truncate" style={{ color: 'var(--pp-text)' }}>{humanize(p.vehiculo)}</span>
+          {hasAct && (
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>Actualizado</span>
+          )}
+        </div>
+      </div>
+      <span className="hidden sm:flex items-center gap-1.5 text-[11.5px] font-semibold flex-shrink-0" style={{ color: '#f59e0b' }}>
+        <Clock className="w-3.5 h-3.5" /> Esperando estimado
+      </span>
+      <span className="font-mono text-[11px] flex-shrink-0" style={{ color: 'var(--pp-text3)' }}>{formatDate(p.fecha)}</span>
+      {(p.mensajes?.length > 0) && (
+        <span className="hidden sm:flex items-center gap-1 text-[11px] flex-shrink-0" style={{ color: 'var(--pp-text3)' }}>
+          <MessageSquare className="w-3.5 h-3.5" />{p.mensajes.length}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onSelect }) {
+  const [view, setView] = useState('lista');
   const total = solicitudes.length + cotizaciones.length;
   if (total === 0) return (
     <div className="text-center py-14" style={{ color: 'var(--pp-text3)' }}>
@@ -97,12 +159,19 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
 
   return (
     <div className="space-y-5">
+      <ViewToggle view={view} onChange={setView} />
+
       {/* Cotizaciones recibidas del admin — por responder */}
       {cotizaciones.length > 0 && (
         <div className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--pp-text2)' }}>
             Cotizaciones por responder · {cotizaciones.length}
           </p>
+          {view === 'lista' ? (
+            <div className="rounded-[15px] border overflow-hidden" style={{ borderColor: 'var(--pp-border)', background: 'var(--pp-card)' }}>
+              {cotizaciones.map(p => <CotizacionListRow key={p.id} p={p} onRespond={onRespond} onSelect={onSelect} />)}
+            </div>
+          ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {cotizaciones.map(p => {
               const hasAct = hasNewActivity('taller', p);
@@ -161,6 +230,7 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
               );
             })}
           </div>
+          )}
         </div>
       )}
 
@@ -170,11 +240,19 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
           {cotizaciones.length > 0 && (
             <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--pp-text2)' }}>Solicitudes enviadas · {solicitudes.length}</p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {[...solicitudes].sort((a, b) => {
+          {(() => {
+            const solicitudesOrdenadas = [...solicitudes].sort((a, b) => {
               const t = f => f?.toDate ? f.toDate().getTime() : new Date(f + 'T00:00:00').getTime();
               return t(b.fecha) - t(a.fecha);
-            }).map(p => {
+            });
+            if (view === 'lista') return (
+              <div className="rounded-[15px] border overflow-hidden" style={{ borderColor: 'var(--pp-border)', background: 'var(--pp-card)' }}>
+                {solicitudesOrdenadas.map(p => <SolicitudListRow key={p.id} p={p} onSelect={onSelect} />)}
+              </div>
+            );
+            return (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {solicitudesOrdenadas.map(p => {
               const hasAct = hasNewActivity('taller', p);
               return (
               <div key={p.id} onClick={() => onSelect?.(p.id)} className="rounded-xl border-2 p-4 cursor-pointer hover:border-[#a0a0a0] transition-colors relative" style={{ background: hasAct ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasAct ? '#f59e0b' : 'var(--pp-border)', boxShadow: hasAct ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : 'none' }}>
@@ -215,6 +293,8 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
               );
             })}
           </div>
+            );
+          })()}
         </div>
       )}
     </div>

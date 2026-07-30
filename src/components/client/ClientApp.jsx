@@ -1,11 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   FileText, LogOut, Plus, Search, X, ClipboardList, History, UserCircle, Receipt
 } from 'lucide-react';
 import { APP_VERSION } from '../../constants/app';
+import { STATUS_ORDER } from '../../constants/status';
 import { hasNewActivity, saveOrderSeen } from '../../utils/activity';
 import { ThemeToggleBtn } from '../shared/ThemeToggleBtn';
-import { OrderCard } from '../shared/OrderCard';
+import { OrderCard, OrderListHeader, OrderListRow } from '../shared/OrderCard';
+import { ViewToggle } from '../shared/ViewToggle';
 import { OrderDrawer } from '../shared/OrderDrawer';
 import { OrderSheet } from '../shared/OrderSheet';
 import { EmptyState } from '../shared/FormField';
@@ -17,10 +19,47 @@ import { ClientHistorial } from './ClientHistorial';
 import { ClientPerfil } from './ClientPerfil';
 import { ClientOrderDetail } from './ClientOrderDetail';
 
+const toTime = (d) => {
+  if (!d) return 0;
+  const date = d?.toDate ? d.toDate() : new Date(d + 'T00:00:00');
+  return isNaN(date) ? 0 : date.getTime();
+};
+
+const LIST_SORT_VALUE = {
+  vehiculo: (p) => ((p.numeroPO || p.numeroOrden) ? p.vehiculo : (p.referencia || p.vehiculo) || '').toLowerCase(),
+  folio: (p) => (p.folio || p.id || '').toLowerCase(),
+  fecha: (p) => toTime(p.fecha),
+  estado: (p) => STATUS_ORDER.indexOf(p.estado),
+};
+
+const sortPedidos = (arr, sortBy, sortDir) => {
+  const getValue = LIST_SORT_VALUE[sortBy];
+  if (!getValue) return arr;
+  const sorted = [...arr];
+  sorted.sort((a, b) => {
+    const va = getValue(a), vb = getValue(b);
+    if (va < vb) return sortDir === 'asc' ? -1 : 1;
+    if (va > vb) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+  return sorted;
+};
+
 export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, onRespondEstimate, onSendMessage, onUpdateTaller, onUpdateSubUsuario }) {
   const [activeTab, setActiveTab] = useState('pedidos');
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState('');
+  const [pedidosView, setPedidosView] = useState('lista');
+  const [sortBy, setSortBy] = useState('fecha');
+  const [sortDir, setSortDir] = useState('desc');
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortDir('asc');
+    }
+  };
 
   // Qué pestaña muestra un pedido — ver el mismo criterio (y el porqué) en AdminApp.jsx:
   // "esperando cotizar" exige estado 'pendiente' Y tipo 'solicitud'; un pedido que el admin
@@ -32,8 +71,7 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
   const pedidosActivos = misPedidos.filter(p => p.estado !== 'entregado' && p.estado !== 'rechazado');
   const pedidosHistorial = misPedidos.filter(p => p.estado === 'entregado' || p.estado === 'rechazado');
   const cotizacionesPendientes = pedidos.filter(p => p.estado === 'cotizando');
-  const toMs = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime();
-  const pedidosOrdenados = [...pedidosActivos].sort((a, b) => toMs(b.fecha) - toMs(a.fecha));
+  const pedidosOrdenados = useMemo(() => sortPedidos(pedidosActivos, sortBy, sortDir), [pedidosActivos, sortBy, sortDir]);
   const pedidosFiltrados = search
     ? pedidosOrdenados.filter(p => `${p.referencia || ''} ${p.vehiculo} ${p.folio || ''} ${p.numeroPO || ''} ${p.numeroOrden || ''}`.toLowerCase().includes(search.toLowerCase()))
     : pedidosOrdenados;
@@ -140,21 +178,30 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
 
       {activeTab === 'pedidos' && (
         <div className="space-y-3">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--pp-text3)' }} />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio…" className="w-full pl-10 pr-10 py-[11px] rounded-[12px] border text-[13.5px] outline-none focus:border-[#a0a0a0] focus:ring-2 focus:ring-[#a0a0a0]/10" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }} />
-            {search && (
-              <button onClick={() => setSearch('')} title="Limpiar búsqueda" className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center hover:bg-[#252525]" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text3)' }}>
-                <X className="w-3 h-3" />
-              </button>
-            )}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <ViewToggle view={pedidosView} onChange={setPedidosView} />
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--pp-text3)' }} />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio…" className="w-full pl-10 pr-10 py-[11px] rounded-[12px] border text-[13.5px] outline-none focus:border-[#a0a0a0] focus:ring-2 focus:ring-[#a0a0a0]/10" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }} />
+              {search && (
+                <button onClick={() => setSearch('')} title="Limpiar búsqueda" className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center hover:bg-[#252525]" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text3)' }}>
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {pedidosFiltrados.length === 0
-              ? <div className="sm:col-span-2"><EmptyState text={search ? 'Sin resultados.' : 'Aún no tienes pedidos activos.'} /></div>
-              : pedidosFiltrados.map(p => <OrderCard key={p.id} order={p} onClick={() => handleSelect(p.id)} unreadCount={getUnread(p)} activityRole="taller" />)
-            }
-          </div>
+          {pedidosFiltrados.length === 0 ? (
+            <EmptyState text={search ? 'Sin resultados.' : 'Aún no tienes pedidos activos.'} />
+          ) : pedidosView === 'lista' ? (
+            <div className="rounded-[15px] border overflow-hidden sm:grid sm:grid-cols-[1.9fr_1fr_0.85fr_1fr_auto_28px]" style={{ borderColor: 'var(--pp-border)', background: 'var(--pp-card)' }}>
+              <OrderListHeader sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
+              {pedidosFiltrados.map(p => <OrderListRow key={p.id} order={p} onClick={() => handleSelect(p.id)} unreadCount={getUnread(p)} activityRole="taller" />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {pedidosFiltrados.map(p => <OrderCard key={p.id} order={p} onClick={() => handleSelect(p.id)} unreadCount={getUnread(p)} activityRole="taller" />)}
+            </div>
+          )}
         </div>
       )}
       {activeTab === 'historial' && <ClientHistorial pedidos={pedidosHistorial} onSelect={handleSelect} />}
