@@ -154,7 +154,7 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
-      className="grid grid-cols-1 sm:grid-cols-subgrid sm:col-span-full gap-x-3 gap-y-1.5 sm:items-start px-4 py-3 cursor-pointer transition-colors hover:bg-black/[0.045] dark:hover:bg-white/[0.06]"
+      className="grid grid-cols-1 sm:grid-cols-subgrid sm:col-span-full gap-x-3 gap-y-1.5 sm:items-start px-4 py-3 cursor-pointer transition-colors hover:bg-[var(--pp-hover)]"
       style={{ background: hasActivity ? 'rgba(245,158,11,0.06)' : undefined, borderBottom: '1px solid var(--pp-border2)' }}
     >
       <div className="min-w-0">

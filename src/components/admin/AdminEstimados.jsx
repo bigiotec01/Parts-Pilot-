@@ -79,7 +79,7 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
     const isCotizando = p.estado === 'cotizando';
     const hasAct = hasNewActivity('admin', p);
     return (
-      <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left flex items-center gap-3 px-4 py-3 border-b last:border-b-0 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03]" style={{ borderColor: 'var(--pp-border2)', background: hasAct ? 'rgba(245,158,11,0.06)' : 'transparent' }}>
+      <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left flex items-center gap-3 px-4 py-3 border-b last:border-b-0 transition-colors hover:bg-[var(--pp-hover)]" style={{ borderColor: 'var(--pp-border2)', background: hasAct ? 'rgba(245,158,11,0.06)' : undefined }}>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 min-w-0">
             <h3 className="text-[13.5px] font-bold truncate min-w-0" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</h3>
