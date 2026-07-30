@@ -91,6 +91,10 @@ export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFi
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
         <div className="flex gap-1 p-1 rounded-[10px] flex-shrink-0" style={{ background: 'var(--pp-card)' }}>
+          <button onClick={() => setView('lista')} title="Vista de lista" className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12.5px] font-bold transition-all"
+            style={view === 'lista' ? { background: 'var(--pp-accent)', color: '#fff' } : { background: 'transparent', color: 'var(--pp-text3)' }}>
+            <List className="w-3.5 h-3.5" /> Lista
+          </button>
           <button onClick={() => setView('tarjetas')} title="Vista de tarjetas" className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12.5px] font-bold transition-all"
             style={view === 'tarjetas' ? { background: 'var(--pp-accent)', color: '#fff' } : { background: 'transparent', color: 'var(--pp-text3)' }}>
             <LayoutGrid className="w-3.5 h-3.5" /> Tarjetas
@@ -98,10 +102,6 @@ export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFi
           <button onClick={() => setView('tablero')} title="Vista de tablero (Kanban)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12.5px] font-bold transition-all"
             style={view === 'tablero' ? { background: 'var(--pp-accent)', color: '#fff' } : { background: 'transparent', color: 'var(--pp-text3)' }}>
             <Columns3 className="w-3.5 h-3.5" /> Tablero
-          </button>
-          <button onClick={() => setView('lista')} title="Vista de lista" className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12.5px] font-bold transition-all"
-            style={view === 'lista' ? { background: 'var(--pp-accent)', color: '#fff' } : { background: 'transparent', color: 'var(--pp-text3)' }}>
-            <List className="w-3.5 h-3.5" /> Lista
           </button>
         </div>
         {view === 'tablero' && (
