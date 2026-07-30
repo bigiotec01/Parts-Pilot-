@@ -2,6 +2,13 @@
 // audience: 'admin' | 'taller' | 'all' — a quién se le muestra cada línea en el pop-up de Novedades.
 export const CHANGELOG = [
   {
+    version: '1.8.2',
+    items: [
+      { audience: 'taller', text: 'En el detalle de un pedido ya no hay que desplegar el estatus de piezas: se ve directo.' },
+      { audience: 'all', text: 'En las tarjetas y la lista de Pedidos, el PO y el número de Orden ahora se muestran en negrita arriba, y el vehículo debajo.' },
+    ],
+  },
+  {
     version: '1.8.1',
     items: [
       { audience: 'all', text: 'Nuevo ícono de la app.' },

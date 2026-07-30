@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import {
-  FileText, Calendar, Printer, Hourglass, ChevronDown, ChevronUp
+  FileText, Calendar, Printer, Hourglass
 } from 'lucide-react';
 import { STATUS_CONFIG } from '../../constants/status';
 import { formatDate, cleanText, filesOf } from '../../utils/format';
@@ -11,7 +10,6 @@ import { EstimateActions } from './ClientEstimados';
 import { ClientProgressBar } from './ClientHistorial';
 
 export function ClientOrderDetail({ order, onRespond }) {
-  const [showPiezas, setShowPiezas] = useState(false);
   const handlePrint = () => {
     const w = window.open('', '_blank');
     w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Pedido ${order.folio || order.id.slice(0,8)}</title>
@@ -58,24 +56,17 @@ export function ClientOrderDetail({ order, onRespond }) {
 
       {order.piezas?.length > 0 && (
         <div className="rounded-lg overflow-hidden" style={{ background: 'var(--pp-card)' }}>
-          <button
-            type="button"
-            onClick={() => setShowPiezas(v => !v)}
-            className="w-full flex items-center justify-between gap-2 p-3 text-left"
-          >
+          <div className="p-3 pb-0">
             <span className="font-medium text-sm flex items-center gap-2" style={{ color: 'var(--pp-text)' }}>
-              <Hourglass className="w-4 h-4" /> Verificar estatus de piezas
+              <Hourglass className="w-4 h-4" /> Estatus de piezas
               <span className="text-xs font-normal" style={{ color: 'var(--pp-text3)' }}>
                 · {order.piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda').length} de {order.piezas.length} en tienda
               </span>
             </span>
-            {showPiezas ? <ChevronUp className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--pp-text3)' }} /> : <ChevronDown className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--pp-text3)' }} />}
-          </button>
-          {showPiezas && (
-            <div className="px-3 pb-3">
-              <PiezasList piezas={order.piezas} />
-            </div>
-          )}
+          </div>
+          <div className="px-3 pb-3">
+            <PiezasList piezas={order.piezas} />
+          </div>
         </div>
       )}
 

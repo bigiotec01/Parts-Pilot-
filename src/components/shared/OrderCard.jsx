@@ -26,7 +26,9 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-bold text-[14.5px] truncate min-w-0 max-w-full" style={{ color: 'var(--pp-text)' }}>{cardTitle}</h3>
+            <h3 className="font-bold text-[14.5px] truncate min-w-0 max-w-full" style={{ color: 'var(--pp-text)' }}>
+              {hasNewIds ? [order.numeroPO && `PO# ${order.numeroPO}`, order.numeroOrden && `Orden ${order.numeroOrden}`].filter(Boolean).join('  ·  ') : cardTitle}
+            </h3>
             {hasActivity && (
               <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>
                 <span className="relative flex h-2 w-2">
@@ -46,19 +48,13 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
               </span>
             )}
           </div>
-          {cardSub && <p className="text-[12.5px] mt-0.5 truncate" style={{ color: 'var(--pp-text2)' }}>{cardSub}</p>}
-          {order.pieza && !cardSub && <p className="text-[12.5px] mt-0.5 truncate" style={{ color: 'var(--pp-text2)' }}>{order.pieza}</p>}
-          {hasNewIds && (
-            compact ? (
-              <p className="text-[11px] mt-1 truncate font-medium" style={{ color: 'var(--pp-text3)' }}>
-                {[order.numeroPO && `PO: ${order.numeroPO}`, order.numeroOrden && `Orden: ${order.numeroOrden}`].filter(Boolean).join('  ·  ')}
-              </p>
-            ) : (
-              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                {order.numeroPO && <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: 'rgba(180,180,180,0.1)', color: 'var(--pp-text6)', border: '1px solid rgba(180,180,180,0.2)' }}>PO# {order.numeroPO}</span>}
-                {order.numeroOrden && <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: 'rgba(140,140,140,0.1)', color: 'var(--pp-text8)', border: '1px solid rgba(140,140,140,0.2)' }}>Orden {order.numeroOrden}</span>}
-              </div>
-            )
+          {hasNewIds ? (
+            <p className="text-[12.5px] mt-0.5 truncate" style={{ color: 'var(--pp-text2)' }}>{order.vehiculo}</p>
+          ) : (
+            <>
+              {cardSub && <p className="text-[12.5px] mt-0.5 truncate" style={{ color: 'var(--pp-text2)' }}>{cardSub}</p>}
+              {order.pieza && !cardSub && <p className="text-[12.5px] mt-0.5 truncate" style={{ color: 'var(--pp-text2)' }}>{order.pieza}</p>}
+            </>
           )}
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -159,7 +155,9 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
     >
       <div className="min-w-0">
         <div className="flex items-center gap-2 flex-wrap min-w-0">
-          <span className="font-bold text-[13.5px] truncate" style={{ color: 'var(--pp-text)' }}>{title}</span>
+          <span className="font-bold text-[13.5px] truncate" style={{ color: 'var(--pp-text)' }}>
+            {hasNewIds ? [order.numeroPO && `PO# ${order.numeroPO}`, order.numeroOrden && `Orden ${order.numeroOrden}`].filter(Boolean).join('  ·  ') : title}
+          </span>
           {hasActivity && (
             <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>Actualizado</span>
           )}
@@ -169,7 +167,7 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
         </div>
         {hasNewIds && (
           <p className="text-[11px] mt-0.5 truncate font-medium" style={{ color: 'var(--pp-text3)' }}>
-            {[order.numeroPO && `PO# ${order.numeroPO}`, order.numeroOrden && `Orden ${order.numeroOrden}`].filter(Boolean).join('  ·  ')}
+            {title}
           </p>
         )}
       </div>
