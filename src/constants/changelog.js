@@ -2,6 +2,12 @@
 // audience: 'admin' | 'taller' | 'all' — a quién se le muestra cada línea en el pop-up de Novedades.
 export const CHANGELOG = [
   {
+    version: '1.8.1',
+    items: [
+      { audience: 'all', text: 'Nuevo ícono de la app.' },
+    ],
+  },
+  {
     version: '1.8.0',
     items: [
       { audience: 'taller', text: 'Nueva vista de "Lista" en Mis pedidos, Historial y Estimados: cada pedido en una fila compacta, ahora la vista por defecto (con opción de volver a Tarjetas).' },
