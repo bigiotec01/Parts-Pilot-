@@ -13,7 +13,7 @@ export default defineConfig({
         name: 'Parts Pilot',
         short_name: 'Parts Pilot',
         description: 'Portal de pedidos de piezas de carrocería',
-        theme_color: '#f97316',
+        theme_color: '#1c1917',
         background_color: '#1c1917',
         display: 'standalone',
         orientation: 'portrait',

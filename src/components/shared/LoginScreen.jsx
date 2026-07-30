@@ -24,9 +24,7 @@ export function LoginScreen({ onLogin, onResetPassword, error }) {
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--pp-bg)' }}>
       <div className="w-full max-w-[400px]" style={{ animation: 'ppRise .5s ease both' }}>
         <div className="text-center mb-7">
-          <div className="inline-flex items-center justify-center rounded-[16px] mb-[18px]" style={{ width: 60, height: 60, background: 'linear-gradient(160deg, #f97316, #ea580c)', boxShadow: '0 12px 30px -8px rgba(249,115,22,0.4)' }}>
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
-          </div>
+          <img src="/pwa-192x192.png" alt="Parts Pilot" className="mx-auto mb-[18px] rounded-[16px]" style={{ width: 60, height: 60, boxShadow: '0 12px 30px -8px rgba(0,0,0,0.5)' }} />
           <h1 className="font-extrabold text-[26px] tracking-tight" style={{ color: 'var(--pp-text)', letterSpacing: '-.02em' }}>Parts Pilot</h1>
           <p className="mt-1.5 text-[13.5px] font-medium" style={{ color: 'var(--pp-text2)' }}>Portal de pedidos · Departamento de Piezas</p>
         </div>
@@ -85,9 +83,7 @@ function ResetPasswordScreen({ onVolver, onResetPassword, emailInicial }) {
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--pp-bg)' }}>
       <div className="w-full max-w-[400px]" style={{ animation: 'ppRise .5s ease both' }}>
         <div className="text-center mb-7">
-          <div className="inline-flex items-center justify-center rounded-[16px] mb-[18px]" style={{ width: 60, height: 60, background: 'linear-gradient(160deg, #f97316, #ea580c)', boxShadow: '0 12px 30px -8px rgba(249,115,22,0.4)' }}>
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
-          </div>
+          <img src="/pwa-192x192.png" alt="Parts Pilot" className="mx-auto mb-[18px] rounded-[16px]" style={{ width: 60, height: 60, boxShadow: '0 12px 30px -8px rgba(0,0,0,0.5)' }} />
           <h1 className="font-extrabold text-[26px] tracking-tight" style={{ color: 'var(--pp-text)', letterSpacing: '-.02em' }}>Parts Pilot</h1>
           <p className="mt-1.5 text-[13.5px] font-medium" style={{ color: 'var(--pp-text2)' }}>Recuperar contraseña</p>
         </div>

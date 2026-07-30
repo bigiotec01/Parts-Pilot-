@@ -67,9 +67,7 @@ function AppContent() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--pp-bg)' }}>
         <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl inline-flex items-center justify-center mb-4 animate-pulse" style={{ background: 'linear-gradient(160deg, #f97316, #ea580c)' }}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
-          </div>
+          <img src="/pwa-192x192.png" alt="Parts Pilot" className="w-16 h-16 rounded-2xl mx-auto mb-4 animate-pulse" />
           <p className="text-sm" style={{ color: 'var(--pp-text4)' }}>Cargando Parts Pilot…</p>
         </div>
       </div>

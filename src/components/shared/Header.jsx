@@ -1,5 +1,5 @@
 import {
-  CarFront, LogOut
+  LogOut
 } from 'lucide-react';
 
 export function Header({ title, subtitle, userLabel, onLogout, maxWidth = 'max-w-6xl' }) {
@@ -7,9 +7,7 @@ export function Header({ title, subtitle, userLabel, onLogout, maxWidth = 'max-w
     <header className="text-white safe-top" style={{ background: 'var(--pp-nav)' }}>
       <div className={`${maxWidth} mx-auto px-4 sm:px-6 py-4 flex items-center justify-between`}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--pp-accent)' }}>
-            <CarFront className="w-5 h-5 text-white" />
-          </div>
+          <img src="/pwa-192x192.png" alt="Parts Pilot" className="w-10 h-10 rounded-lg flex-shrink-0" />
           <div className="min-w-0">
             <h1 className="font-bold text-base sm:text-lg leading-tight truncate">{title}</h1>
             <p className="text-xs truncate" style={{ color: 'var(--pp-text3)' }}>{subtitle}</p>

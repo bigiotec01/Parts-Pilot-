@@ -249,9 +249,7 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
         {/* Sidebar */}
         <aside className="w-[230px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: 'var(--pp-nav)' }}>
           <div className="px-5 py-[22px] flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #f97316, #ea580c)', boxShadow: '0 6px 16px -6px rgba(249,115,22,0.4)' }}>
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
-            </div>
+            <img src="/pwa-192x192.png" alt="Parts Pilot" className="w-9 h-9 rounded-[10px] flex-shrink-0" style={{ boxShadow: '0 6px 16px -6px rgba(0,0,0,0.3)' }} />
             <div className="min-w-0">
               <div className="font-extrabold text-[14px] leading-tight truncate" style={{ color: 'var(--pp-text)' }}>{taller.nombre || 'Parts Pilot'}</div>
               <div className="text-[10.5px] font-bold uppercase mt-0.5" style={{ color: 'var(--pp-text4)', letterSpacing: '.04em' }}>Taller</div>
@@ -340,9 +338,7 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
       <div style={{ minHeight: '100vh', background: 'var(--pp-bg)' }}>
         <div className="safe-top" style={{ background: 'var(--pp-nav)' }}>
           <div className="px-5 py-[18px] pb-4 flex items-center gap-2.5">
-            <div className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(160deg, #f97316, #ea580c)', boxShadow: '0 6px 16px -6px rgba(249,115,22,0.4)' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
-            </div>
+            <img src="/pwa-192x192.png" alt="Parts Pilot" className="w-[38px] h-[38px] rounded-[11px] flex-shrink-0" style={{ boxShadow: '0 6px 16px -6px rgba(0,0,0,0.3)' }} />
             <div className="flex-1 min-w-0">
               <div className="text-[15px] font-extrabold truncate" style={{ color: 'var(--pp-text)', letterSpacing: '-.01em' }}>{taller.nombre || 'Parts Pilot'}</div>
               <div className="text-[11.5px]" style={{ color: 'var(--pp-text2)' }}>{taller.contacto || ''}</div>

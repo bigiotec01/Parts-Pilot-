@@ -64,9 +64,7 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
   return (
     <aside className="w-[252px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: 'var(--pp-nav)' }}>
       <div className="px-5 py-[22px] flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'var(--pp-accent)', border: '1px solid var(--pp-active-border)', boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#fff"/></svg>
-        </div>
+        <img src="/pwa-192x192.png" alt="Parts Pilot" className="w-9 h-9 rounded-[10px] flex-shrink-0" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }} />
         <div>
           <div className="font-extrabold text-[15.5px] leading-none whitespace-nowrap" style={{ color: 'var(--pp-text)', letterSpacing: '-.01em' }}>Parts Pilot</div>
           <div className="mt-1 text-[10.5px] font-bold uppercase" style={{ color: 'var(--pp-text4)', letterSpacing: '.04em' }}>Admin</div>
