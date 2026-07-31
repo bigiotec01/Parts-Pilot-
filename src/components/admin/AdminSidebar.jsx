@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  FileText, LogOut, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt, ChevronUp, Building2, MessageCircle
+  FileText, LogOut, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt, ChevronUp, Building2, Calculator, MessageCircle
 } from 'lucide-react';
 import { APP_VERSION } from '../../constants/app';
 import { ThemeToggleBtn } from '../shared/ThemeToggleBtn';
 
-export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, mensajesCount, onLogout, canView, canEdit, canManageEquipo, perfil, isSuperadmin, isPlatformSuperAdmin, onOpenSuperAdmin }) {
+export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, mensajesCount, onLogout, canView, canEdit, canManageEquipo, perfil, isSuperadmin, isPlatformSuperAdmin, onOpenSuperAdmin, onOpenCalcular }) {
   const primaryItems = [
     { id: 'dashboard',                     label: 'Resumen',    icon: LayoutDashboard },
     canView('pedidos')   && { id: 'pedidos',    label: 'Pedidos',    icon: ClipboardList, badge: pedidosCount },
@@ -100,6 +100,15 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
                   style={{ color: 'var(--pp-text2)' }}
                 >
                   <Building2 className="w-4 h-4" /> Panel de Super Admin
+                </button>
+              )}
+              {isPlatformSuperAdmin && (
+                <button
+                  onClick={() => { setShowProfileMenu(false); onOpenCalcular(); }}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[12.5px] font-semibold transition-colors hover:bg-[#252525]"
+                  style={{ color: 'var(--pp-text2)' }}
+                >
+                  <Calculator className="w-4 h-4" /> Calcular
                 </button>
               )}
               <div className="my-1" style={{ borderTop: '1px solid var(--pp-border2)' }} />

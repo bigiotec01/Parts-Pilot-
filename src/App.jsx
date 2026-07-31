@@ -34,6 +34,7 @@ function AppContent() {
   const [notifToast, setNotifToast] = useState(null);
   const notifTimerRef = useRef(null);
   const [superAdminView, setSuperAdminView] = useState(false);
+  const [superAdminInitialView, setSuperAdminInitialView] = useState(null);
 
   useEffect(() => {
     if (!user) return;
@@ -95,7 +96,13 @@ function AppContent() {
       return <MigrationScreen onLogout={logout} />;
     }
     if (user.isPlatformSuperAdmin && superAdminView) {
-      return <SuperAdminApp onLogout={logout} onExit={() => setSuperAdminView(false)} />;
+      return (
+        <SuperAdminApp
+          onLogout={logout}
+          onExit={() => { setSuperAdminView(false); setSuperAdminInitialView(null); }}
+          initialView={superAdminInitialView}
+        />
+      );
     }
     return (
       <>
@@ -104,6 +111,7 @@ function AppContent() {
         <AdminApp
           isPlatformSuperAdmin={user.isPlatformSuperAdmin}
           onOpenSuperAdmin={() => setSuperAdminView(true)}
+          onOpenCalcular={() => { setSuperAdminInitialView('calcular'); setSuperAdminView(true); }}
           pedidos={pedidos}
           talleres={talleres}
           facturas={facturas}

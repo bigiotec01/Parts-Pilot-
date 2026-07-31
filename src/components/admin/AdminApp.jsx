@@ -20,7 +20,7 @@ import { AdminOrderDrawer } from './AdminOrderDrawer';
 import { AdminHistorial } from './AdminHistorial';
 import { AdminMensajes, unreadTallerCount } from './AdminMensajes';
 
-export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, empresa, onActualizarMarcasFactura, currentUid, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onDeleteMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onImportarPiezas, onAgregarFactura, onActualizarFactura, onEliminarFactura, backups, onCrearBackup, onRestaurarBackup, onEliminarBackup, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario, onResetPassword, isPlatformSuperAdmin, onOpenSuperAdmin }) {
+export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, empresa, onActualizarMarcasFactura, currentUid, onLogout, onChangeStatus, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onDeleteMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onImportarPiezas, onAgregarFactura, onActualizarFactura, onEliminarFactura, backups, onCrearBackup, onRestaurarBackup, onEliminarBackup, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario, onResetPassword, isPlatformSuperAdmin, onOpenSuperAdmin, onOpenCalcular }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
@@ -262,6 +262,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
         isSuperadmin={isSuperadmin}
         isPlatformSuperAdmin={isPlatformSuperAdmin}
         onOpenSuperAdmin={onOpenSuperAdmin}
+        onOpenCalcular={onOpenCalcular}
       />
       {mainContent}
       {selectedOrder && (
