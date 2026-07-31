@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { collection, count, getAggregateFromServer, getCountFromServer, onSnapshot, query, sum, where } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import {
-  AlertTriangle, ArrowLeft, Building2, LogIn, LogOut, MoreVertical, Pencil,
+  AlertTriangle, ArrowLeft, Building2, Calculator, LogIn, LogOut, MoreVertical, Pencil,
   Plus, Power, ScrollText, Search, StickyNote, Trash2, X,
 } from 'lucide-react';
 import { db, functions } from '../../firebase';
@@ -12,6 +12,7 @@ import { FormField } from '../shared/FormField';
 import { TenantSupportView } from './TenantSupportView';
 import { AuditLogsView } from './AuditLogsView';
 import { NotasView } from './NotasView';
+import { CalcularView } from './CalcularView';
 
 function NuevaEmpresaModal({ onClose }) {
   const [form, setForm] = useState({ nombreEmpresa: '', nombreAdmin: '', email: '', password: '' });
@@ -348,6 +349,7 @@ export function SuperAdminApp({ onLogout, onExit }) {
   const [soporteTarget, setSoporteTarget] = useState(null);
   const [showLogs, setShowLogs] = useState(false);
   const [showNotas, setShowNotas] = useState(false);
+  const [showCalcular, setShowCalcular] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('todas');
 
@@ -379,6 +381,10 @@ export function SuperAdminApp({ onLogout, onExit }) {
     return <NotasView onExit={() => setShowNotas(false)} />;
   }
 
+  if (showCalcular) {
+    return <CalcularView onExit={() => setShowCalcular(false)} />;
+  }
+
   const toggleEstado = async (empresa) => {
     setBusyId(empresa.id);
     try {
@@ -408,6 +414,9 @@ export function SuperAdminApp({ onLogout, onExit }) {
             )}
             <button onClick={() => setShowNotas(true)} className="flex items-center gap-1.5 px-3.5 py-[9px] rounded-[10px] text-[13px] font-semibold border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
               <StickyNote className="w-4 h-4" /> Notas
+            </button>
+            <button onClick={() => setShowCalcular(true)} className="flex items-center gap-1.5 px-3.5 py-[9px] rounded-[10px] text-[13px] font-semibold border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+              <Calculator className="w-4 h-4" /> Calcular
             </button>
             <button onClick={() => setShowLogs(true)} className="flex items-center gap-1.5 px-3.5 py-[9px] rounded-[10px] text-[13px] font-semibold border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
               <ScrollText className="w-4 h-4" /> Logs
