@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { AlertCircle, Calendar, Car } from 'lucide-react';
+import { AlertCircle, Calendar, Car, Hourglass } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
+import { PiezasList } from '../shared/PiezasList';
 import { formatDate } from '../../utils/format';
 
 export function GuestTrackingScreen({ pedidoId, token }) {
@@ -53,6 +54,18 @@ export function GuestTrackingScreen({ pedidoId, token }) {
               {pedido.fechaEntrega && (
                 <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: 'rgba(37,99,235,0.1)', color: '#2563eb' }}>
                   <Calendar className="w-4 h-4 flex-shrink-0" /> Entrega estimada: {formatDate(pedido.fechaEntrega)}
+                </div>
+              )}
+
+              {pedido.piezas?.length > 0 && (
+                <div className="rounded-[12px] p-3" style={{ background: 'var(--pp-surface)' }}>
+                  <p className="text-[10.5px] font-bold uppercase mb-2 flex items-center gap-1.5" style={{ color: 'var(--pp-text9)', letterSpacing: '.05em' }}>
+                    <Hourglass className="w-3.5 h-3.5" /> Piezas en espera
+                    <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>
+                      · {pedido.piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda').length} de {pedido.piezas.length} en tienda
+                    </span>
+                  </p>
+                  <PiezasList piezas={pedido.piezas} />
                 </div>
               )}
             </div>

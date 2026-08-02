@@ -759,5 +759,12 @@ exports.pedidoGuestEstado = onRequest({ cors: true }, async (req, res) => {
     estado: p.estado || null,
     fecha: p.fecha || null,
     fechaEntrega: p.fechaEntrega || null,
+    piezas: (p.piezas || []).map(pz => ({
+      numeroPieza: pz.numeroPieza || null,
+      descripcion: pz.descripcion || null,
+      estado: pz.estado || null,
+      fechaRecibida: pz.fechaRecibida || null,
+      primeraDeteccion: pz.primeraDeteccion || null,
+    })),
   });
 });
