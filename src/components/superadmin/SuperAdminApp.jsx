@@ -12,7 +12,6 @@ import { FormField } from '../shared/FormField';
 import { TenantSupportView } from './TenantSupportView';
 import { AuditLogsView } from './AuditLogsView';
 import { NotasView } from './NotasView';
-import { CalcularView } from './CalcularView';
 
 function NuevaEmpresaModal({ onClose }) {
   const [form, setForm] = useState({ nombreEmpresa: '', nombreAdmin: '', email: '', password: '' });
@@ -340,7 +339,7 @@ const FILTROS = [
   { val: 'suspendida', label: 'Suspendidas' },
 ];
 
-export function SuperAdminApp({ onLogout, onExit, initialView }) {
+export function SuperAdminApp({ onLogout, onExit }) {
   const [empresas, setEmpresas] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [busyId, setBusyId] = useState(null);
@@ -349,7 +348,6 @@ export function SuperAdminApp({ onLogout, onExit, initialView }) {
   const [soporteTarget, setSoporteTarget] = useState(null);
   const [showLogs, setShowLogs] = useState(false);
   const [showNotas, setShowNotas] = useState(false);
-  const [showCalcular, setShowCalcular] = useState(initialView === 'calcular');
   const [busqueda, setBusqueda] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('todas');
 
@@ -379,10 +377,6 @@ export function SuperAdminApp({ onLogout, onExit, initialView }) {
 
   if (showNotas) {
     return <NotasView onExit={() => setShowNotas(false)} />;
-  }
-
-  if (showCalcular) {
-    return <CalcularView onExit={() => setShowCalcular(false)} />;
   }
 
   const toggleEstado = async (empresa) => {

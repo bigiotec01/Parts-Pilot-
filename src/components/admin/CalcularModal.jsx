@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import { ArrowLeft, Calculator } from 'lucide-react';
 import { inputClass } from '../../constants/styles';
 import { fmtCur } from '../../utils/format';
+import { Modal } from '../shared/Modal';
 
 const FACTOR_MARCA = { KIA: 0.45, NISSAN: 0.55 };
 const FACTOR_COSTO = 1.01;
 
-export function CalcularView({ onExit }) {
+export function CalcularModal({ onClose }) {
   const [marca, setMarca] = useState('KIA');
   const [lista, setLista] = useState('');
 
@@ -18,21 +18,8 @@ export function CalcularView({ onExit }) {
   }, [marca, lista]);
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--pp-bg)' }}>
-      <div className="safe-top" style={{ background: 'var(--pp-bg)' }}>
-        <header className="h-[70px] flex items-center gap-3 px-[30px] border-b" style={{ borderColor: 'var(--pp-border2)' }}>
-          <button onClick={onExit} className="w-9 h-9 rounded-[10px] flex items-center justify-center border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <Calculator className="w-5 h-5" style={{ color: 'var(--pp-text)' }} />
-          <div>
-            <h1 className="text-[17px] font-bold" style={{ color: 'var(--pp-text)' }}>Calcular</h1>
-            <p className="text-[12px]" style={{ color: 'var(--pp-text2)' }}>Precio y costo de piezas KIA / NISSAN</p>
-          </div>
-        </header>
-      </div>
-
-      <div className="p-[30px] max-w-[420px] space-y-5">
+    <Modal title="Calcular" onClose={onClose}>
+      <div className="max-w-[420px] space-y-5">
         <div>
           <p className="text-[12px] font-semibold mb-1.5" style={{ color: 'var(--pp-text2)' }}>Marca</p>
           <div className="flex items-center gap-1 rounded-[10px] border p-1" style={{ borderColor: 'var(--pp-border4)' }}>
@@ -62,20 +49,21 @@ export function CalcularView({ onExit }) {
             onChange={(e) => setLista(e.target.value)}
             placeholder="0.00"
             className={inputClass}
+            autoFocus
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-[14px] border px-4 py-3.5" style={{ borderColor: 'var(--pp-border2)', background: 'var(--pp-card)' }}>
+          <div className="rounded-[14px] border px-4 py-3.5" style={{ borderColor: 'var(--pp-border2)', background: 'var(--pp-surface)' }}>
             <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--pp-text3)' }}>Precio 6</p>
             <p className="text-[20px] font-bold mt-0.5" style={{ color: 'var(--pp-text)' }}>{fmtCur(precio6)}</p>
           </div>
-          <div className="rounded-[14px] border px-4 py-3.5" style={{ borderColor: 'var(--pp-border2)', background: 'var(--pp-card)' }}>
+          <div className="rounded-[14px] border px-4 py-3.5" style={{ borderColor: 'var(--pp-border2)', background: 'var(--pp-surface)' }}>
             <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--pp-text3)' }}>Costo</p>
             <p className="text-[20px] font-bold mt-0.5" style={{ color: 'var(--pp-text)' }}>{fmtCur(costo)}</p>
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

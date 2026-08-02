@@ -13,6 +13,7 @@ import { AdminTalleres } from './AdminTalleres';
 import { AdminNuevoPedido } from './AdminNuevoPedido';
 import { AdminNuevaCotizacion } from './AdminNuevaCotizacion';
 import { ReporteModal } from './ReporteModal';
+import { CalcularModal } from './CalcularModal';
 import { AdminEstimados } from './AdminEstimados';
 import { AdminFacturas } from './AdminFacturas';
 import { AdminEquipo } from './AdminEquipo';
@@ -20,13 +21,14 @@ import { AdminOrderDrawer } from './AdminOrderDrawer';
 import { AdminHistorial } from './AdminHistorial';
 import { AdminMensajes, unreadTallerCount } from './AdminMensajes';
 
-export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, empresa, onActualizarMarcasFactura, currentUid, onLogout, onChangeStatus, onGenerateGuestLink, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onDeleteMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onImportarPiezas, onAgregarFactura, onActualizarFactura, onEliminarFactura, backups, onCrearBackup, onRestaurarBackup, onEliminarBackup, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario, onResetPassword, isPlatformSuperAdmin, onOpenSuperAdmin, onOpenCalcular }) {
+export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, empresa, onActualizarMarcasFactura, currentUid, onLogout, onChangeStatus, onGenerateGuestLink, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onDeleteMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onImportarPiezas, onAgregarFactura, onActualizarFactura, onEliminarFactura, backups, onCrearBackup, onRestaurarBackup, onEliminarBackup, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario, onResetPassword, isPlatformSuperAdmin, onOpenSuperAdmin }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
   const [filterEstado, setFilterEstado] = useState('todos');
   const [search, setSearch] = useState('');
   const [showReporte, setShowReporte] = useState(false);
+  const [showCalcular, setShowCalcular] = useState(false);
 
   // Permisos: si perfil no tiene 'permisos' = superadmin con acceso total
   const isSuperadmin = !perfil?.permisos;
@@ -263,7 +265,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
         isSuperadmin={isSuperadmin}
         isPlatformSuperAdmin={isPlatformSuperAdmin}
         onOpenSuperAdmin={onOpenSuperAdmin}
-        onOpenCalcular={onOpenCalcular}
+        onOpenCalcular={() => setShowCalcular(true)}
       />
       {mainContent}
       {selectedOrder && (
@@ -285,6 +287,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
         />
       )}
       {showReporte && <ReporteModal pedidos={pedidos} talleres={talleres} onClose={() => setShowReporte(false)} />}
+      {showCalcular && <CalcularModal onClose={() => setShowCalcular(false)} />}
     </div>
   );
 }
