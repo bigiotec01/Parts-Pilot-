@@ -12,6 +12,7 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
     canView('estimados') && { id: 'estimados',  label: 'Estimados',  icon: FileText, badge: solicitudesCount, accent: true },
     canView('pedidos')   && { id: 'mensajes',   label: 'Mensajes',   icon: MessageCircle, badge: mensajesCount },
     canView('talleres')  && { id: 'talleres',   label: 'Talleres',   icon: Users },
+    isPlatformSuperAdmin && { id: 'calcular', label: 'Calcular', icon: Calculator, onClick: onOpenCalcular },
     canView('pedidos')   && { id: 'historial',  label: 'Historial',  icon: History },
   ].filter(Boolean);
   const secondaryItems = [
@@ -34,11 +35,11 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
   const rol = isSuperadmin ? 'Superadmin' : 'Administrador';
   const iniciales = nombre.split(' ').filter(w => w.length > 1).slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'AD';
 
-  const NavBtn = ({ id, label, icon: Icon, badge, accent }) => {
+  const NavBtn = ({ id, label, icon: Icon, badge, accent, onClick: customOnClick }) => {
     const active = activeTab === id;
     return (
       <button
-        onClick={() => onChange(id)}
+        onClick={() => (customOnClick ? customOnClick() : onChange(id))}
         className={`w-full flex items-center gap-2.5 px-2.5 py-[9px] rounded-[10px] text-[13.5px] font-semibold mb-0.5 transition-all ${!active ? 'hover:bg-[#252525]' : ''}`}
         style={active ? {
           background: 'var(--pp-active-bg)',
@@ -73,7 +74,7 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
 
       <div className="px-3 flex-1 overflow-y-auto relative">
         <div className="text-[10.5px] font-bold uppercase px-2.5 py-2 mb-1" style={{ color: 'var(--pp-text5)', letterSpacing: '.08em' }}>Operación</div>
-        {primaryItems.map(item => <NavBtn key={item.id} {...item} />)}
+        {primaryItems.map(item => <NavBtn key={item.id} {...item} onClick={item.onClick} />)}
         <div className="my-3" style={{ borderTop: '1px solid var(--pp-border2)' }} />
         {secondaryItems.map(item => <NavBtn key={item.id} {...item} />)}
 
