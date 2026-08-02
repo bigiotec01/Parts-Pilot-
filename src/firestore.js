@@ -202,7 +202,15 @@ export async function cambiarEstatus(pedidoId, estado, fechaEntrega) {
   const ref = doc(db, 'pedidos', pedidoId);
   const data = { estado };
   if (fechaEntrega !== undefined) data.fechaEntrega = fechaEntrega === '' ? deleteField() : fechaEntrega;
+  // Al marcar el pedido como entregado, el link de seguimiento del cliente guest deja de funcionar.
+  if (estado === 'entregado') data.guestTokenActivo = false;
   await updateDoc(ref, data);
+}
+
+// ── Link de seguimiento para cliente guest (sin cuenta) ──────────────
+export async function generarGuestToken(pedidoId) {
+  const ref = doc(db, 'pedidos', pedidoId);
+  await updateDoc(ref, { guestToken: crypto.randomUUID(), guestTokenActivo: true });
 }
 
 // ── Enviar estimado ─────────────────────────────────────────────────

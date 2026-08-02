@@ -8,7 +8,7 @@ import {
   actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario,
   eliminarTallerUsuario, actualizarTallerUsuario, guardarFCMToken, eliminarFCMToken,
   useFacturaBackups, crearBackupFacturas, restaurarBackupFacturas, eliminarBackupFacturas,
-  useEmpresa, actualizarMarcasFactura
+  useEmpresa, actualizarMarcasFactura, generarGuestToken
 } from './firestore';
 import { ThemeProvider } from './theme/ThemeContext';
 import { LoginScreen } from './components/shared/LoginScreen';
@@ -19,6 +19,7 @@ import { ClientApp } from './components/client/ClientApp';
 import { SuperAdminApp } from './components/superadmin/SuperAdminApp';
 import { MigrationScreen } from './components/superadmin/MigrationScreen';
 import { UpdatePrompt } from './components/shared/UpdatePrompt';
+import { GuestTrackingScreen } from './components/guest/GuestTrackingScreen';
 
 function AppContent() {
   const { user, perfil, cargando, error, login, logout, resetPassword, setError } = useAuth();
@@ -63,6 +64,16 @@ function AppContent() {
       clearTimeout(notifTimerRef.current);
     };
   }, [user?.uid]);
+
+  // Link de seguimiento guest: se resuelve antes que cualquier otra cosa (auth incluida)
+  // para que un cliente sin cuenta nunca vea el loader ni el login, y para que abrir el
+  // propio link en un navegador donde ya hay sesión de admin/taller siga mostrando la vista pública.
+  const trackParams = new URLSearchParams(window.location.search);
+  const trackId = trackParams.get('track');
+  const trackToken = trackParams.get('tk');
+  if (trackId && trackToken) {
+    return <GuestTrackingScreen pedidoId={trackId} token={trackToken} />;
+  }
 
   if (cargando) {
     return (
@@ -123,6 +134,7 @@ function AppContent() {
           currentUid={user.uid}
           onLogout={logout}
           onChangeStatus={(id, estado, fechaEntrega) => cambiarEstatus(id, estado, fechaEntrega)}
+          onGenerateGuestLink={(id) => generarGuestToken(id)}
           onSendEstimate={(id, data) => enviarEstimado(id, data)}
           onCreateOrder={(data) => crearPedido({ ...data, tipo: 'pedido', tenantId: perfil?.tenantId })}
           onCreateCotizacion={(data) => crearCotizacion({ ...data, tenantId: perfil?.tenantId })}

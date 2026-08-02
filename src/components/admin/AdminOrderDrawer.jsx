@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import {
-  CheckCircle2, Clock, FileText, X, ThumbsUp, ThumbsDown, AlertCircle, ClipboardList, Calendar, Send, MessageSquare, Paperclip, Mail, Trash2, Share2, MessageCircle, ChevronDown, ChevronUp, Sparkles, Hourglass, FileSpreadsheet, Plus
+  CheckCircle2, Clock, FileText, X, ThumbsUp, ThumbsDown, AlertCircle, ClipboardList, Calendar, Send, MessageSquare, Paperclip, Mail, Trash2, Share2, MessageCircle, ChevronDown, ChevronUp, Sparkles, Hourglass, FileSpreadsheet, Plus, Link2
 } from 'lucide-react';
 import { STATUS_CONFIG, STATUS_ORDER } from '../../constants/status';
 import { StatusBadge, StatusStepper } from '../shared/StatusBadge';
@@ -32,7 +32,7 @@ function TallerNotes({ text }) {
   );
 }
 
-export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSendEstimate, onDeleteOrder, onUpdateNotes, onUpdateReferencias, onImportarPiezas, onSendMessage, onDeleteMessage, pedidos = [], initialTab = 'detalles' }) {
+export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onGenerateGuestLink, onSendEstimate, onDeleteOrder, onUpdateNotes, onUpdateReferencias, onImportarPiezas, onSendMessage, onDeleteMessage, pedidos = [], initialTab = 'detalles' }) {
   const [tab, setTab] = useState(initialTab);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   useEffect(() => {
@@ -55,6 +55,8 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
   const [sendError, setSendError]       = useState('');
   const [copied, setCopied]             = useState(false);
   const [showNotify, setShowNotify]     = useState(false);
+  const [guestCopied, setGuestCopied]   = useState(false);
+  const [generandoGuest, setGenerandoGuest] = useState(false);
   const msgCount = (order.mensajes || []).length;
 
   const avgLeadDays = useMemo(() => avgDeliveryLeadDays(pedidos), [pedidos]);
@@ -83,6 +85,23 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
       : `Hola${taller?.contacto ? ` ${taller.contacto}` : ''},\n\nPuedes ver el estado de tu pedido "${order.vehiculo}" (${ref}) aquí:\n\n${url}\n\nSaludos.`);
     const to = taller?.email ? `&to=${encodeURIComponent(taller.email)}` : '';
     window.open(`https://mail.google.com/mail/?view=cm${to}&su=${subject}&body=${body}`, '_blank');
+  };
+
+  const guestLink = order.guestTokenActivo && order.guestToken
+    ? `${window.location.origin}${window.location.pathname}?track=${order.id}&tk=${order.guestToken}`
+    : null;
+
+  const handleGenerateGuestLink = async () => {
+    setGenerandoGuest(true);
+    try { await onGenerateGuestLink(order.id); } finally { setGenerandoGuest(false); }
+  };
+
+  const handleCopyGuestLink = () => {
+    if (!guestLink) return;
+    navigator.clipboard.writeText(guestLink).then(() => {
+      setGuestCopied(true);
+      setTimeout(() => setGuestCopied(false), 2500);
+    });
   };
 
   const whatsappNumber = (() => {
@@ -205,6 +224,26 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onSen
           <Share2 className="w-4 h-4" />
         </button>
       </div>
+
+      {onGenerateGuestLink && (
+        <div className="rounded-[12px] p-3 flex items-center gap-3" style={{ background: 'var(--pp-card)' }}>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10.5px] font-bold uppercase mb-1" style={{ color: 'var(--pp-text9)', letterSpacing: '.05em' }}>Acceso para el cliente</p>
+            <p className="text-[12px]" style={{ color: 'var(--pp-text3)' }}>
+              {guestLink ? 'Link activo · se desactiva al marcar "Orden Completa".' : 'Genera un link para que el cliente vea el estado de su pedido sin necesidad de cuenta.'}
+            </p>
+          </div>
+          {guestLink ? (
+            <button type="button" onClick={handleCopyGuestLink} className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] border text-[12px] font-semibold hover:bg-[#1a1a1a] transition-colors flex-shrink-0" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+              {guestCopied ? <><CheckCircle2 className="w-3.5 h-3.5" /> ¡Copiado!</> : <><Link2 className="w-3.5 h-3.5" /> Copiar link</>}
+            </button>
+          ) : (
+            <button type="button" onClick={handleGenerateGuestLink} disabled={generandoGuest} className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] border text-[12px] font-semibold hover:bg-[#1a1a1a] transition-colors flex-shrink-0 disabled:opacity-60" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+              <Link2 className="w-3.5 h-3.5" /> {generandoGuest ? 'Generando…' : 'Generar link'}
+            </button>
+          )}
+        </div>
+      )}
 
       {estado !== 'rechazado' && (
         <div>

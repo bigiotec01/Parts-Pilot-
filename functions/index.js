@@ -734,3 +734,30 @@ exports.pedidoEstado = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res) =
     })),
   });
 });
+
+// ── Estado de un pedido para el cliente guest (link de seguimiento) ─
+// A diferencia de pedidoEstado (consumida server-to-server por Tag Logic), esta la
+// llama directo el navegador del cliente final, por eso necesita { cors: true }.
+// Solo expone lo mínimo: nunca mensajes, archivos, tallerId ni datos de costo.
+exports.pedidoGuestEstado = onRequest({ cors: true }, async (req, res) => {
+  const id = req.query.id;
+  const tk = req.query.tk;
+  if (!id || !tk) return res.status(400).json({ error: 'faltan parámetros' });
+
+  const snap = await db.collection('pedidos').doc(id).get();
+  if (!snap.exists) return res.status(404).json({ error: 'no encontrado' });
+
+  const p = snap.data();
+  if (p.guestToken !== tk || !p.guestTokenActivo) return res.status(403).json({ error: 'link inválido o expirado' });
+
+  const empresaSnap = await db.collection('empresas').doc(p.tenantId).get();
+  if (empresaSnap.data()?.estado !== 'activa') return res.status(403).json({ error: 'no disponible' });
+
+  return res.json({
+    folio: p.folio || null,
+    vehiculo: p.vehiculo || null,
+    estado: p.estado || null,
+    fecha: p.fecha || null,
+    fechaEntrega: p.fechaEntrega || null,
+  });
+});
