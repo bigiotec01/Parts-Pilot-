@@ -191,6 +191,7 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
       </div>
 
       <div className="flex items-center gap-2 flex-wrap sm:pt-px">
+        <StatusBadge estado={order.estado} />
         {order.mensajes?.length > 0 && (
           <span className="flex items-center gap-1 text-[11px] font-bold">
             <MessageSquare className="w-3.5 h-3.5" style={{ color: hasActivity ? '#f59e0b' : 'var(--pp-text3)' }} />
@@ -199,7 +200,6 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
             </span>
           </span>
         )}
-        <StatusBadge estado={order.estado} />
         {showTaller && order.notasInternas && <StickyNote className="w-3.5 h-3.5" style={{ color: 'var(--pp-text3)' }} />}
       </div>
 
