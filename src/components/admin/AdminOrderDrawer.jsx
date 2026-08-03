@@ -11,7 +11,7 @@ import { QuickActionsMenu } from '../shared/QuickActionsMenu';
 import { PiezasList } from '../shared/PiezasList';
 import { inputClass } from '../../constants/styles';
 import { avgDeliveryLeadDays, suggestDeliveryDate, cleanText, filesOf } from '../../utils/format';
-import { parsePiezasExcel, mergePiezas, agregarPiezaManual } from '../../utils/piezasExcel';
+import { parsePiezasExcel, mergePiezas, agregarPiezaManual, editarPieza, eliminarPieza } from '../../utils/piezasExcel';
 
 const AUTO_DATE_STATES = ['en_transito', 'recibido'];
 
@@ -178,24 +178,32 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onGen
     }
   };
 
-  const [showAgregarPieza, setShowAgregarPieza] = useState(false);
+  const [piezaModal, setPiezaModal] = useState(null); // null | { mode: 'add' } | { mode: 'edit', numeroPieza }
   const [manualNumero, setManualNumero] = useState('');
   const [manualDescripcion, setManualDescripcion] = useState('');
   const [manualError, setManualError] = useState('');
   const [manualGuardando, setManualGuardando] = useState(false);
-  const handleAgregarPiezaManual = async (e) => {
+  const abrirAgregarPieza = () => { setManualNumero(''); setManualDescripcion(''); setManualError(''); setPiezaModal({ mode: 'add' }); };
+  const abrirEditarPieza = (p) => { setManualNumero(p.numeroPieza); setManualDescripcion(p.descripcion || ''); setManualError(''); setPiezaModal({ mode: 'edit', numeroPieza: p.numeroPieza }); };
+  const handleGuardarPieza = async (e) => {
     e.preventDefault();
     setManualError('');
     setManualGuardando(true);
     try {
-      const piezas = agregarPiezaManual(order.piezas, { numeroPieza: manualNumero, descripcion: manualDescripcion });
+      const piezas = piezaModal.mode === 'edit'
+        ? editarPieza(order.piezas, piezaModal.numeroPieza, { numeroPieza: manualNumero, descripcion: manualDescripcion })
+        : agregarPiezaManual(order.piezas, { numeroPieza: manualNumero, descripcion: manualDescripcion });
       await onImportarPiezas(order.id, piezas);
-      setManualNumero(''); setManualDescripcion(''); setShowAgregarPieza(false);
+      setManualNumero(''); setManualDescripcion(''); setPiezaModal(null);
     } catch (err) {
-      setManualError(err.message || 'No se pudo agregar la pieza.');
+      setManualError(err.message || 'No se pudo guardar la pieza.');
     } finally {
       setManualGuardando(false);
     }
+  };
+  const handleEliminarPieza = async (p) => {
+    if (!window.confirm(`¿Eliminar la pieza ${p.numeroPieza}?`)) return;
+    await onImportarPiezas(order.id, eliminarPieza(order.piezas, p.numeroPieza));
   };
 
   const openDatePicker = (e) => { try { e.target.showPicker(); } catch (_) {} };
@@ -274,21 +282,21 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onGen
           <input ref={piezasFileRef} type="file" accept=".xlsx,.xls" onChange={handleImportarPiezas} disabled={piezasImportando} className="hidden" />
           <QuickActionsMenu size="sm" items={[
             { label: piezasImportando ? 'Leyendo…' : 'Subir Excel', icon: FileSpreadsheet, disabled: piezasImportando, onClick: () => piezasFileRef.current?.click() },
-            { label: 'Agregar pieza manualmente', icon: Plus, onClick: () => setShowAgregarPieza(true) },
+            { label: 'Agregar pieza manualmente', icon: Plus, onClick: abrirAgregarPieza },
           ]} />
         </div>
         {piezasError && <p className="text-[12px] mb-2" style={{ color: '#dc2626' }}>{piezasError}</p>}
         {!order.piezas?.length ? (
           <p className="text-[12.5px]" style={{ color: 'var(--pp-text3)' }}>Sube el reporte de piezas (.xlsx) o agrega una pieza manualmente para verla aquí.</p>
         ) : (
-          <PiezasList piezas={order.piezas} />
+          <PiezasList piezas={order.piezas} onEdit={abrirEditarPieza} onDelete={handleEliminarPieza} />
         )}
       </div>
 
-      {showAgregarPieza && (
-        <Modal title="Agregar pieza manualmente" onClose={() => { setShowAgregarPieza(false); setManualError(''); }}>
-          <form onSubmit={handleAgregarPiezaManual} className="space-y-3">
-            <p className="text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>Para piezas que ya están en la tienda pero no vinieron en el reporte del proveedor.</p>
+      {piezaModal && (
+        <Modal title={piezaModal.mode === 'edit' ? 'Editar pieza' : 'Agregar pieza manualmente'} onClose={() => { setPiezaModal(null); setManualError(''); }}>
+          <form onSubmit={handleGuardarPieza} className="space-y-3">
+            {piezaModal.mode === 'add' && <p className="text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>Para piezas que ya están en la tienda pero no vinieron en el reporte del proveedor.</p>}
             <FormField label="Número de pieza">
               <input value={manualNumero} onChange={e => setManualNumero(e.target.value)} placeholder="ej. 86610-L2500" autoFocus className={inputClass} />
             </FormField>
@@ -297,7 +305,7 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onGen
             </FormField>
             {manualError && <p className="text-[12.5px]" style={{ color: '#dc2626' }}>{manualError}</p>}
             <button type="submit" disabled={manualGuardando || !manualNumero.trim()} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#707070] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: 'var(--pp-accent)' }}>
-              <Plus className="w-4 h-4" /> {manualGuardando ? 'Agregando…' : 'Agregar pieza · En tienda'}
+              <Plus className="w-4 h-4" /> {manualGuardando ? 'Guardando…' : piezaModal.mode === 'edit' ? 'Guardar cambios' : 'Agregar pieza · En tienda'}
             </button>
           </form>
         </Modal>

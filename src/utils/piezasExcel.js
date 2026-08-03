@@ -112,3 +112,25 @@ export function agregarPiezaManual(piezasActuales, { numeroPieza, descripcion })
   });
   return piezas;
 }
+
+// Corrige el número de pieza y/o descripción de una pieza ya guardada
+// (ej. se capturó mal al agregarla manualmente).
+export function editarPieza(piezasActuales, numeroPiezaOriginal, { numeroPieza, descripcion }) {
+  const numero = String(numeroPieza || '').trim();
+  if (!numero) throw new Error('Ingresa un número de pieza.');
+  const piezas = (piezasActuales || []).map(p => ({ ...p }));
+  if (numero !== numeroPiezaOriginal && piezas.some(p => p.numeroPieza === numero)) {
+    throw new Error(`La pieza ${numero} ya está en la lista.`);
+  }
+  const pieza = piezas.find(p => p.numeroPieza === numeroPiezaOriginal);
+  if (!pieza) throw new Error('No se encontró la pieza a editar.');
+  pieza.numeroPieza = numero;
+  pieza.descripcion = String(descripcion || '').trim();
+  pieza.ultimaActualizacion = new Date();
+  return piezas;
+}
+
+// Quita una pieza de la lista (ej. se agregó por error).
+export function eliminarPieza(piezasActuales, numeroPieza) {
+  return (piezasActuales || []).filter(p => p.numeroPieza !== numeroPieza);
+}
