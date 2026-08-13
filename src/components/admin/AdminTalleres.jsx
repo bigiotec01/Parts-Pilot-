@@ -5,6 +5,7 @@ import {
 import { Header } from '../shared/Header';
 import { FormField } from '../shared/FormField';
 import { inputClass } from '../../constants/styles';
+import { fmtCur } from '../../utils/format';
 
 const userTableCols = '1.3fr 0.85fr 1.3fr 56px';
 
@@ -130,7 +131,7 @@ export function TallerSubUsuarios({ tallerId, tallerEmail, usuarios, onCrear, on
   );
 }
 
-export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos, onCreateTaller, onDeleteTaller, onUpdateTaller, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario, onResetPassword }) {
+export function AdminTalleres({ facturas = [], talleres, pedidos, tallerUsuarios, onVerPedidos, onCreateTaller, onDeleteTaller, onUpdateTaller, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario, onResetPassword }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ nombre: '', contacto: '', telefono: '', email: '', usuario: '', password: '' });
   const [error, setError] = useState('');
@@ -285,6 +286,23 @@ export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos,
           const pedidosTaller = pedidos.filter(p => p.tallerId === t.uid);
           const activos = pedidosTaller.filter(p => p.estado !== 'entregado').length;
           const subUsuarios = tallerUsuarios.filter(u => u.tallerId === t.uid).length;
+          const hoy = new Date();
+          const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+          const ventasMes = facturas
+            .filter(f => (f.tallerId === t.uid) && f.fechaFactura)
+            .reduce((sum, f) => {
+              const fecha = f.fechaFactura?.toDate ? f.fechaFactura.toDate() : new Date(f.fechaFactura + 'T00:00:00');
+              if (isNaN(fecha.getTime())) return sum;
+              if (fecha >= inicioMes && fecha <= hoy) return sum + Number(f.valor || 0);
+              return sum;
+            }, 0);
+          const entregasPendientes = pedidosTaller.filter(p => {
+            if (!p.fechaEntrega || ['entregado', 'rechazado'].includes(p.estado)) return false;
+            const fechaEntrega = p.fechaEntrega?.toDate ? p.fechaEntrega.toDate() : new Date(p.fechaEntrega + 'T00:00:00');
+            if (isNaN(fechaEntrega.getTime())) return false;
+            return fechaEntrega <= new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+          }).length;
+          const alertaEntrega = entregasPendientes > 0;
 
           if (editingId === t.uid) {
             return (
@@ -332,7 +350,12 @@ export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos,
           const expanded = expandedIds.has(t.uid);
 
           return (
-            <div key={t.uid} className="rounded-[18px] border p-6" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+            <div key={t.uid} className="rounded-[18px] border p-6" style={{
+              background: alertaEntrega ? 'rgba(127, 29, 29, 0.08)' : 'var(--pp-card)',
+              borderColor: alertaEntrega ? '#ef4444' : 'var(--pp-border)',
+              boxShadow: alertaEntrega ? '0 0 0 1px rgba(239,68,68,0.6), 0 0 18px rgba(239,68,68,0.18)' : 'none',
+              animation: alertaEntrega ? 'ppAlertBlink 1s steps(1,end) infinite' : 'none'
+            }}>
               {/* Cabecera (clic para desplegar/contraer) */}
               <button type="button" onClick={() => toggleExpanded(t.uid)} className="w-full flex items-center gap-3.5 mb-5 text-left">
                 <div className="w-[54px] h-[54px] rounded-[15px] flex items-center justify-center text-[18px] font-extrabold flex-shrink-0" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text2)', border: '1px solid var(--pp-border3)' }}>
@@ -346,16 +369,27 @@ export function AdminTalleres({ talleres, pedidos, tallerUsuarios, onVerPedidos,
               </button>
 
               {/* Mini-estadísticas */}
-              <div className="grid grid-cols-2 gap-2.5 mb-5">
+              <div className="grid grid-cols-3 gap-2.5 mb-5">
                 <div className="rounded-[12px] px-3 py-3 text-center" style={{ background: 'var(--pp-surface)' }}>
-                  <p className="text-[21px] font-extrabold leading-none" style={{ color: activos > 0 ? '#3b82f6' : 'var(--pp-text)' }}>{activos}</p>
-                  <p className="text-[11px] mt-1.5 font-medium" style={{ color: 'var(--pp-text2)' }}>Pedido{activos !== 1 ? 's' : ''} activo{activos !== 1 ? 's' : ''}</p>
+                  <p className="text-[18px] font-extrabold leading-none" style={{ color: activos > 0 ? '#3b82f6' : 'var(--pp-text)' }}>{activos}</p>
+                  <p className="text-[10px] mt-1.5 font-medium" style={{ color: 'var(--pp-text2)' }}>Activos</p>
+                </div>
+                <div className="rounded-[12px] px-3 py-3 text-center" style={{ background: alertaEntrega ? 'rgba(239,68,68,0.08)' : 'var(--pp-surface)' }}>
+                  <p className="text-[15px] font-extrabold leading-none" style={{ color: alertaEntrega ? '#ef4444' : 'var(--pp-text)' }}>{fmtCur(ventasMes)}</p>
+                  <p className="text-[10px] mt-1.5 font-medium" style={{ color: alertaEntrega ? '#fca5a5' : 'var(--pp-text2)' }}>Mes</p>
                 </div>
                 <div className="rounded-[12px] px-3 py-3 text-center" style={{ background: 'var(--pp-surface)' }}>
-                  <p className="text-[21px] font-extrabold leading-none" style={{ color: 'var(--pp-text)' }}>{subUsuarios + 1}</p>
-                  <p className="text-[11px] mt-1.5 font-medium" style={{ color: 'var(--pp-text2)' }}>Usuario{subUsuarios !== 0 ? 's' : ''}</p>
+                  <p className="text-[18px] font-extrabold leading-none" style={{ color: 'var(--pp-text)' }}>{subUsuarios + 1}</p>
+                  <p className="text-[10px] mt-1.5 font-medium" style={{ color: 'var(--pp-text2)' }}>Usuarios</p>
                 </div>
               </div>
+
+              {alertaEntrega && (
+                <div className="mb-4 flex items-center justify-between rounded-[10px] border px-2.5 py-2 text-[11.5px] font-bold" style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.5)', color: '#fecaca' }}>
+                  <span>Entrega vencida / hoy</span>
+                  <span className="rounded-full px-1.5 py-0.5" style={{ background: '#ef4444', color: '#fff' }}>{entregasPendientes}</span>
+                </div>
+              )}
 
               {/* Datos de contacto */}
               <div className="space-y-2 mb-5">

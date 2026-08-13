@@ -146,6 +146,10 @@ body { overflow-x: hidden; }
 @keyframes ppSlide { from { transform: translateX(24px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes ppRise  { from { transform: translateY(8px); opacity: 0; }  to { transform: translateY(0); opacity: 1; } }
 @keyframes ppSheet { from { transform: translateY(100%); }             to { transform: translateY(0); } }
+@keyframes ppAlertBlink {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.2), 0 0 0 1px rgba(239, 68, 68, 0.35); }
+  50% { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.32), 0 0 0 1px rgba(239, 68, 68, 0.65); }
+}
 
 /* ── Overrides de clases Tailwind en modo claro ── */
 
