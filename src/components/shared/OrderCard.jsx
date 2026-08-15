@@ -7,8 +7,19 @@ import { StatusBadge } from './StatusBadge';
 import { QuickActionsMenu } from './QuickActionsMenu';
 import { STATUS_CONFIG, getNextStatus } from '../../constants/status';
 
+const isEntregaVencida = (order) => {
+  if (!order?.fechaEntrega || ['entregado', 'rechazado'].includes(order.estado)) return false;
+  const fechaEntrega = order.fechaEntrega?.toDate ? order.fechaEntrega.toDate() : new Date(order.fechaEntrega + 'T00:00:00');
+  if (isNaN(fechaEntrega.getTime())) return false;
+  const hoy = new Date();
+  const hoySinHora = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+  return fechaEntrega <= hoySinHora;
+};
+
 export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0, activityRole, onChangeStatus, compact }) {
   const hasActivity = activityRole ? hasNewActivity(activityRole, order) : false;
+  const entregaVencida = isEntregaVencida(order);
+  const alertaEntregaAdmin = entregaVencida && activityRole === 'admin';
   const hasNewIds = order.numeroPO || order.numeroOrden;
   const cardTitle = !hasNewIds ? (order.referencia || order.vehiculo) : order.vehiculo;
   const cardSub = !hasNewIds && order.referencia ? order.vehiculo : null;
@@ -21,7 +32,12 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
       className={`w-full text-left rounded-[15px] ${compact ? 'p-3' : 'p-[17px]'} border-2 transition-all hover:border-[#a0a0a0] hover:shadow-[0_8px_24px_-14px_rgba(160,160,160,0.15)] relative cursor-pointer`}
-      style={{ background: hasActivity ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasActivity ? '#f59e0b' : 'var(--pp-border)', boxShadow: hasActivity ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : 'none' }}
+      style={{
+        background: entregaVencida ? 'rgba(127,29,29,0.08)' : hasActivity ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)',
+        borderColor: entregaVencida ? '#ef4444' : hasActivity ? '#f59e0b' : 'var(--pp-border)',
+        boxShadow: entregaVencida ? '0 0 0 1px rgba(239,68,68,0.5), 0 0 18px rgba(239,68,68,0.18)' : hasActivity ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : 'none',
+        animation: alertaEntregaAdmin ? 'ppAlertBlink 1s steps(1,end) infinite' : 'none'
+      }}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">
@@ -69,7 +85,13 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
           )}
         </div>
       </div>
-      <div className="flex items-center justify-between gap-3 pt-3" style={{ borderTop: '1px dashed var(--pp-border)' }}>
+      {entregaVencida && (
+        <div className="mb-2 flex items-center justify-between rounded-[9px] border px-2 py-1 text-[10.5px] font-bold" style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.5)', color: '#fecaca' }}>
+          <span>Entrega vencida / hoy</span>
+          <span className="rounded-full px-1.5 py-0.5" style={{ background: '#ef4444', color: '#fff' }}>!</span>
+        </div>
+      )}
+      <div className="flex items-center justify-between gap-3 pt-3" style={{ borderTop: entregaVencida ? '1px dashed rgba(239,68,68,0.5)' : '1px dashed var(--pp-border)' }}>
         <div className="flex items-center justify-between flex-1 gap-3 text-[11.5px] min-w-0" style={{ color: 'var(--pp-text2)' }}>
           <span className="font-mono font-semibold flex-shrink-0" style={{ color: 'var(--pp-text2)' }}>{order.folio || order.id?.slice(0, 8)}</span>
           {showTaller && taller && (
@@ -140,6 +162,8 @@ export function OrderListHeader({ showTaller, sortBy, sortDir, onSort }) {
 
 export function OrderListRow({ order, taller, showTaller, onClick, unreadCount = 0, activityRole, onChangeStatus }) {
   const hasActivity = activityRole ? hasNewActivity(activityRole, order) : false;
+  const entregaVencida = isEntregaVencida(order);
+  const alertaEntregaAdmin = entregaVencida && activityRole === 'admin';
   const hasNewIds = order.numeroPO || order.numeroOrden;
   const title = !hasNewIds ? (order.referencia || order.vehiculo) : order.vehiculo;
   const next = getNextStatus(order.estado);
@@ -151,7 +175,12 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
       className="grid grid-cols-1 sm:grid-cols-subgrid sm:col-span-full gap-x-3 gap-y-1.5 sm:items-start px-4 py-3 cursor-pointer transition-colors hover:bg-[var(--pp-hover)]"
-      style={{ background: hasActivity ? 'rgba(245,158,11,0.06)' : undefined, borderBottom: '1px solid var(--pp-border2)' }}
+      style={{
+        background: entregaVencida ? 'rgba(127,29,29,0.08)' : hasActivity ? 'rgba(245,158,11,0.06)' : undefined,
+        borderBottom: '1px solid var(--pp-border2)',
+        boxShadow: entregaVencida ? 'inset 0 0 0 1px rgba(239,68,68,0.5)' : undefined,
+        animation: alertaEntregaAdmin ? 'ppAlertBlink 1s steps(1,end) infinite' : 'none'
+      }}
     >
       <div className="min-w-0">
         <div className="flex items-center gap-2 flex-wrap min-w-0">

@@ -2,6 +2,12 @@
 // audience: 'admin' | 'taller' | 'all' — a quién se le muestra cada línea en el pop-up de Novedades.
 export const CHANGELOG = [
   {
+    version: '1.8.6',
+    items: [
+      { audience: 'admin', text: 'Corregido el resaltado rojo: ahora las tarjetas de pedidos con entrega vencida o hoy se marcan en rojo, sin afectar la vista de talleres.' },
+    ],
+  },
+  {
     version: '1.8.3',
     items: [
       { audience: 'all', text: 'El logo nuevo ahora se ve en la pantalla de inicio de sesión y en la parte de arriba de la app (antes se veía un ícono genérico).' },
