@@ -97,7 +97,7 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar usuario por nombre o email…" className={`${inputClass} pl-8 w-64`} />
           </div>
           <button onClick={() => { setShowForm(s => !s); setError(''); }}
-            className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:bg-[#707070] flex-shrink-0"
+            className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:bg-[#8E1620] flex-shrink-0"
             style={{ background: 'var(--pp-accent)' }}>
             <Plus className="w-4 h-4" strokeWidth={2.2} /> Agregar usuario
           </button>
@@ -132,7 +132,7 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
                   {[{ val: true, label: 'Sí' }, { val: false, label: 'No' }].map(opt => (
                     <button key={String(opt.val)} type="button" onClick={() => setP('crearPedidos', opt.val)}
                       className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-all"
-                      style={{ background: form.permisos.crearPedidos === opt.val ? 'var(--pp-active-bg2)' : 'var(--pp-card)', color: form.permisos.crearPedidos === opt.val ? 'var(--pp-text6)' : 'var(--pp-text2)', borderColor: form.permisos.crearPedidos === opt.val ? 'rgba(200,200,200,0.3)' : 'var(--pp-surface)' }}>
+                      style={{ background: form.permisos.crearPedidos === opt.val ? 'var(--pp-active-bg2)' : 'var(--pp-card)', color: form.permisos.crearPedidos === opt.val ? 'var(--pp-text6)' : 'var(--pp-text2)', borderColor: form.permisos.crearPedidos === opt.val ? 'rgba(198,32,43,0.3)' : 'var(--pp-surface)' }}>
                       {opt.label}
                     </button>
                   ))}
@@ -158,7 +158,7 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
 
           {error && <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[11px]" style={{ background: '#fdecec', color: '#dc2626' }}><AlertCircle className="w-4 h-4 flex-shrink-0" />{error}</div>}
           <div className="flex gap-3 pt-1">
-            <button type="submit" disabled={saving} className="flex-1 py-[11px] rounded-[11px] text-white font-bold text-[13.5px] hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
+            <button type="submit" disabled={saving} className="flex-1 py-[11px] rounded-[11px] text-white font-bold text-[13.5px] hover:bg-[#8E1620] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
               {saving ? 'Creando…' : 'Crear usuario'}
             </button>
             <button type="button" onClick={() => { setShowForm(false); setError(''); }} className="px-5 py-[11px] rounded-[11px] border text-[13.5px] font-semibold hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>Cancelar</button>
@@ -181,7 +181,7 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
               >
                 <ChevronRight className="w-4 h-4 flex-shrink-0 transition-transform" style={{ color: 'var(--pp-text3)', transform: (expandedId === u.uid || editId === u.uid) ? 'rotate(90deg)' : 'none' }} />
                 <div className="w-10 h-10 rounded-[10px] flex items-center justify-center text-[14px] font-extrabold flex-shrink-0"
-                  style={{ background: isSuperadmin(u) ? 'linear-gradient(160deg, #f97316, #ea580c)' : avatarGradient(u.uid || u.email || u.nombre), color: '#fff' }}>
+                  style={{ background: isSuperadmin(u) ? 'linear-gradient(160deg, #D42A38, #A81823)' : avatarGradient(u.uid || u.email || u.nombre), color: '#fff' }}>
                   {(u.nombre || u.email || 'A')[0].toUpperCase()}
                 </div>
                 <div className="min-w-0">
@@ -238,7 +238,7 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
                 <FormField label="Nombre"><input value={editNombreAdmin} onChange={e => setEditNombreAdmin(e.target.value)} className={inputClass} placeholder="Tu nombre" /></FormField>
                 <FormField label="Correo (referencia)"><input value={editEmailAdmin} onChange={e => setEditEmailAdmin(e.target.value)} className={inputClass} placeholder="tu@correo.com" /></FormField>
                 <div className="flex gap-2 pt-1">
-                  <button onClick={saveEdit} disabled={saving} className="flex-1 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
+                  <button onClick={saveEdit} disabled={saving} className="flex-1 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:bg-[#8E1620] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
                     {saving ? 'Guardando…' : 'Guardar'}
                   </button>
                   <button onClick={() => setEditId(null)} className="px-4 py-[9px] rounded-[10px] border text-[13px] font-semibold hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>Cancelar</button>
@@ -259,7 +259,7 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
                     {[{ val: true, label: 'Sí' }, { val: false, label: 'No' }].map(opt => (
                       <button key={String(opt.val)} onClick={() => setEP('crearPedidos', opt.val)}
                         className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-all"
-                        style={{ background: editPermisos.crearPedidos === opt.val ? 'var(--pp-active-bg2)' : 'var(--pp-card)', color: editPermisos.crearPedidos === opt.val ? 'var(--pp-text6)' : 'var(--pp-text2)', borderColor: editPermisos.crearPedidos === opt.val ? 'rgba(200,200,200,0.3)' : 'var(--pp-surface)' }}>
+                        style={{ background: editPermisos.crearPedidos === opt.val ? 'var(--pp-active-bg2)' : 'var(--pp-card)', color: editPermisos.crearPedidos === opt.val ? 'var(--pp-text6)' : 'var(--pp-text2)', borderColor: editPermisos.crearPedidos === opt.val ? 'rgba(198,32,43,0.3)' : 'var(--pp-surface)' }}>
                         {opt.label}
                       </button>
                     ))}
@@ -281,7 +281,7 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
                   <TallerSelector talleres={talleres} value={editTallerIds} onChange={setEditTallerIds} />
                 </div>
                 <div className="flex gap-2 pt-2">
-                  <button onClick={saveEdit} disabled={saving} className="flex-1 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
+                  <button onClick={saveEdit} disabled={saving} className="flex-1 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:bg-[#8E1620] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
                     {saving ? 'Guardando…' : 'Guardar permisos'}
                   </button>
                   <button onClick={() => setEditId(null)} className="px-4 py-[9px] rounded-[10px] border text-[13px] font-semibold hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>Cancelar</button>

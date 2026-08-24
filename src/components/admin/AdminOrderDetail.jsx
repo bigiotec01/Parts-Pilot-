@@ -157,7 +157,7 @@ export function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate
                   f.type?.startsWith('image/') || f.url?.match(/\.(jpg|jpeg|png|webp|gif)/i) ? (
                     <a key={i} href={f.url} target="_blank" rel="noreferrer"><img src={f.url} alt={f.name} className="rounded-lg max-h-36 object-cover" style={{ border: '1px solid var(--pp-border)' }} /></a>
                   ) : (
-                    <a key={i} href={f.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-[10px] px-3 py-2 text-[13px] border transition-colors hover:border-[#a0a0a0]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+                    <a key={i} href={f.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-[10px] px-3 py-2 text-[13px] border transition-colors hover:border-[#C6202B]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
                       <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{f.name}</span>
                     </a>
                   )
@@ -178,12 +178,12 @@ export function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate
               <StickyNote className="w-3.5 h-3.5" /> Notas internas
             </p>
             <textarea value={notasInt} onChange={e => setNotasInt(e.target.value)} placeholder="Solo visibles para el admin…" rows={3}
-              className="w-full text-[13px] rounded-[10px] p-2.5 resize-none border outline-none focus:ring-2 focus:ring-[#a0a0a0]/10 focus:border-[#a0a0a0]"
+              className="w-full text-[13px] rounded-[10px] p-2.5 resize-none border outline-none focus:ring-2 focus:ring-[#C6202B]/10 focus:border-[#C6202B]"
               style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }} />
           </div>
 
           {saved && <div className="flex items-center gap-2 px-3 py-2.5 rounded-[11px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}><CheckCircle2 className="w-4 h-4" /> Cambios guardados.</div>}
-          <button onClick={handleActualizar} disabled={saving} className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:bg-[#707070] disabled:opacity-60 transition-all" style={{ background: 'var(--pp-accent)' }}>
+          <button onClick={handleActualizar} disabled={saving} className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:bg-[#8E1620] disabled:opacity-60 transition-all" style={{ background: 'var(--pp-accent)' }}>
             {saving ? 'Guardando…' : 'Actualizar'}
           </button>
         </div>
@@ -216,13 +216,13 @@ export function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate
                     <button type="button" onClick={() => handleRemoveFile(i)} style={{ color: 'var(--pp-text3)' }}><X className="w-4 h-4" /></button>
                   </div>
                 ))}
-                <label className="flex items-center justify-center gap-2 border-dashed border rounded-[10px] px-3 py-2.5 text-[13px] cursor-pointer transition-colors hover:border-[#a0a0a0] hover:text-[#a0a0a0]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+                <label className="flex items-center justify-center gap-2 border-dashed border rounded-[10px] px-3 py-2.5 text-[13px] cursor-pointer transition-colors hover:border-[#C6202B] hover:text-[#C6202B]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
                   <Paperclip className="w-4 h-4" /> {archivos.length ? 'Adjuntar otro PDF' : 'Adjuntar PDF'}
                   <input type="file" accept="application/pdf" multiple onChange={handleFile} className="hidden" />
                 </label>
               </div>
             </FormField>
-            <button onClick={handleSendEstimate} disabled={sending} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#707070] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: 'var(--pp-accent)' }}>
+            <button onClick={handleSendEstimate} disabled={sending} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#8E1620] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: 'var(--pp-accent)' }}>
               <Send className="w-4 h-4" /> {sending ? 'Enviando…' : order.estimado ? 'Actualizar estimado' : 'Enviar estimado al taller'}
             </button>
           </div>
@@ -240,7 +240,7 @@ export function AdminOrderDetail({ order, taller, onChangeStatus, onSendEstimate
                     <div><span className="font-semibold" style={{ color: 'var(--pp-text2)' }}>Para: </span><span style={{ color: 'var(--pp-text)' }}>{taller.email}</span></div>
                     <div><span className="font-semibold" style={{ color: 'var(--pp-text2)' }}>Asunto: </span><span style={{ color: 'var(--pp-text)' }}>{subject}</span></div>
                     <textarea readOnly value={body} rows={4} className="w-full text-[12px] rounded-[10px] p-2 resize-none outline-none border" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }} />
-                    <button type="button" onClick={() => navigator.clipboard.writeText(`Para: ${taller.email}\nAsunto: ${subject}\n\n${body}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); })} className="w-full py-2 rounded-[10px] text-white text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
+                    <button type="button" onClick={() => navigator.clipboard.writeText(`Para: ${taller.email}\nAsunto: ${subject}\n\n${body}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); })} className="w-full py-2 rounded-[10px] text-white text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-[#8E1620]" style={{ background: 'var(--pp-accent)' }}>
                       {copied ? <><CheckCircle2 className="w-4 h-4" /> ¡Copiado!</> : <><Paperclip className="w-4 h-4" /> Copiar correo</>}
                     </button>
                   </div>

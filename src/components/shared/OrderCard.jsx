@@ -31,7 +31,7 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
-      className={`w-full text-left rounded-[15px] ${compact ? 'p-3' : 'p-[17px]'} border-2 transition-all hover:border-[#a0a0a0] hover:shadow-[0_8px_24px_-14px_rgba(160,160,160,0.15)] relative cursor-pointer`}
+      className={`w-full text-left rounded-[15px] ${compact ? 'p-3' : 'p-[17px]'} border-2 transition-all hover:border-[#C6202B] hover:shadow-[0_8px_24px_-14px_rgba(198,32,43,0.15)] relative cursor-pointer`}
       style={{
         background: entregaVencida ? 'rgba(127,29,29,0.08)' : hasActivity ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)',
         borderColor: entregaVencida ? '#ef4444' : hasActivity ? '#f59e0b' : 'var(--pp-border)',

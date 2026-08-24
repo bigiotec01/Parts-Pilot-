@@ -65,7 +65,7 @@ export function MigrationScreen({ onLogout }) {
             <button
               onClick={() => window.location.reload()}
               className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14.5px] transition-all hover:brightness-105"
-              style={{ background: 'linear-gradient(160deg, #f97316, #ea580c)' }}
+              style={{ background: 'linear-gradient(160deg, #D42A38, #A81823)' }}
             >
               Recargar
             </button>
@@ -103,7 +103,7 @@ export function MigrationScreen({ onLogout }) {
                 onClick={confirmar}
                 disabled={cargando || !reporte}
                 className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14.5px] transition-all hover:brightness-105 disabled:opacity-50"
-                style={{ background: 'linear-gradient(160deg, #f97316, #ea580c)' }}
+                style={{ background: 'linear-gradient(160deg, #D42A38, #A81823)' }}
               >
                 Confirmar migración
               </button>

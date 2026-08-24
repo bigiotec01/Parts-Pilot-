@@ -43,7 +43,7 @@ export function ChatAttachment({ attachment, isMine, onZoom }) {
   return (
     <a
       href={attachment.url} target="_blank" rel="noreferrer"
-      className={`flex items-center gap-2 rounded-lg px-2.5 py-2 transition-colors ${isMine ? 'bg-white/15 hover:bg-white/25 text-white' : 'border hover:border-[#a0a0a0]'}`}
+      className={`flex items-center gap-2 rounded-lg px-2.5 py-2 transition-colors ${isMine ? 'bg-white/15 hover:bg-white/25 text-white' : 'border hover:border-[#C6202B]'}`}
       style={!isMine ? { background: 'var(--pp-card)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' } : {}}
     >
       <FileText className="w-5 h-5 flex-shrink-0" />
@@ -166,7 +166,7 @@ export function OrderChat({ order, role, otherPartyName, onSendMessage, onDelete
           <input type="file" accept="image/*,application/pdf" onChange={handleFile} className="hidden" />
         </label>
         <input value={text} onChange={e => setText(e.target.value)} placeholder="Escribe un mensaje..." className={`${inputClass} flex-1`} disabled={sending} />
-        <button type="submit" disabled={sending} className="disabled:opacity-60 text-white p-2.5 rounded-lg transition-colors flex-shrink-0 hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
+        <button type="submit" disabled={sending} className="disabled:opacity-60 text-white p-2.5 rounded-lg transition-colors flex-shrink-0 hover:bg-[#8E1620]" style={{ background: 'var(--pp-accent)' }}>
           <Send className="w-4 h-4" />
         </button>
       </form>

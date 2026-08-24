@@ -92,7 +92,7 @@ export function AdminNuevaCotizacion({ talleres, onCreate }) {
                 <button type="button" onClick={() => handleRemoveFile(i)} style={{ color: 'var(--pp-text3)' }} className="hover:text-red-400 flex-shrink-0"><X className="w-4 h-4" /></button>
               </div>
             ))}
-            <label className="flex items-center justify-center gap-2 border border-dashed rounded-lg px-3 py-2.5 text-sm cursor-pointer transition-colors hover:border-[#a0a0a0]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+            <label className="flex items-center justify-center gap-2 border border-dashed rounded-lg px-3 py-2.5 text-sm cursor-pointer transition-colors hover:border-[#C6202B]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
               <Paperclip className="w-4 h-4" /> {archivosEstimado.length ? 'Adjuntar otro PDF' : 'Adjuntar PDF'}
               <input type="file" accept="application/pdf" multiple onChange={handleFile} className="hidden" />
             </label>
@@ -105,7 +105,7 @@ export function AdminNuevaCotizacion({ talleres, onCreate }) {
           <input type="date" value={fechaPersonalizada} onChange={e => setFechaPersonalizada(e.target.value)} className={inputClass} />
           <p className="text-xs mt-1" style={{ color: 'var(--pp-text3)' }}>Vacío = fecha de hoy. Útil para importar órdenes antiguas.</p>
         </FormField>
-        <button type="submit" disabled={sending} className="w-full disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
+        <button type="submit" disabled={sending} className="w-full disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 hover:bg-[#8E1620]" style={{ background: 'var(--pp-accent)' }}>
           <Send className="w-4 h-4" /> {sending ? 'Creando…' : 'Crear y enviar cotización'}
         </button>
       </form>

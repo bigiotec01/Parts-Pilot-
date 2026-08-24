@@ -116,7 +116,7 @@ export function ReporteModal({ pedidos, talleres, onClose }) {
           <p className="text-sm" style={{ color: 'var(--pp-text2)' }}>
             <span className="font-semibold" style={{ color: 'var(--pp-text)' }}>{activos.length}</span> pedidos activos — excluye Orden Completa
           </p>
-          <button onClick={handlePrint} className="flex items-center gap-2 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
+          <button onClick={handlePrint} className="flex items-center gap-2 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors hover:bg-[#8E1620]" style={{ background: 'var(--pp-accent)' }}>
             <Printer className="w-4 h-4" /> Imprimir / Guardar PDF
           </button>
         </div>

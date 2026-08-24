@@ -53,7 +53,7 @@ function NuevaEmpresaModal({ onClose }) {
           <input required type="text" minLength={6} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className={inputClass} placeholder="mínimo 6 caracteres" />
         </FormField>
         {error && <p className="text-[12.5px]" style={{ color: '#dc2626' }}>{error}</p>}
-        <button disabled={guardando} type="submit" className="w-full py-[12px] rounded-[11px] text-white font-bold text-[14px] transition-all hover:brightness-105 disabled:opacity-50" style={{ background: 'linear-gradient(160deg, #f97316, #ea580c)' }}>
+        <button disabled={guardando} type="submit" className="w-full py-[12px] rounded-[11px] text-white font-bold text-[14px] transition-all hover:brightness-105 disabled:opacity-50" style={{ background: 'linear-gradient(160deg, #D42A38, #A81823)' }}>
           {guardando ? 'Creando…' : 'Crear empresa'}
         </button>
       </form>
@@ -412,7 +412,7 @@ export function SuperAdminApp({ onLogout, onExit }) {
             <button onClick={() => setShowLogs(true)} className="flex items-center gap-1.5 px-3.5 py-[9px] rounded-[10px] text-[13px] font-semibold border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
               <ScrollText className="w-4 h-4" /> Logs
             </button>
-            <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
+            <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#8E1620]" style={{ background: 'var(--pp-accent)' }}>
               <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva empresa
             </button>
             <button onClick={onLogout} className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center border" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }} title="Cerrar sesión">

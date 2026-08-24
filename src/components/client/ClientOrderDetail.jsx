@@ -35,7 +35,7 @@ export function ClientOrderDetail({ order, onRespond }) {
           <h3 className="font-bold text-lg truncate" style={{ color: 'var(--pp-text)' }}>{order.referencia || order.vehiculo}</h3>
           {order.referencia && <p className="text-sm truncate" style={{ color: 'var(--pp-text2)' }}>{order.vehiculo}</p>}
         </div>
-        <button onClick={handlePrint} className="flex items-center gap-1.5 text-xs border rounded-lg px-2.5 py-1.5 transition-colors flex-shrink-0 hover:border-[#a0a0a0]" style={{ color: 'var(--pp-text2)', borderColor: 'var(--pp-border)', background: 'var(--pp-card)' }}>
+        <button onClick={handlePrint} className="flex items-center gap-1.5 text-xs border rounded-lg px-2.5 py-1.5 transition-colors flex-shrink-0 hover:border-[#C6202B]" style={{ color: 'var(--pp-text2)', borderColor: 'var(--pp-border)', background: 'var(--pp-card)' }}>
           <Printer className="w-3.5 h-3.5" /> Imprimir
         </button>
       </div>
@@ -104,7 +104,7 @@ export function ClientOrderDetail({ order, onRespond }) {
               <p className="text-sm italic" style={{ color: 'var(--pp-text3)' }}>Sin notas adicionales.</p>
             )}
             {filesOf(order.estimado.archivo, order.estimado.archivos).map((f, i) => (
-              <a key={i} href={f.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors border hover:border-[#a0a0a0]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+              <a key={i} href={f.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors border hover:border-[#C6202B]" style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
                 <FileText className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{f.name}</span>
               </a>
             ))}

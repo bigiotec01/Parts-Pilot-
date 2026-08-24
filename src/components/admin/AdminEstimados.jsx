@@ -23,7 +23,7 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
     const isCotizando = p.estado === 'cotizando';
     const hasAct = hasNewActivity('admin', p);
     return (
-      <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[15px] p-[17px] border-2 transition-all hover:border-[#a0a0a0] hover:shadow-[0_8px_24px_-14px_rgba(160,160,160,0.25)] relative" style={{ background: hasAct ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasAct ? '#f59e0b' : isCotizando ? 'rgba(160,160,160,0.25)' : 'var(--pp-border)', boxShadow: hasAct ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : 'none' }}>
+      <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[15px] p-[17px] border-2 transition-all hover:border-[#C6202B] hover:shadow-[0_8px_24px_-14px_rgba(198,32,43,0.25)] relative" style={{ background: hasAct ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasAct ? '#f59e0b' : isCotizando ? 'rgba(198,32,43,0.25)' : 'var(--pp-border)', boxShadow: hasAct ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : 'none' }}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11.5px] flex items-center gap-1 mb-1 min-w-0" style={{ color: 'var(--pp-text2)' }}>

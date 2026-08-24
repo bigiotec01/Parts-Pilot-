@@ -77,13 +77,13 @@ export function ClientNuevaSolicitud({ onCreate }) {
                 </button>
               </div>
             ))}
-            <label className="flex items-center justify-center gap-2 border border-dashed rounded-lg px-3 py-2.5 text-sm cursor-pointer transition-colors hover:border-[#a0a0a0]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+            <label className="flex items-center justify-center gap-2 border border-dashed rounded-lg px-3 py-2.5 text-sm cursor-pointer transition-colors hover:border-[#C6202B]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
               <Paperclip className="w-4 h-4" /> {archivos.length ? 'Adjuntar otra foto o PDF' : 'Adjuntar foto o PDF'}
               <input type="file" accept="image/*,application/pdf" multiple onChange={handleFile} className="hidden" />
             </label>
           </div>
         </FormField>
-        <button type="submit" disabled={sending} className="w-full text-white font-semibold py-2.5 rounded-lg transition-colors hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
+        <button type="submit" disabled={sending} className="w-full text-white font-semibold py-2.5 rounded-lg transition-colors hover:bg-[#8E1620] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
           {sending ? 'Enviando...' : 'Enviar solicitud'}
         </button>
       </form>

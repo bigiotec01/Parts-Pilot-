@@ -49,12 +49,12 @@ export function AdminDashboard({ pedidos, solicitudes, talleres, getTaller, onSe
     <div className="space-y-4">
       {/* KPIs */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Solicitudes nuevas" value={solicitudes.length} icon={FileText} iconBg="rgba(200,200,200,0.1)" iconColor="#c0c0c0" chipLabel="Atención" chipBg="rgba(200,200,200,0.12)" chipColor="#c0c0c0" highlight
+        <StatCard label="Solicitudes nuevas" value={solicitudes.length} icon={FileText} iconBg="rgba(198,32,43,0.1)" iconColor="#c0c0c0" chipLabel="Atención" chipBg="rgba(198,32,43,0.12)" chipColor="#c0c0c0" highlight
           hint={solicitudes.length === 0 ? 'Todo al día' : `${solicitudes.length} esperando estimado`} hintTone={solicitudes.length === 0 ? 'ok' : 'warn'} />
-        <StatCard label="En proceso" value={enProceso.length} icon={Clock} iconBg="rgba(160,160,160,0.1)" iconColor="#a0a0a0" chipLabel="hoy" chipBg="rgba(160,160,160,0.1)" chipColor="#a0a0a0"
+        <StatCard label="En proceso" value={enProceso.length} icon={Clock} iconBg="rgba(198,32,43,0.1)" iconColor="#C6202B" chipLabel="hoy" chipBg="rgba(198,32,43,0.1)" chipColor="#C6202B"
           hint={enProcesoConActividad === 0 ? 'Sin pendientes' : `${enProcesoConActividad} con actividad nueva`} hintTone={enProcesoConActividad === 0 ? 'ok' : 'warn'} />
         <StatCard label="Total pedidos" value={total} icon={ClipboardList} iconBg="rgba(120,120,120,0.1)" iconColor="#888888" chipLabel="Año" chipBg="rgba(120,120,120,0.1)" chipColor="#888888" />
-        <StatCard label="Talleres activos" value={talleres.length} icon={Building2} iconBg="rgba(160,160,160,0.1)" iconColor="#a0a0a0" chipLabel="Todos" chipBg="rgba(160,160,160,0.1)" chipColor="#a0a0a0" />
+        <StatCard label="Talleres activos" value={talleres.length} icon={Building2} iconBg="rgba(198,32,43,0.1)" iconColor="#C6202B" chipLabel="Todos" chipBg="rgba(198,32,43,0.1)" chipColor="#C6202B" />
       </div>
 
       {/* Chart + atención */}
@@ -77,7 +77,7 @@ export function AdminDashboard({ pedidos, solicitudes, talleres, getTaller, onSe
           <p className="text-[12.5px] mb-3" style={{ color: 'var(--pp-text2)' }}>Solicitudes esperando estimado</p>
           <div className="flex flex-col gap-2.5 flex-1">
             {solicitudes.slice(0, 3).map(p => (
-              <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[12px] p-3 flex gap-2.5 items-center border transition-colors hover:border-[#a0a0a0]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+              <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[12px] p-3 flex gap-2.5 items-center border transition-colors hover:border-[#C6202B]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
                 <span className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5" style={{ background: 'var(--pp-accent)' }} />
                 <div className="min-w-0 flex-1">
                   <div className="text-[13px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</div>

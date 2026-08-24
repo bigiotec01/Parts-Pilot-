@@ -15,12 +15,12 @@ export function TallerSelector({ talleres, value, onChange }) {
         <div className="flex gap-1">
           <button type="button" onClick={() => onChange(null)}
             className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-all"
-            style={{ background: !restringido ? 'var(--pp-active-bg2)' : 'var(--pp-card)', color: !restringido ? 'var(--pp-text6)' : 'var(--pp-text2)', borderColor: !restringido ? 'rgba(200,200,200,0.3)' : 'var(--pp-surface)' }}>
+            style={{ background: !restringido ? 'var(--pp-active-bg2)' : 'var(--pp-card)', color: !restringido ? 'var(--pp-text6)' : 'var(--pp-text2)', borderColor: !restringido ? 'rgba(198,32,43,0.3)' : 'var(--pp-surface)' }}>
             Todos
           </button>
           <button type="button" onClick={() => onChange(value || [])}
             className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold border transition-all"
-            style={{ background: restringido ? 'var(--pp-active-bg2)' : 'var(--pp-card)', color: restringido ? 'var(--pp-text6)' : 'var(--pp-text2)', borderColor: restringido ? 'rgba(200,200,200,0.3)' : 'var(--pp-surface)' }}>
+            style={{ background: restringido ? 'var(--pp-active-bg2)' : 'var(--pp-card)', color: restringido ? 'var(--pp-text6)' : 'var(--pp-text2)', borderColor: restringido ? 'rgba(198,32,43,0.3)' : 'var(--pp-surface)' }}>
             Específicos
           </button>
         </div>
@@ -33,7 +33,7 @@ export function TallerSelector({ talleres, value, onChange }) {
             return (
               <button key={t.uid} type="button" onClick={() => toggleTaller(t.uid)}
                 className="px-2.5 py-1 rounded-[7px] text-[12px] font-medium border transition-all"
-                style={{ background: checked ? 'var(--pp-active-bg2)' : 'var(--pp-bg)', color: checked ? 'var(--pp-text6)' : 'var(--pp-text2)', borderColor: checked ? 'rgba(200,200,200,0.3)' : 'var(--pp-surface)' }}>
+                style={{ background: checked ? 'var(--pp-active-bg2)' : 'var(--pp-bg)', color: checked ? 'var(--pp-text6)' : 'var(--pp-text2)', borderColor: checked ? 'rgba(198,32,43,0.3)' : 'var(--pp-surface)' }}>
                 {t.nombre}
               </button>
             );

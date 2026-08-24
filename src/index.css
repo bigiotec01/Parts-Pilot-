@@ -23,7 +23,7 @@
   --pp-text5:        #383838;
   --pp-text6:        #c0c0c0;
   --pp-text7:        #d0d0d0;
-  --pp-text8:        #a0a0a0;
+  --pp-text8:        #E5484D;
   --pp-text9:        #909090;
   --pp-text10:       #aab0b9;
   --pp-text11:       #4a505c;
@@ -35,13 +35,13 @@
   --pp-border4:      #2a2a2a;
 
   /* Acento */
-  --pp-accent:       #a0a0a0;
-  --pp-accent2:      #707070;
+  --pp-accent:       #C6202B;
+  --pp-accent2:      #8E1620;
 
   /* Estado activo nav */
-  --pp-active-bg:    rgba(200,200,200,0.1);
-  --pp-active-bg2:   rgba(200,200,200,0.14);
-  --pp-active-border:rgba(200,200,200,0.18);
+  --pp-active-bg:    rgba(198,32,43,0.12);
+  --pp-active-bg2:   rgba(198,32,43,0.16);
+  --pp-active-border:rgba(198,32,43,0.28);
 
   /* Overlay */
   --pp-overlay:      rgba(0,0,0,0.5);
@@ -58,51 +58,51 @@
 /* ── MODO CLARO ── */
 html.light {
   /* Fondos */
-  --pp-bg:           #F4F6F8;
-  --pp-nav:          #EAEFF2;
-  --pp-card:         #FFFFFF;
-  --pp-surface:      #E8EDF1;
-  --pp-hover:        #DCE3E9;
-  --pp-input-bg:     #FFFFFF;
-  --pp-topbar:       rgba(234,239,242,0.97);
-  --pp-topbar2:      rgba(234,239,242,0.97);
-  --pp-topbar3:      rgba(234,239,242,0.96);
+  --pp-bg:           #F6EFDF;
+  --pp-nav:          #EFE6D2;
+  --pp-card:         #FFFDF7;
+  --pp-surface:      #EFE7D5;
+  --pp-hover:        #E7DDC5;
+  --pp-input-bg:     #FFFDF7;
+  --pp-topbar:       rgba(246,239,223,0.92);
+  --pp-topbar2:      rgba(246,239,223,0.93);
+  --pp-topbar3:      rgba(246,239,223,0.9);
 
   /* Texto */
-  --pp-text:         #1A202C;
-  --pp-text2:        #6B7280;
-  --pp-text3:        #71767C;
-  --pp-text4:        #71767C;
-  --pp-text5:        #C4CAD4;
-  --pp-text6:        #4B5563;
-  --pp-text7:        #374151;
-  --pp-text8:        #2B2D42;
-  --pp-text9:        #4B5563;
-  --pp-text10:       #6B7280;
-  --pp-text11:       #374151;
+  --pp-text:         #241F17;
+  --pp-text2:        #8A8172;
+  --pp-text3:        #A69C87;
+  --pp-text4:        #A69C87;
+  --pp-text5:        #D9CFB8;
+  --pp-text6:        #5C5647;
+  --pp-text7:        #4A4436;
+  --pp-text8:        #C6202B;
+  --pp-text9:        #5C5647;
+  --pp-text10:       #8A8172;
+  --pp-text11:       #4A4436;
 
   /* Bordes */
-  --pp-border:       rgba(0,0,0,0.08);
-  --pp-border2:      rgba(0,0,0,0.07);
-  --pp-border3:      rgba(0,0,0,0.10);
-  --pp-border4:      #D1D5DB;
+  --pp-border:       rgba(120,95,60,0.14);
+  --pp-border2:      rgba(120,95,60,0.10);
+  --pp-border3:      rgba(120,95,60,0.16);
+  --pp-border4:      #DCD0B4;
 
   /* Acento */
-  --pp-accent:       #2B2D42;
-  --pp-accent2:      #1e2433;
+  --pp-accent:       #C6202B;
+  --pp-accent2:      #8E1620;
 
   /* Estado activo nav */
-  --pp-active-bg:    rgba(43,45,66,0.08);
-  --pp-active-bg2:   rgba(43,45,66,0.12);
-  --pp-active-border:rgba(43,45,66,0.16);
+  --pp-active-bg:    rgba(198,32,43,0.08);
+  --pp-active-bg2:   rgba(198,32,43,0.12);
+  --pp-active-border:rgba(198,32,43,0.18);
 
   /* Overlay */
-  --pp-overlay:      rgba(0,0,0,0.4);
-  --pp-overlay2:     rgba(0,0,0,0.35);
+  --pp-overlay:      rgba(30,22,12,0.4);
+  --pp-overlay2:     rgba(30,22,12,0.35);
 
   /* Stepper / progreso */
-  --pp-step-inactive: #D1D5DB;
-  --pp-progress-bg:   #E8EDF1;
+  --pp-step-inactive: #DCD0B4;
+  --pp-progress-bg:   #EFE7D5;
 
   /* Color scheme para inputs de fecha */
   --pp-color-scheme: light;
@@ -130,8 +130,8 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 .pp-scroll::-webkit-scrollbar { width: 0; height: 0; }
 
-html.light ::-webkit-scrollbar-thumb { background: #C4CAD4; border: 3px solid transparent; background-clip: padding-box; }
-html.light ::-webkit-scrollbar-thumb:hover { background: #9CA3AF; background-clip: padding-box; border: 3px solid transparent; }
+html.light ::-webkit-scrollbar-thumb { background: #DCD0B4; border: 3px solid transparent; background-clip: padding-box; }
+html.light ::-webkit-scrollbar-thumb:hover { background: #C4B896; background-clip: padding-box; border: 3px solid transparent; }
 
 /* Prevent iOS auto-zoom on inputs */
 input, textarea, select {
@@ -161,20 +161,20 @@ html.light .hover\:bg-\[\#2a2a2a\]:hover,
 html.light .hover\:bg-\[\#1a1a1a\]:hover {
   background-color: var(--pp-hover) !important;
 }
-html.light .hover\:bg-\[\#707070\]:hover {
+html.light .hover\:bg-\[\#8E1620\]:hover {
   background-color: var(--pp-accent2) !important;
 }
 
 /* focus */
-html.light .focus\:border-\[\#a0a0a0\]:focus {
+html.light .focus\:border-\[\#C6202B\]:focus {
   border-color: var(--pp-accent) !important;
 }
-html.light .focus\:ring-\[\#a0a0a0\]\/10:focus {
-  --tw-ring-color: rgba(43,45,66,0.1) !important;
+html.light .focus\:ring-\[\#C6202B\]\/10:focus {
+  --tw-ring-color: rgba(198,32,43,0.12) !important;
 }
 
 /* border */
-html.light .border-\[\#a0a0a0\] {
+html.light .border-\[\#C6202B\] {
   border-color: var(--pp-accent) !important;
 }
 html.light .border-\[\#2a2a2a\] {
@@ -182,7 +182,7 @@ html.light .border-\[\#2a2a2a\] {
 }
 
 /* hover border */
-html.light .hover\:border-\[\#a0a0a0\]:hover {
+html.light .hover\:border-\[\#C6202B\]:hover {
   border-color: var(--pp-accent) !important;
 }
 
@@ -208,16 +208,21 @@ html.light select {
 }
 
 /* hover text */
-html.light .hover\:text-\[\#a0a0a0\]:hover {
+html.light .hover\:text-\[\#C6202B\]:hover {
   color: var(--pp-accent) !important;
 }
 
 /* text class */
-html.light .text-\[\#a0a0a0\] {
+html.light .text-\[\#C6202B\] {
   color: var(--pp-accent) !important;
 }
 
 /* bg overrides */
 html.light .bg-\[\#0f0f0f\] {
   background-color: var(--pp-bg) !important;
+}
+
+/* ── Sidebar de administración: fija en modo oscuro, independiente del tema ── */
+.pp-sidebar-hover:hover {
+  background: rgba(255,255,255,0.06) !important;
 }

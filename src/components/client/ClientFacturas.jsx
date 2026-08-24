@@ -175,7 +175,7 @@ export function ClientFacturas({ facturas, taller }) {
       {/* Historial de pagadas archivadas */}
       {facturasArch.length > 0 && (
         <div>
-          <button onClick={() => setVerHistorial(v => !v)} className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#a0a0a0]" style={{ color: 'var(--pp-text3)' }}>
+          <button onClick={() => setVerHistorial(v => !v)} className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#C6202B]" style={{ color: 'var(--pp-text3)' }}>
             <ChevronRight className={`w-4 h-4 transition-transform ${verHistorial ? 'rotate-90' : ''}`} />
             Historial de pagadas ({facturasArch.length})
           </button>

@@ -16,7 +16,7 @@ export function NotifToast({ toast, onClose }) {
     >
       <div style={{
         width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-        background: 'linear-gradient(160deg, #f97316, #ea580c)',
+        background: 'linear-gradient(160deg, #D42A38, #A81823)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <Bell className="w-5 h-5 text-white" />

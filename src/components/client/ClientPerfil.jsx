@@ -64,7 +64,7 @@ export function ClientPerfil({ taller, onUpdate, isSubUser = false }) {
             </>
           )}
           {error && <div className="text-[13px] px-3 py-2.5 rounded-[11px]" style={{ background: '#fdecec', color: '#dc2626' }}>{error}</div>}
-          <button type="submit" disabled={saving} className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14px] transition-all hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
+          <button type="submit" disabled={saving} className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14px] transition-all hover:bg-[#8E1620] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
             {saving ? 'Guardando…' : 'Guardar cambios'}
           </button>
         </form>

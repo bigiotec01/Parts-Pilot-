@@ -49,7 +49,7 @@ export function LoginScreen({ onLogin, onResetPassword, error }) {
               <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
             </div>
           )}
-          <button type="submit" className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14.5px] transition-all hover:brightness-105" style={{ background: 'linear-gradient(160deg, #f97316, #ea580c)', boxShadow: '0 10px 22px -10px rgba(249,115,22,0.5)' }}>
+          <button type="submit" className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14.5px] transition-all hover:brightness-105" style={{ background: 'linear-gradient(160deg, #D42A38, #A81823)', boxShadow: '0 10px 22px -10px rgba(198,32,43,0.5)' }}>
             Iniciar sesión
           </button>
         </form>
@@ -112,7 +112,7 @@ function ResetPasswordScreen({ onVolver, onResetPassword, emailInicial }) {
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
                 </div>
               )}
-              <button disabled={enviando} type="submit" className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14.5px] transition-all hover:brightness-105 disabled:opacity-50" style={{ background: 'linear-gradient(160deg, #f97316, #ea580c)', boxShadow: '0 10px 22px -10px rgba(249,115,22,0.5)' }}>
+              <button disabled={enviando} type="submit" className="w-full py-[13px] rounded-[11px] text-white font-bold text-[14.5px] transition-all hover:brightness-105 disabled:opacity-50" style={{ background: 'linear-gradient(160deg, #D42A38, #A81823)', boxShadow: '0 10px 22px -10px rgba(198,32,43,0.5)' }}>
                 {enviando ? 'Enviando…' : 'Enviar enlace'}
               </button>
               <button type="button" onClick={onVolver} className="w-full flex items-center justify-center gap-1.5 text-[12.5px] font-semibold py-1" style={{ color: 'var(--pp-text2)' }}>

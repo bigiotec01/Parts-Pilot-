@@ -80,7 +80,7 @@ export function ClientHistorial({ pedidos, onSelect }) {
       ) : sorted.map(p => {
         const rechazado = p.estado === 'rechazado';
         return (
-        <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-xl p-4 hover:border-[#a0a0a0] hover:shadow-sm transition-all border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+        <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-xl p-4 hover:border-[#C6202B] hover:shadow-sm transition-all border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h3 className="font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.referencia || p.vehiculo}</h3>

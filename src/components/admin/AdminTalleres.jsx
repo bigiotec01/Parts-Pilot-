@@ -63,7 +63,7 @@ export function TallerSubUsuarios({ tallerId, tallerEmail, usuarios, onCrear, on
         {/* Cuenta principal */}
         <div className="grid gap-2 items-center px-2.5 py-2" style={{ gridTemplateColumns: userTableCols, borderTop: '1px solid var(--pp-border2)' }}>
           <span className="flex items-center gap-1.5 min-w-0 text-[12px] font-semibold" style={{ color: 'var(--pp-text)' }}>
-            <span className="w-5 h-5 rounded-[6px] flex items-center justify-center text-[9.5px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #f97316, #ea580c)', color: '#fff' }}>P</span>
+            <span className="w-5 h-5 rounded-[6px] flex items-center justify-center text-[9.5px] font-bold flex-shrink-0" style={{ background: 'linear-gradient(150deg, #D42A38, #A81823)', color: '#fff' }}>P</span>
             <span className="truncate">Cuenta principal</span>
           </span>
           <span className="text-[10.5px] font-semibold truncate" style={{ color: 'var(--pp-text8)' }}>Admin taller</span>
@@ -79,7 +79,7 @@ export function TallerSubUsuarios({ tallerId, tallerEmail, usuarios, onCrear, on
               <input
                 value={editNombre}
                 onChange={e => setEditNombre(e.target.value)}
-                className="flex-1 min-w-0 text-[12px] px-2 py-1 rounded-[7px] border outline-none focus:border-[#a0a0a0]"
+                className="flex-1 min-w-0 text-[12px] px-2 py-1 rounded-[7px] border outline-none focus:border-[#C6202B]"
                 style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }}
                 autoFocus
               />
@@ -219,7 +219,7 @@ export function AdminTalleres({ facturas = [], talleres, pedidos, tallerUsuarios
         </div>
         <button
           onClick={() => { setShowForm(s => !s); setError(''); }}
-          className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#707070]"
+          className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#8E1620]"
           style={{ background: 'var(--pp-accent)' }}
         >
           <Plus className="w-4 h-4" strokeWidth={2.2} /> Nuevo taller
@@ -269,7 +269,7 @@ export function AdminTalleres({ facturas = [], talleres, pedidos, tallerUsuarios
             </div>
           )}
           <div className="flex gap-3 pt-1">
-            <button type="submit" disabled={saving} className="flex-1 py-[11px] rounded-[11px] text-white font-bold text-[13.5px] transition-all hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
+            <button type="submit" disabled={saving} className="flex-1 py-[11px] rounded-[11px] text-white font-bold text-[13.5px] transition-all hover:bg-[#8E1620] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
               {saving ? 'Creando…' : 'Crear taller'}
             </button>
             <button type="button" onClick={() => { setShowForm(false); setError(''); }} className="px-5 py-[11px] rounded-[11px] border text-[13.5px] font-semibold transition-colors hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
@@ -336,7 +336,7 @@ export function AdminTalleres({ facturas = [], talleres, pedidos, tallerUsuarios
                 )}
                 {editError && <div className="flex items-center gap-2 text-[13px] px-3 py-2 rounded-[11px]" style={{ background: '#fdecec', color: '#dc2626' }}><AlertCircle className="w-4 h-4 flex-shrink-0" />{editError}</div>}
                 <div className="flex gap-2 pt-1">
-                  <button onClick={handleUpdate} disabled={editSaving} className="flex-1 py-[10px] rounded-[11px] text-white text-[13px] font-bold transition-all hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
+                  <button onClick={handleUpdate} disabled={editSaving} className="flex-1 py-[10px] rounded-[11px] text-white text-[13px] font-bold transition-all hover:bg-[#8E1620] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
                     {editSaving ? 'Guardando…' : 'Guardar'}
                   </button>
                   <button onClick={() => setEditingId(null)} className="px-4 py-[10px] rounded-[11px] border text-[13px] font-semibold transition-colors hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
@@ -413,7 +413,7 @@ export function AdminTalleres({ facturas = [], talleres, pedidos, tallerUsuarios
                 <button onClick={() => onVerPedidos(t.uid)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-[8px] text-[12.5px] font-bold transition-colors hover:bg-[#1e1e1e] mr-auto" style={{ color: 'var(--pp-text)' }}>
                   Ver pedidos <ChevronRight className="w-3.5 h-3.5" />
                 </button>
-                <button onClick={() => startEdit(t)} className="w-8 h-8 rounded-[9px] flex items-center justify-center transition-colors hover:bg-[#1e1e1e] hover:text-[#a0a0a0]" style={{ color: 'var(--pp-text3)' }} title="Editar">
+                <button onClick={() => startEdit(t)} className="w-8 h-8 rounded-[9px] flex items-center justify-center transition-colors hover:bg-[#1e1e1e] hover:text-[#C6202B]" style={{ color: 'var(--pp-text3)' }} title="Editar">
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
                 <button onClick={() => { if (window.confirm(`¿Eliminar el taller "${t.nombre}"? Esta acción no se puede deshacer.`)) onDeleteTaller(t.uid); }} className="w-8 h-8 rounded-[9px] flex items-center justify-center transition-colors hover:bg-red-900/30 hover:text-red-400" style={{ color: 'var(--pp-text3)' }} title="Eliminar">

@@ -39,7 +39,7 @@ export function NotificationPanel({ notifications, onSelect, onDismissAll }) {
           <div className="py-10 text-center text-[13px]" style={{ color: 'var(--pp-text3)' }}>Sin notificaciones nuevas</div>
         ) : notifications.map((n, i) => (
           <button key={i} onClick={() => onSelect(n.orderId)} className="w-full text-left px-4 py-3 flex gap-3 items-start hover:bg-[#1e1e1e] transition-colors" style={{ borderBottom: '1px solid var(--pp-border2)' }}>
-            <div className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(160,160,160,0.1)' }}>
+            <div className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(198,32,43,0.1)' }}>
               {n.type === 'message'
                 ? <MessageSquare className="w-[15px] h-[15px]" style={{ color: 'var(--pp-text8)' }} />
                 : <FileText className="w-[15px] h-[15px]" style={{ color: 'var(--pp-text6)' }} />}
@@ -77,7 +77,7 @@ export function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo,
         <FechaHora />
         <div className="relative flex items-center">
           <Search className="w-4 h-4 absolute left-3 pointer-events-none" style={{ color: 'var(--pp-text3)' }} />
-          <input placeholder="Buscar pedido, vehículo, folio…" className="pl-9 pr-3 py-[9px] rounded-[10px] text-[13px] border outline-none transition-[width] focus:w-[280px] focus:border-[#a0a0a0] focus:ring-2 focus:ring-[#a0a0a0]/10" style={{ width: 240, background: 'var(--pp-card)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }} />
+          <input placeholder="Buscar pedido, vehículo, folio…" className="pl-9 pr-3 py-[9px] rounded-[10px] text-[13px] border outline-none transition-[width] focus:w-[280px] focus:border-[#C6202B] focus:ring-2 focus:ring-[#C6202B]/10" style={{ width: 240, background: 'var(--pp-card)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }} />
         </div>
         <div className="relative" ref={bellRef}>
           <button onClick={() => setShowNotifs(v => !v)} className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center border transition-colors hover:bg-[#252525]" style={{ background: showNotifs ? '#252525' : 'var(--pp-card)', borderColor: showNotifs ? 'var(--pp-border3)' : 'var(--pp-surface)', color: 'var(--pp-text2)' }} title="Notificaciones">
@@ -97,7 +97,7 @@ export function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo,
           )}
         </div>
         {!hideNuevoBtn && (
-          <button onClick={onGoToNuevo} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
+          <button onClick={onGoToNuevo} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white transition-colors hover:bg-[#8E1620]" style={{ background: 'var(--pp-accent)' }}>
             <Plus className="w-4 h-4" strokeWidth={2.2} /> Nuevo pedido
           </button>
         )}

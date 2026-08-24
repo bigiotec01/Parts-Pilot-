@@ -176,7 +176,7 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
             {cotizaciones.map(p => {
               const hasAct = hasNewActivity('taller', p);
               return (
-              <div key={p.id} onClick={() => onSelect?.(p.id)} className="rounded-xl p-4 space-y-3 border-2 cursor-pointer hover:border-[#a0a0a0] transition-colors relative" style={{ background: hasAct ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasAct ? '#f59e0b' : 'var(--pp-accent)', boxShadow: hasAct ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : '0 0 0 1px rgba(200,200,200,0.07)' }}>
+              <div key={p.id} onClick={() => onSelect?.(p.id)} className="rounded-xl p-4 space-y-3 border-2 cursor-pointer hover:border-[#C6202B] transition-colors relative" style={{ background: hasAct ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasAct ? '#f59e0b' : 'var(--pp-accent)', boxShadow: hasAct ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : '0 0 0 1px rgba(198,32,43,0.07)' }}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -255,7 +255,7 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
             {solicitudesOrdenadas.map(p => {
               const hasAct = hasNewActivity('taller', p);
               return (
-              <div key={p.id} onClick={() => onSelect?.(p.id)} className="rounded-xl border-2 p-4 cursor-pointer hover:border-[#a0a0a0] transition-colors relative" style={{ background: hasAct ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasAct ? '#f59e0b' : 'var(--pp-border)', boxShadow: hasAct ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : 'none' }}>
+              <div key={p.id} onClick={() => onSelect?.(p.id)} className="rounded-xl border-2 p-4 cursor-pointer hover:border-[#C6202B] transition-colors relative" style={{ background: hasAct ? 'rgba(245,158,11,0.06)' : 'var(--pp-card)', borderColor: hasAct ? '#f59e0b' : 'var(--pp-border)', boxShadow: hasAct ? '0 0 0 3px rgba(245,158,11,0.18), 0 8px 20px -10px rgba(245,158,11,0.5)' : 'none' }}>
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">

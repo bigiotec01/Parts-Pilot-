@@ -1,7 +1,7 @@
 export function StatCard({ label, value, icon: Icon, iconBg, iconColor, chipLabel, chipBg, chipColor, highlight, hint, hintTone }) {
   const hintColor = hintTone === 'ok' ? '#14b8a6' : hintTone === 'warn' ? '#f59e0b' : 'var(--pp-text3)';
   return (
-    <div className="rounded-[15px] p-[18px]" style={{ background: 'var(--pp-card)', border: `1px solid ${highlight ? 'rgba(160,160,160,0.25)' : 'var(--pp-border)'}` }}>
+    <div className="rounded-[15px] p-[18px]" style={{ background: 'var(--pp-card)', border: `1px solid ${highlight ? 'rgba(198,32,43,0.25)' : 'var(--pp-border)'}` }}>
       <div className="flex items-center justify-between mb-3.5">
         <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center" style={{ background: iconBg, color: iconColor }}>
           <Icon className="w-[19px] h-[19px]" strokeWidth={1.8} />

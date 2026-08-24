@@ -85,7 +85,7 @@ export function AdminNuevoPedido({ talleres, pedidos = [], onCreate }) {
             </>
           )}
         </FormField>
-        <button type="submit" className="w-full text-white font-semibold py-2.5 rounded-lg transition-colors hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
+        <button type="submit" className="w-full text-white font-semibold py-2.5 rounded-lg transition-colors hover:bg-[#8E1620]" style={{ background: 'var(--pp-accent)' }}>
           Registrar pedido
         </button>
       </form>

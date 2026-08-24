@@ -113,7 +113,7 @@ export function AdminMensajes({ pedidos, getTaller, onSelect }) {
                 <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                   <span className="text-[11px]" style={{ color: 'var(--pp-text3)' }}>{ultimo?.hora || ''}</span>
                   {unread > 0 && (
-                    <span className="text-[10.5px] font-bold text-white rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center" style={{ background: '#f97316' }}>{unread}</span>
+                    <span className="text-[10.5px] font-bold text-white rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center" style={{ background: '#D42A38' }}>{unread}</span>
                   )}
                 </div>
               </button>

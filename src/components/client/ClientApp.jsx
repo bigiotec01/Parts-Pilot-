@@ -182,7 +182,7 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
             <ViewToggle view={pedidosView} onChange={setPedidosView} />
             <div className="relative flex-1">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--pp-text3)' }} />
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio…" className="w-full pl-10 pr-10 py-[11px] rounded-[12px] border text-[13.5px] outline-none focus:border-[#a0a0a0] focus:ring-2 focus:ring-[#a0a0a0]/10" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }} />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por vehículo, referencia o folio…" className="w-full pl-10 pr-10 py-[11px] rounded-[12px] border text-[13.5px] outline-none focus:border-[#C6202B] focus:ring-2 focus:ring-[#C6202B]/10" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }} />
               {search && (
                 <button onClick={() => setSearch('')} title="Limpiar búsqueda" className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center hover:bg-[#252525]" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text3)' }}>
                   <X className="w-3 h-3" />
@@ -361,7 +361,7 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
               const active = activeTab === id;
               if (center) return (
                 <button key={id} onClick={() => goTab(id)} className="flex flex-col items-center gap-1 flex-1">
-                  <div className="w-[46px] h-[46px] -mt-4 rounded-[15px] flex items-center justify-center" style={{ background: 'linear-gradient(160deg, #f97316, #ea580c)', boxShadow: '0 10px 20px -8px rgba(249,115,22,0.4)' }}>
+                  <div className="w-[46px] h-[46px] -mt-4 rounded-[15px] flex items-center justify-center" style={{ background: 'linear-gradient(160deg, #D42A38, #A81823)', boxShadow: '0 10px 20px -8px rgba(198,32,43,0.4)' }}>
                     <Plus className="w-6 h-6 text-white" strokeWidth={2.4} />
                   </div>
                   <span className="text-[10px] font-semibold" style={{ color: active ? 'var(--pp-text6)' : 'var(--pp-text3)' }}>{label}</span>

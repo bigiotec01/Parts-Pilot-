@@ -50,8 +50,8 @@ export function WhatsNewModal({ role }) {
       <div className="rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm max-h-[85vh] overflow-y-auto" style={{ background: 'var(--pp-card)' }} onClick={e => e.stopPropagation()}>
         <div className="p-6 space-y-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(249,115,22,0.12)' }}>
-              <Sparkles className="w-4 h-4" style={{ color: '#f97316' }} />
+            <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(198,32,43,0.12)' }}>
+              <Sparkles className="w-4 h-4" style={{ color: '#D42A38' }} />
             </div>
             <div>
               <h2 className="font-bold text-[15px]" style={{ color: 'var(--pp-text)' }}>Novedades</h2>
@@ -61,7 +61,7 @@ export function WhatsNewModal({ role }) {
           <ul className="space-y-2.5">
             {pending.map((item, i) => (
               <li key={i} className="flex items-start gap-2 text-[13px]" style={{ color: 'var(--pp-text2)' }}>
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#f97316' }} />
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#D42A38' }} />
                 {item.text}
               </li>
             ))}

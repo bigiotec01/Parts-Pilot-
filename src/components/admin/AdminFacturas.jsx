@@ -71,7 +71,7 @@ function EditarMarcasModal({ marcas, onGuardar, onClose }) {
 }
 
 export function FacturaInlineRow({ form, setForm, onSave, onCancel, saving }) {
-  const inp = "px-2 py-1 rounded-[8px] border text-[16px] outline-none focus:border-[#a0a0a0]";
+  const inp = "px-2 py-1 rounded-[8px] border text-[16px] outline-none focus:border-[#C6202B]";
   // Si aún no hay monto pagado, asumimos que un # de cheque o fecha de pago
   // significa que se liquidó completa; el admin puede corregirlo si fue parcial.
   const autoFillPagado = (patch) => setForm(f => {
@@ -465,7 +465,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
                 Importar CSV / Excel
                 <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleXlsx} className="hidden" />
               </label>
-              <button onClick={startAdd} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:bg-[#707070]" style={{ background: 'var(--pp-accent)' }}>
+              <button onClick={startAdd} className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:bg-[#8E1620]" style={{ background: 'var(--pp-accent)' }}>
                 <Plus className="w-4 h-4" strokeWidth={2.2} /> Nueva factura
               </button>
             </>
@@ -515,7 +515,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
               <p className="text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>Revisa las filas antes de importar. Se agregarán a las existentes.</p>
               <div className="flex gap-3">
                 <button onClick={() => setImportRows(null)} className="px-5 py-[9px] rounded-[10px] border text-[13px] font-semibold hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>Cancelar</button>
-                <button onClick={confirmImport} disabled={importing} className="px-5 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
+                <button onClick={confirmImport} disabled={importing} className="px-5 py-[9px] rounded-[10px] text-white text-[13px] font-bold hover:bg-[#8E1620] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
                   {importing ? 'Importando…' : `Importar ${importRows.length} filas`}
                 </button>
               </div>
@@ -534,7 +534,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
               defaultValue={numeroCuenta}
               onBlur={e => saveCuenta(e.target.value)}
               placeholder="ej. 517831"
-              className="px-3 py-1.5 rounded-[9px] border text-[13px] font-mono w-36 outline-none focus:border-[#a0a0a0]"
+              className="px-3 py-1.5 rounded-[9px] border text-[13px] font-mono w-36 outline-none focus:border-[#C6202B]"
               style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)' }}
             />
             {cuentaGuardada ? (
@@ -628,7 +628,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
         <div className="mt-2">
           <button
             onClick={() => setShowPagadas(v => !v)}
-            className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#a0a0a0]"
+            className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#C6202B]"
             style={{ color: '#34d399' }}
           >
             <ChevronRight className={`w-4 h-4 transition-transform ${showPagadas ? 'rotate-90' : ''}`} />
@@ -646,7 +646,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
                     value={filtroDesde}
                     onChange={e => setFiltroDesde(e.target.value)}
                     onClick={e => { try { e.target.showPicker(); } catch(_) {} }}
-                    className="px-2 py-1 rounded-[8px] border text-[13px] outline-none focus:border-[#a0a0a0] cursor-pointer"
+                    className="px-2 py-1 rounded-[8px] border text-[13px] outline-none focus:border-[#C6202B] cursor-pointer"
                     style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)', colorScheme: 'var(--pp-color-scheme)' }}
                   />
                   {filtroDesde && <span className="text-[11px] font-mono" style={{ color: 'var(--pp-text3)' }}>({fmtDateDisp(filtroDesde)})</span>}
@@ -658,7 +658,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
                     value={filtroHasta}
                     onChange={e => setFiltroHasta(e.target.value)}
                     onClick={e => { try { e.target.showPicker(); } catch(_) {} }}
-                    className="px-2 py-1 rounded-[8px] border text-[13px] outline-none focus:border-[#a0a0a0] cursor-pointer"
+                    className="px-2 py-1 rounded-[8px] border text-[13px] outline-none focus:border-[#C6202B] cursor-pointer"
                     style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)', colorScheme: 'var(--pp-color-scheme)' }}
                   />
                   {filtroHasta && <span className="text-[11px] font-mono" style={{ color: 'var(--pp-text3)' }}>({fmtDateDisp(filtroHasta)})</span>}
@@ -729,7 +729,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
           <div className="mt-2">
             <button
               onClick={() => setShowArchived(v => !v)}
-              className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#a0a0a0]"
+              className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#C6202B]"
               style={{ color: 'var(--pp-text3)' }}
             >
               <ChevronRight className={`w-4 h-4 transition-transform ${showArchived ? 'rotate-90' : ''}`} />
@@ -743,14 +743,14 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
                   <div className="flex items-center gap-2">
                     <span className="text-[12px]" style={{ color: 'var(--pp-text3)' }}>Desde</span>
                     <input type="date" value={filtroArchDesde} onChange={e => setFiltroArchDesde(e.target.value)} onClick={e => { try { e.target.showPicker(); } catch(_) {} }}
-                      className="px-2 py-1 rounded-[8px] border text-[13px] outline-none focus:border-[#a0a0a0] cursor-pointer"
+                      className="px-2 py-1 rounded-[8px] border text-[13px] outline-none focus:border-[#C6202B] cursor-pointer"
                       style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)', colorScheme: 'var(--pp-color-scheme)' }} />
                     {filtroArchDesde && <span className="text-[11px] font-mono" style={{ color: 'var(--pp-text3)' }}>({fmtDateDisp(filtroArchDesde)})</span>}
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[12px]" style={{ color: 'var(--pp-text3)' }}>Hasta</span>
                     <input type="date" value={filtroArchHasta} onChange={e => setFiltroArchHasta(e.target.value)} onClick={e => { try { e.target.showPicker(); } catch(_) {} }}
-                      className="px-2 py-1 rounded-[8px] border text-[13px] outline-none focus:border-[#a0a0a0] cursor-pointer"
+                      className="px-2 py-1 rounded-[8px] border text-[13px] outline-none focus:border-[#C6202B] cursor-pointer"
                       style={{ borderColor: 'var(--pp-border4)', background: 'var(--pp-input-bg)', color: 'var(--pp-text)', colorScheme: 'var(--pp-color-scheme)' }} />
                     {filtroArchHasta && <span className="text-[11px] font-mono" style={{ color: 'var(--pp-text3)' }}>({fmtDateDisp(filtroArchHasta)})</span>}
                   </div>
@@ -814,7 +814,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
         <div className="mt-2">
           <button
             onClick={() => setShowBackups(v => !v)}
-            className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#a0a0a0]"
+            className="flex items-center gap-2 text-[12.5px] font-semibold transition-colors hover:text-[#C6202B]"
             style={{ color: 'var(--pp-text3)' }}
           >
             <ChevronRight className={`w-4 h-4 transition-transform ${showBackups ? 'rotate-90' : ''}`} />
@@ -829,7 +829,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
                 <button
                   onClick={handleCrearBackup}
                   disabled={creatingBackup}
-                  className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:bg-[#707070] disabled:opacity-60 flex-shrink-0"
+                  className="flex items-center gap-1.5 px-4 py-[9px] rounded-[10px] text-[13px] font-semibold text-white hover:bg-[#8E1620] disabled:opacity-60 flex-shrink-0"
                   style={{ background: 'var(--pp-accent)' }}
                 >
                   <Archive className="w-4 h-4" /> {creatingBackup ? 'Creando backup…' : 'Crear backup ahora'}
@@ -856,7 +856,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
                         onClick={() => handleRestore(b)}
                         disabled={restoringId === b.id}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] border text-[12.5px] font-semibold transition-colors disabled:opacity-60"
-                        style={{ borderColor: '#a0a0a0', color: 'var(--pp-text)' }}
+                        style={{ borderColor: '#C6202B', color: 'var(--pp-text)' }}
                       >
                         <RotateCcw className="w-3.5 h-3.5" /> {restoringId === b.id ? 'Restaurando…' : 'Restaurar'}
                       </button>

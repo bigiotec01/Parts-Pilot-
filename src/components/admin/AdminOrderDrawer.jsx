@@ -304,7 +304,7 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onGen
               <input value={manualDescripcion} onChange={e => setManualDescripcion(e.target.value)} placeholder="ej. Cover-Rr Bumper, Upr" className={inputClass} />
             </FormField>
             {manualError && <p className="text-[12.5px]" style={{ color: '#dc2626' }}>{manualError}</p>}
-            <button type="submit" disabled={manualGuardando || !manualNumero.trim()} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#707070] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: 'var(--pp-accent)' }}>
+            <button type="submit" disabled={manualGuardando || !manualNumero.trim()} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#8E1620] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: 'var(--pp-accent)' }}>
               <Plus className="w-4 h-4" /> {manualGuardando ? 'Guardando…' : piezaModal.mode === 'edit' ? 'Guardar cambios' : 'Agregar pieza · En tienda'}
             </button>
           </form>
@@ -341,7 +341,7 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onGen
           <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-[6px]" style={{ background: 'var(--pp-card)', color: 'var(--pp-text3)' }}>🔒 Solo admin</span>
         </div>
         <textarea value={notasInt} onChange={e => setNotasInt(e.target.value)} placeholder="Observaciones internas, no visibles para el taller…" rows={3}
-          className="w-full text-[13px] rounded-[10px] p-3 resize-none border outline-none focus:ring-2 focus:ring-[#a0a0a0]/10 focus:border-[#a0a0a0]"
+          className="w-full text-[13px] rounded-[10px] p-3 resize-none border outline-none focus:ring-2 focus:ring-[#C6202B]/10 focus:border-[#C6202B]"
           style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }} />
       </div>
 
@@ -360,7 +360,7 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onGen
       )}
 
       <div className="flex items-center gap-3">
-        <button onClick={handleSave} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:bg-[#707070] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
+        <button onClick={handleSave} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:bg-[#8E1620] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
           {saving ? 'Guardando…' : 'Guardar cambios'}
         </button>
         <button onClick={() => { if (window.confirm('¿Eliminar este pedido?')) onDeleteOrder(order.id); }} title="Eliminar pedido" className="w-[46px] h-[46px] flex-shrink-0 rounded-[11px] flex items-center justify-center transition-colors" style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)', color: '#f87171' }}>
@@ -394,13 +394,13 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onGen
               <button onClick={() => handleRemoveFile(i)} style={{ color: 'var(--pp-text3)' }}><X className="w-4 h-4" /></button>
             </div>
           ))}
-          <label className="flex items-center justify-center gap-2 border-dashed border rounded-[10px] px-3 py-3 text-[13px] cursor-pointer transition-colors hover:border-[#a0a0a0] hover:text-[#a0a0a0]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+          <label className="flex items-center justify-center gap-2 border-dashed border rounded-[10px] px-3 py-3 text-[13px] cursor-pointer transition-colors hover:border-[#C6202B] hover:text-[#C6202B]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
             <Paperclip className="w-4 h-4" /> {archivos.length ? 'Adjuntar otro PDF' : 'Adjuntar PDF'}
             <input type="file" accept="application/pdf" multiple onChange={handleFile} className="hidden" />
           </label>
         </div>
       </div>
-      <button onClick={handleSendEst} disabled={sending} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#707070] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: 'var(--pp-accent)' }}>
+      <button onClick={handleSendEst} disabled={sending} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#8E1620] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: 'var(--pp-accent)' }}>
         <Send className="w-4 h-4" /> {sending ? 'Enviando…' : order.estimado ? 'Actualizar estimado' : 'Enviar estimado al taller'}
       </button>
     </div>
