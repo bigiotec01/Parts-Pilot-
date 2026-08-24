@@ -193,7 +193,7 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
           {pedidosFiltrados.length === 0 ? (
             <EmptyState text={search ? 'Sin resultados.' : 'Aún no tienes pedidos activos.'} />
           ) : pedidosView === 'lista' ? (
-            <div className="rounded-[15px] border overflow-hidden sm:grid sm:grid-cols-[1.9fr_1fr_0.85fr_1fr_auto_28px]" style={{ borderColor: 'var(--pp-border)', background: 'var(--pp-card)' }}>
+            <div className="rounded-[15px] border overflow-hidden sm:grid sm:grid-cols-[1.9fr_1fr_0.85fr_1fr_auto_36px]" style={{ borderColor: 'var(--pp-border)', background: 'var(--pp-card)' }}>
               <OrderListHeader sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
               {pedidosFiltrados.map(p => <OrderListRow key={p.id} order={p} onClick={() => handleSelect(p.id)} unreadCount={getUnread(p)} activityRole="taller" />)}
             </div>

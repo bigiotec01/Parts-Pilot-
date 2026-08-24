@@ -137,7 +137,7 @@ function SortIcon({ active, dir }) {
 export function OrderListHeader({ showTaller, sortBy, sortDir, onSort }) {
   return (
     <div
-      className="hidden sm:grid sm:grid-cols-subgrid sm:col-span-full gap-x-3 px-4 py-2.5 text-[10.5px] font-bold uppercase"
+      className="hidden sm:grid sm:grid-cols-subgrid sm:col-span-full gap-x-6 px-6 py-3.5 text-[10.5px] font-bold uppercase"
       style={{ color: 'var(--pp-text3)', letterSpacing: '.05em', borderBottom: '1px solid var(--pp-border2)' }}
     >
       {LIST_SORT_COLUMNS.map(col => {
@@ -174,7 +174,7 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
-      className="grid grid-cols-1 sm:grid-cols-subgrid sm:col-span-full gap-x-3 gap-y-1.5 sm:items-start px-4 py-3 cursor-pointer transition-colors hover:bg-[var(--pp-hover)]"
+      className="grid grid-cols-1 sm:grid-cols-subgrid sm:col-span-full gap-x-6 gap-y-2 sm:items-start px-6 py-4 cursor-pointer transition-colors hover:bg-[var(--pp-hover)]"
       style={{
         background: entregaVencida ? 'rgba(127,29,29,0.08)' : hasActivity ? 'rgba(245,158,11,0.06)' : undefined,
         borderBottom: '1px solid var(--pp-border2)',

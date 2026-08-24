@@ -147,7 +147,7 @@ export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFi
       ) : view === 'tablero' ? (
         <KanbanBoard pedidos={pedidos} getTaller={getTaller} onSelect={onSelect} onChangeStatus={onChangeStatus} hideEmpty={hideEmpty} />
       ) : view === 'lista' ? (
-        <div className="rounded-[15px] border overflow-hidden sm:grid sm:grid-cols-[1.9fr_1fr_0.85fr_1fr_auto_28px]" style={{ borderColor: 'var(--pp-border)', background: 'var(--pp-card)' }}>
+        <div className="rounded-[15px] border overflow-hidden sm:grid sm:grid-cols-[1.9fr_1fr_0.85fr_1fr_auto_36px]" style={{ borderColor: 'var(--pp-border)', background: 'var(--pp-card)' }}>
           <OrderListHeader showTaller sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
           {pedidosOrdenados.map(p => <OrderListRow key={p.id} order={p} taller={getTaller(p.tallerId)} showTaller onClick={() => onSelect(p.id)} activityRole="admin" onChangeStatus={onChangeStatus} />)}
         </div>
