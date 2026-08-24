@@ -18,6 +18,7 @@ import { AdminEstimados } from './AdminEstimados';
 import { AdminFacturas } from './AdminFacturas';
 import { AdminEquipo } from './AdminEquipo';
 import { AdminOrderDrawer } from './AdminOrderDrawer';
+import { AdminOrderPage } from './AdminOrderPage';
 import { AdminHistorial } from './AdminHistorial';
 import { AdminMensajes, unreadTallerCount } from './AdminMensajes';
 
@@ -128,7 +129,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
 
   const mainContent = (
     <div className="flex-1 min-w-0 flex flex-col">
-      {!isMobile && (
+      {!isMobile && !selectedOrder && (
         <AdminTopbar
           pageTitle={PAGE_META[activeTab]?.title || 'Resumen'}
           pageSub={PAGE_META[activeTab]?.sub || ''}
@@ -141,17 +142,38 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
         />
       )}
       <main className="flex-1 overflow-y-auto px-4 py-5 pb-24" style={{ paddingLeft: isMobile ? 16 : 30, paddingRight: isMobile ? 16 : 30, paddingTop: isMobile ? 16 : 28 }}>
-        <div className="max-w-[1180px] mx-auto">
-          {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
-          {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={selectOrder} onExport={() => setShowReporte(true)} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
-          {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={selectOrder} />}
-          {activeTab === 'talleres' && <AdminTalleres facturas={facturas} talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} onActualizarSubUsuario={onActualizarSubUsuario} onResetPassword={onResetPassword} />}
-          {activeTab === 'nuevo' && <AdminNuevoPedido talleres={talleres} pedidos={todosPedidos} onCreate={(data) => { onCreateOrder(data); goTo('pedidos'); }} />}
-          {activeTab === 'cotizacion' && <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />}
-          {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} isSuperadmin={isSuperadmin} backups={backups} onCrearBackup={onCrearBackup} onRestaurarBackup={onRestaurarBackup} onEliminarBackup={onEliminarBackup} marcasFactura={empresa?.marcasFactura} onActualizarMarcasFactura={onActualizarMarcasFactura} />}
-          {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} talleres={talleres} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
-          {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} />}
-          {activeTab === 'mensajes' && <AdminMensajes pedidos={pedidosActivosParaMensajes} getTaller={getTaller} onSelect={(id) => selectOrder(id, 'mensajes')} />}
+        <div className={selectedOrder ? 'max-w-[1400px] mx-auto' : 'max-w-[1180px] mx-auto'}>
+          {selectedOrder ? (
+            <AdminOrderPage
+              order={selectedOrder}
+              taller={getTaller(selectedOrder.tallerId)}
+              onClose={() => setSelectedId(null)}
+              onChangeStatus={onChangeStatus}
+              onGenerateGuestLink={onGenerateGuestLink}
+              onSendEstimate={onSendEstimate}
+              onDeleteOrder={async (id) => { await onDeleteOrder(id); setSelectedId(null); }}
+              onUpdateNotes={onUpdateNotes}
+              onUpdateReferencias={onUpdateReferencias}
+              onImportarPiezas={onImportarPiezas}
+              onSendMessage={onSendMessage}
+              onDeleteMessage={onDeleteMessage}
+              pedidos={todosPedidos}
+              initialTab={selectedDrawerTab}
+            />
+          ) : (
+            <>
+              {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
+              {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={selectOrder} onExport={() => setShowReporte(true)} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
+              {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={selectOrder} />}
+              {activeTab === 'talleres' && <AdminTalleres facturas={facturas} talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} onActualizarSubUsuario={onActualizarSubUsuario} onResetPassword={onResetPassword} />}
+              {activeTab === 'nuevo' && <AdminNuevoPedido talleres={talleres} pedidos={todosPedidos} onCreate={(data) => { onCreateOrder(data); goTo('pedidos'); }} />}
+              {activeTab === 'cotizacion' && <AdminNuevaCotizacion talleres={talleres} onCreate={async (data) => { await onCreateCotizacion(data); goTo('pedidos'); }} />}
+              {activeTab === 'facturas' && <AdminFacturas facturas={facturas} talleres={talleres} onAgregar={onAgregarFactura} onActualizar={onActualizarFactura} onEliminar={onEliminarFactura} onUpdateTaller={onUpdateTaller} readOnly={!canEdit('facturas')} isSuperadmin={isSuperadmin} backups={backups} onCrearBackup={onCrearBackup} onRestaurarBackup={onRestaurarBackup} onEliminarBackup={onEliminarBackup} marcasFactura={empresa?.marcasFactura} onActualizarMarcasFactura={onActualizarMarcasFactura} />}
+              {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} talleres={talleres} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
+              {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} />}
+              {activeTab === 'mensajes' && <AdminMensajes pedidos={pedidosActivosParaMensajes} getTaller={getTaller} onSelect={(id) => selectOrder(id, 'mensajes')} />}
+            </>
+          )}
         </div>
       </main>
     </div>
@@ -268,24 +290,6 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
         onOpenCalcular={() => setShowCalcular(true)}
       />
       {mainContent}
-      {selectedOrder && (
-        <AdminOrderDrawer
-          key={selectedId}
-          order={selectedOrder}
-          taller={getTaller(selectedOrder.tallerId)}
-          onClose={() => setSelectedId(null)}
-          onChangeStatus={onChangeStatus}
-          onGenerateGuestLink={onGenerateGuestLink}
-          onSendEstimate={onSendEstimate}
-          onDeleteOrder={async (id) => { await onDeleteOrder(id); setSelectedId(null); }}
-          onUpdateNotes={onUpdateNotes}
-          onUpdateReferencias={onUpdateReferencias}
-          onImportarPiezas={onImportarPiezas}
-          onSendMessage={onSendMessage}
-          onDeleteMessage={onDeleteMessage}
-          initialTab={selectedDrawerTab}
-        />
-      )}
       {showReporte && <ReporteModal pedidos={pedidos} talleres={talleres} onClose={() => setShowReporte(false)} />}
       {showCalcular && <CalcularModal onClose={() => setShowCalcular(false)} />}
     </div>

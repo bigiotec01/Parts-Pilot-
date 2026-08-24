@@ -1,0 +1,505 @@
+import { useState, useEffect, useMemo, useRef } from 'react';
+import {
+  CheckCircle2, Clock, FileText, X, ThumbsUp, ThumbsDown, AlertCircle, ClipboardList, Calendar, Send, MessageSquare, Paperclip, Mail, Trash2, Share2, MessageCircle, ChevronDown, ChevronUp, Sparkles, Hourglass, FileSpreadsheet, Plus, Link2, ArrowLeft
+} from 'lucide-react';
+import { STATUS_CONFIG, STATUS_ORDER } from '../../constants/status';
+import { StatusBadge, StatusStepper } from '../shared/StatusBadge';
+import { OrderChat } from '../shared/OrderChat';
+import { FormField } from '../shared/FormField';
+import { Modal } from '../shared/Modal';
+import { QuickActionsMenu } from '../shared/QuickActionsMenu';
+import { PiezasList } from '../shared/PiezasList';
+import { inputClass } from '../../constants/styles';
+import { avgDeliveryLeadDays, suggestDeliveryDate, cleanText, filesOf } from '../../utils/format';
+import { parsePiezasExcel, mergePiezas, agregarPiezaManual, editarPieza, eliminarPieza } from '../../utils/piezasExcel';
+
+const AUTO_DATE_STATES = ['en_transito', 'recibido'];
+
+function TallerNotes({ text }) {
+  const [expanded, setExpanded] = useState(false);
+  const clean = cleanText(text) || '';
+  const isLong = clean.length > 160;
+  return (
+    <div className="rounded-[11px] p-3" style={{ background: 'rgba(245,158,11,0.14)', border: '1px solid rgba(245,158,11,0.4)', borderLeft: '3px solid #f59e0b' }}>
+      <p className="text-[10.5px] font-bold uppercase mb-1" style={{ color: '#b45309' }}>Notas del taller</p>
+      <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#7c5a14' }}>{isLong && !expanded ? clean.slice(0, 160) + '…' : clean}</p>
+      {isLong && (
+        <button type="button" onClick={() => setExpanded(v => !v)} className="mt-1 flex items-center gap-1 text-[11.5px] font-bold" style={{ color: '#b7791f' }}>
+          {expanded ? <>Ver menos <ChevronUp className="w-3 h-3" /></> : <>Ver más <ChevronDown className="w-3 h-3" /></>}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Vista de escritorio de un pedido: pagina completa (no modal),      */
+/*  con la barra lateral de admin siempre visible. Detalles/Estimado   */
+/*  en pestañas a la izquierda; Mensajes queda fijo a la derecha.      */
+/* ------------------------------------------------------------------ */
+export function AdminOrderPage({ order, taller, onClose, onChangeStatus, onGenerateGuestLink, onSendEstimate, onDeleteOrder, onUpdateNotes, onUpdateReferencias, onImportarPiezas, onSendMessage, onDeleteMessage, pedidos = [], initialTab = 'detalles' }) {
+  const [tab, setTab] = useState(initialTab === 'mensajes' ? 'detalles' : initialTab);
+  const [estado, setEstado]             = useState(order.estado);
+  const [fechaEntrega, setFechaEntrega] = useState(order.fechaEntrega || '');
+  const [fechaSugerida, setFechaSugerida] = useState(false);
+  const [numeroPO, setNumeroPO]         = useState(order.numeroPO ?? '');
+  const [numeroOrden, setNumeroOrden]   = useState(order.numeroOrden ?? '');
+  const [notasInt, setNotasInt]         = useState(order.notasInternas ?? '');
+  const [notasEst, setNotasEst]         = useState(order.estimado?.notas ?? '');
+  const [archivos, setArchivos]         = useState(filesOf(order.estimado?.archivo, order.estimado?.archivos));
+  const [saving, setSaving]             = useState(false);
+  const [saved, setSaved]               = useState(false);
+  const [sending, setSending]           = useState(false);
+  const [sent, setSent]                 = useState(false);
+  const [sendError, setSendError]       = useState('');
+  const [copied, setCopied]             = useState(false);
+  const [showNotify, setShowNotify]     = useState(false);
+  const [guestCopied, setGuestCopied]   = useState(false);
+  const [generandoGuest, setGenerandoGuest] = useState(false);
+  const msgCount = (order.mensajes || []).length;
+
+  const avgLeadDays = useMemo(() => avgDeliveryLeadDays(pedidos), [pedidos]);
+
+  const handleEstadoChange = (newEstado) => {
+    setEstado(newEstado);
+    if (AUTO_DATE_STATES.includes(newEstado) && !fechaEntrega) {
+      setFechaEntrega(suggestDeliveryDate(newEstado, avgLeadDays));
+      setFechaSugerida(true);
+    }
+  };
+
+  const handleFechaChange = (value) => {
+    setFechaEntrega(value);
+    setFechaSugerida(false);
+  };
+
+  const buildShareLink = () => {
+    const url = `${window.location.origin}${window.location.pathname}?order=${order.id}`;
+    const folio = order.folio || order.id.slice(0, 8);
+    const ref = order.numeroPO || folio;
+    const esEstimado = ['pendiente', 'cotizando'].includes(order.estado);
+    const subject = encodeURIComponent(esEstimado ? `Estimado ${ref} – Parts Pilot` : `Estado de tu pedido ${ref} – Parts Pilot`);
+    const body = encodeURIComponent(esEstimado
+      ? `Hola${taller?.contacto ? ` ${taller.contacto}` : ''},\n\nYa está listo el estimado para tu "${order.vehiculo}" (${ref}). Puedes verlo aquí:\n\n${url}\n\nSaludos.`
+      : `Hola${taller?.contacto ? ` ${taller.contacto}` : ''},\n\nPuedes ver el estado de tu pedido "${order.vehiculo}" (${ref}) aquí:\n\n${url}\n\nSaludos.`);
+    const to = taller?.email ? `&to=${encodeURIComponent(taller.email)}` : '';
+    window.open(`https://mail.google.com/mail/?view=cm${to}&su=${subject}&body=${body}`, '_blank');
+  };
+
+  const guestLink = order.guestTokenActivo && order.guestToken
+    ? `${window.location.origin}${window.location.pathname}?track=${order.id}&tk=${order.guestToken}`
+    : null;
+
+  const handleGenerateGuestLink = async () => {
+    setGenerandoGuest(true);
+    try { await onGenerateGuestLink(order.id); } finally { setGenerandoGuest(false); }
+  };
+
+  const handleCopyGuestLink = () => {
+    if (!guestLink) return;
+    navigator.clipboard.writeText(guestLink).then(() => {
+      setGuestCopied(true);
+      setTimeout(() => setGuestCopied(false), 2500);
+    });
+  };
+
+  const whatsappNumber = (() => {
+    const digits = (taller?.telefono || '').replace(/\D/g, '');
+    if (digits.length < 10) return null;
+    return digits.length === 10 ? `1${digits}` : digits;
+  })();
+
+  const [notifyBody, setNotifyBody] = useState('');
+  const buildNotifyMessage = () =>
+    `Hola ${taller?.contacto || ''},\n\n` +
+    `Te informamos que las piezas de tu pedido están listas en nuestra tienda y esperando la fecha de entrega.\n\n` +
+    `Detalles del pedido:\n` +
+    `• Vehículo: ${order.vehiculo || '—'}\n` +
+    (order.pieza ? `• Pieza: ${order.pieza}\n` : '') +
+    (order.numeroPO ? `• No. PO: ${order.numeroPO}\n` : '') +
+    (order.numeroOrden ? `• No. Orden: ${order.numeroOrden}\n` : '') +
+    `\nPor favor contáctanos para coordinar la fecha y hora de entrega.\n\n` +
+    `Saludos,\nDepartamento de Piezas — Parts Pilot`;
+  const openNotify = () => { setNotifyBody(buildNotifyMessage()); setShowNotify(true); };
+
+  useEffect(() => {
+    setEstado(order.estado); setFechaEntrega(order.fechaEntrega || ''); setFechaSugerida(false);
+    setNumeroPO(order.numeroPO ?? ''); setNumeroOrden(order.numeroOrden ?? '');
+    setNotasInt(order.notasInternas ?? ''); setNotasEst(order.estimado?.notas ?? '');
+    setArchivos(filesOf(order.estimado?.archivo, order.estimado?.archivos));
+  }, [order.id]); // eslint-disable-line
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await onChangeStatus(order.id, estado, fechaEntrega);
+      await onUpdateReferencias(order.id, { numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim() });
+      await onUpdateNotes(order.id, notasInt);
+      setSaved(true); setTimeout(() => setSaved(false), 2500);
+    } finally { setSaving(false); }
+  };
+
+  const handleSendEst = async () => {
+    setSending(true); setSendError('');
+    try {
+      await onSendEstimate(order.id, { notas: notasEst, archivos });
+      setSent(true); setTimeout(() => setSent(false), 3000);
+    } catch (err) { setSendError('Error: ' + (err.message || err.code)); }
+    finally { setSending(false); }
+  };
+
+  const handleFile = (e) => {
+    const files = Array.from(e.target.files || []); if (!files.length) return;
+    setArchivos(prev => [...prev, ...files.map(file => ({ name: file.name, type: file.type, url: URL.createObjectURL(file), file }))]);
+    e.target.value = '';
+  };
+
+  const handleRemoveFile = (idx) => setArchivos(prev => prev.filter((_, i) => i !== idx));
+
+  const piezasFileRef = useRef(null);
+  const [piezasImportando, setPiezasImportando] = useState(false);
+  const [piezasError, setPiezasError] = useState('');
+  const handleImportarPiezas = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    setPiezasError('');
+    setPiezasImportando(true);
+    try {
+      const buffer = await file.arrayBuffer();
+      const filas = parsePiezasExcel(buffer);
+      const piezas = mergePiezas(order.piezas, filas);
+      await onImportarPiezas(order.id, piezas);
+    } catch (err) {
+      setPiezasError(err.message || 'No se pudo leer el archivo.');
+    } finally {
+      setPiezasImportando(false);
+    }
+  };
+
+  const [piezaModal, setPiezaModal] = useState(null); // null | { mode: 'add' } | { mode: 'edit', numeroPieza }
+  const [manualNumero, setManualNumero] = useState('');
+  const [manualDescripcion, setManualDescripcion] = useState('');
+  const [manualError, setManualError] = useState('');
+  const [manualGuardando, setManualGuardando] = useState(false);
+  const abrirAgregarPieza = () => { setManualNumero(''); setManualDescripcion(''); setManualError(''); setPiezaModal({ mode: 'add' }); };
+  const abrirEditarPieza = (p) => { setManualNumero(p.numeroPieza); setManualDescripcion(p.descripcion || ''); setManualError(''); setPiezaModal({ mode: 'edit', numeroPieza: p.numeroPieza }); };
+  const handleGuardarPieza = async (e) => {
+    e.preventDefault();
+    setManualError('');
+    setManualGuardando(true);
+    try {
+      const piezas = piezaModal.mode === 'edit'
+        ? editarPieza(order.piezas, piezaModal.numeroPieza, { numeroPieza: manualNumero, descripcion: manualDescripcion })
+        : agregarPiezaManual(order.piezas, { numeroPieza: manualNumero, descripcion: manualDescripcion });
+      await onImportarPiezas(order.id, piezas);
+      setManualNumero(''); setManualDescripcion(''); setPiezaModal(null);
+    } catch (err) {
+      setManualError(err.message || 'No se pudo guardar la pieza.');
+    } finally {
+      setManualGuardando(false);
+    }
+  };
+  const handleEliminarPieza = async (p) => {
+    if (!window.confirm(`¿Eliminar la pieza ${p.numeroPieza}?`)) return;
+    await onImportarPiezas(order.id, eliminarPieza(order.piezas, p.numeroPieza));
+  };
+
+  const openDatePicker = (e) => { try { e.target.showPicker(); } catch (_) {} };
+
+  const initials = (n) => (n || '').split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
+
+  /* ── Contenido compartido por tab ── */
+  const detallesContent = (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3 rounded-[13px] p-3" style={{ background: 'var(--pp-card)' }}>
+        <div className="w-10 h-10 rounded-[10px] border flex items-center justify-center font-bold text-[14px] flex-shrink-0" style={{ background: 'var(--pp-surface)', borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>{initials(taller?.nombre)}</div>
+        <div className="flex-1 min-w-0">
+          <div className="text-[13.5px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{taller?.nombre}</div>
+          <div className="text-[12px]" style={{ color: 'var(--pp-text2)' }}>{taller?.contacto}</div>
+        </div>
+        {whatsappNumber && (
+          <a
+            href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent([`Hola ${taller?.contacto || ''},`, '', `Estimado para: ${order.vehiculo}`, notasEst ? `Notas: ${notasEst}` : '', '', `Puedes verlo aquí:\n${window.location.origin}${window.location.pathname}?order=${order.id}`, '', 'Saludos.'].filter((l, i) => !(i === 3 && !notasEst)).join('\n'))}`}
+            target="_blank" rel="noreferrer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] border text-[12px] font-semibold hover:bg-[#1a1a1a] transition-colors flex-shrink-0" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}
+          >
+            <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+          </a>
+        )}
+        <button onClick={buildShareLink} title="Enviar link del pedido" className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0 transition-colors hover:bg-[#252525]" style={{ color: 'var(--pp-text3)' }}>
+          <Share2 className="w-4 h-4" />
+        </button>
+      </div>
+
+      {onGenerateGuestLink && (
+        <div className="rounded-[12px] p-3 flex items-center gap-3" style={{ background: 'var(--pp-card)' }}>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10.5px] font-bold uppercase mb-1" style={{ color: 'var(--pp-text9)', letterSpacing: '.05em' }}>Acceso para el cliente</p>
+            <p className="text-[12px]" style={{ color: 'var(--pp-text3)' }}>
+              {guestLink ? 'Link activo · se desactiva al marcar "Orden Completa".' : 'Genera un link para que el cliente vea el estado de su pedido sin necesidad de cuenta.'}
+            </p>
+          </div>
+          {guestLink ? (
+            <button type="button" onClick={handleCopyGuestLink} className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] border text-[12px] font-semibold hover:bg-[#1a1a1a] transition-colors flex-shrink-0" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+              {guestCopied ? <><CheckCircle2 className="w-3.5 h-3.5" /> ¡Copiado!</> : <><Link2 className="w-3.5 h-3.5" /> Copiar link</>}
+            </button>
+          ) : (
+            <button type="button" onClick={handleGenerateGuestLink} disabled={generandoGuest} className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] border text-[12px] font-semibold hover:bg-[#1a1a1a] transition-colors flex-shrink-0 disabled:opacity-60" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+              <Link2 className="w-3.5 h-3.5" /> {generandoGuest ? 'Generando…' : 'Generar link'}
+            </button>
+          )}
+        </div>
+      )}
+
+      {estado !== 'rechazado' && (
+        <div>
+          <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: 'var(--pp-text9)', letterSpacing: '.06em' }}>Progreso <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>· clic en un paso para cambiar el estado</span></p>
+          <StatusStepper estado={estado} onSelect={handleEstadoChange} />
+        </div>
+      )}
+
+      {['pedido_fabrica','ordenadas','esperando_piezas','en_transito','recibido','entregado'].includes(estado) && (
+        <FormField label="Fecha estimada de entrega">
+          <input type="date" value={fechaEntrega} onChange={e => handleFechaChange(e.target.value)} onClick={openDatePicker} className={`${inputClass} cursor-pointer`} />
+          {fechaSugerida ? (
+            <p className="text-[11px] mt-1 flex items-center gap-1" style={{ color: '#a78bfa' }}><Sparkles className="w-3 h-3" /> Sugerida automáticamente{avgLeadDays ? ` (promedio histórico: ${avgLeadDays} días)` : ''}. Puedes ajustarla.</p>
+          ) : fechaEntrega && <p className="text-[11px] mt-1 flex items-center gap-1" style={{ color: '#2563eb' }}><Calendar className="w-3 h-3" /> El taller verá esta fecha en su portal.</p>}
+        </FormField>
+      )}
+
+      <div className="rounded-[12px] p-3" style={{ background: 'var(--pp-card)' }}>
+        <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+          <p className="text-[10.5px] font-bold uppercase flex items-center gap-1.5" style={{ color: 'var(--pp-text9)', letterSpacing: '.05em' }}>
+            <Hourglass className="w-3.5 h-3.5" /> Piezas en espera
+            {order.piezas?.length > 0 && (
+              <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>
+                · {order.piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda').length} de {order.piezas.length} en tienda
+              </span>
+            )}
+          </p>
+          <input ref={piezasFileRef} type="file" accept=".xlsx,.xls" onChange={handleImportarPiezas} disabled={piezasImportando} className="hidden" />
+          <QuickActionsMenu size="sm" items={[
+            { label: piezasImportando ? 'Leyendo…' : 'Subir Excel', icon: FileSpreadsheet, disabled: piezasImportando, onClick: () => piezasFileRef.current?.click() },
+            { label: 'Agregar pieza manualmente', icon: Plus, onClick: abrirAgregarPieza },
+          ]} />
+        </div>
+        {piezasError && <p className="text-[12px] mb-2" style={{ color: '#dc2626' }}>{piezasError}</p>}
+        {!order.piezas?.length ? (
+          <p className="text-[12.5px]" style={{ color: 'var(--pp-text3)' }}>Sube el reporte de piezas (.xlsx) o agrega una pieza manualmente para verla aquí.</p>
+        ) : (
+          <PiezasList piezas={order.piezas} onEdit={abrirEditarPieza} onDelete={handleEliminarPieza} />
+        )}
+      </div>
+
+      {piezaModal && (
+        <Modal title={piezaModal.mode === 'edit' ? 'Editar pieza' : 'Agregar pieza manualmente'} onClose={() => { setPiezaModal(null); setManualError(''); }}>
+          <form onSubmit={handleGuardarPieza} className="space-y-3">
+            {piezaModal.mode === 'add' && <p className="text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>Para piezas que ya están en la tienda pero no vinieron en el reporte del proveedor.</p>}
+            <FormField label="Número de pieza">
+              <input value={manualNumero} onChange={e => setManualNumero(e.target.value)} placeholder="ej. 86610-L2500" autoFocus className={inputClass} />
+            </FormField>
+            <FormField label="Descripción (opcional)">
+              <input value={manualDescripcion} onChange={e => setManualDescripcion(e.target.value)} placeholder="ej. Cover-Rr Bumper, Upr" className={inputClass} />
+            </FormField>
+            {manualError && <p className="text-[12.5px]" style={{ color: '#dc2626' }}>{manualError}</p>}
+            <button type="submit" disabled={manualGuardando || !manualNumero.trim()} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#8E1620] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: 'var(--pp-accent)' }}>
+              <Plus className="w-4 h-4" /> {manualGuardando ? 'Guardando…' : piezaModal.mode === 'edit' ? 'Guardar cambios' : 'Agregar pieza · En tienda'}
+            </button>
+          </form>
+        </Modal>
+      )}
+
+      <div className="grid grid-cols-2 gap-3">
+        <FormField label="No. PO"><input value={numeroPO} onChange={e => setNumeroPO(e.target.value)} placeholder="ej. Emma" className={inputClass} /></FormField>
+        <FormField label="No. Orden"><input value={numeroOrden} onChange={e => setNumeroOrden(e.target.value)} placeholder="ej. M26243" className={inputClass} /></FormField>
+      </div>
+
+      {order.notas && <TallerNotes text={order.notas} />}
+
+      {filesOf(order.archivo, order.archivos).length > 0 && (
+        <div>
+          <p className="text-[10.5px] font-bold uppercase mb-2" style={{ color: 'var(--pp-text9)', letterSpacing: '.05em' }}>Archivo{filesOf(order.archivo, order.archivos).length > 1 ? 's' : ''} del taller</p>
+          <div className="flex flex-wrap gap-2">
+            {filesOf(order.archivo, order.archivos).map((f, i) => (
+              f.type?.startsWith('image/') ? (
+                <a key={i} href={f.url} target="_blank" rel="noreferrer"><img src={f.url} alt="" className="rounded-lg max-h-32 object-cover" /></a>
+              ) : (
+                <a key={i} href={f.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-[10px] px-3 py-2 border text-[13px] hover:border-[#e8632f] hover:text-[#c9491c] transition-colors" style={{ background: '#f8f9fa', borderColor: '#e7e9ed', color: 'var(--pp-text11)' }}>
+                  <FileText className="w-4 h-4 flex-shrink-0" /><span className="truncate">{f.name}</span>
+                </a>
+              )
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <p className="text-[12.5px] font-semibold" style={{ color: 'var(--pp-text2)' }}>Notas internas</p>
+          <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-[6px]" style={{ background: 'var(--pp-card)', color: 'var(--pp-text3)' }}>🔒 Solo admin</span>
+        </div>
+        <textarea value={notasInt} onChange={e => setNotasInt(e.target.value)} placeholder="Observaciones internas, no visibles para el taller…" rows={3}
+          className="w-full text-[13px] rounded-[10px] p-3 resize-none border outline-none focus:ring-2 focus:ring-[#C6202B]/10 focus:border-[#C6202B]"
+          style={{ background: 'var(--pp-input-bg)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }} />
+      </div>
+
+      {saved && <div className="flex items-center gap-2 px-3 py-2.5 rounded-[11px] text-[13px] font-semibold" style={{ background: '#eafaf2', color: '#059669' }}><CheckCircle2 className="w-4 h-4" /> Cambios guardados.</div>}
+
+      {estado === 'recibido' && (taller?.email || whatsappNumber) && (
+        <button
+          type="button"
+          onClick={openNotify}
+          className="flex items-center justify-center gap-2 w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:brightness-105 transition-all"
+          style={{ background: 'linear-gradient(160deg, #059669, #047857)', boxShadow: '0 8px 18px -8px rgba(5,150,105,.4)' }}
+        >
+          <Mail className="w-4 h-4" />
+          Notificar al taller — piezas listas
+        </button>
+      )}
+
+      <div className="flex items-center gap-3">
+        <button onClick={handleSave} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:bg-[#8E1620] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
+          {saving ? 'Guardando…' : 'Guardar cambios'}
+        </button>
+        <button onClick={() => { if (window.confirm('¿Eliminar este pedido?')) onDeleteOrder(order.id); }} title="Eliminar pedido" className="w-[46px] h-[46px] flex-shrink-0 rounded-[11px] flex items-center justify-center transition-colors" style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)', color: '#f87171' }}>
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+
+  const estimadoContent = (
+    <div className="space-y-4">
+      {order.estado === 'cotizando' && order.estimado?.respuesta === 'pendiente' && <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b' }}><Clock className="w-4 h-4 flex-shrink-0" /> Esperando respuesta del taller…</div>}
+      {order.estimado?.respuesta && order.estimado.respuesta !== 'pendiente' && (
+        <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: order.estimado.respuesta === 'aceptado' ? '#eafaf2' : '#fdecec', color: order.estimado.respuesta === 'aceptado' ? '#059669' : '#dc2626' }}>
+          {order.estimado.respuesta === 'aceptado' ? <ThumbsUp className="w-4 h-4" /> : <ThumbsDown className="w-4 h-4" />}
+          El taller {order.estimado.respuesta === 'aceptado' ? 'aceptó' : 'rechazó'} este estimado.
+        </div>
+      )}
+      {sent && <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: '#eafaf2', color: '#059669' }}><CheckCircle2 className="w-4 h-4" /> Estimado enviado.</div>}
+      {sendError && <div className="flex items-center gap-2 text-[13px] px-3 py-2.5 rounded-[10px]" style={{ background: '#fdecec', color: '#dc2626' }}><AlertCircle className="w-4 h-4" />{sendError}</div>}
+      <FormField label="Notas para el taller">
+        <textarea value={notasEst} onChange={e => setNotasEst(e.target.value)} rows={4} placeholder="Tiempo de entrega, condiciones, precio…" className={`${inputClass} resize-none`} />
+      </FormField>
+      <div>
+        <p className="text-[12.5px] font-semibold mb-1.5" style={{ color: 'var(--pp-text11)' }}>PDF <span style={{ color: 'var(--pp-text10)', fontWeight: 400 }}>(opcional)</span></p>
+        <div className="space-y-2">
+          {archivos.map((f, i) => (
+            <div key={i} className="flex items-center gap-2 rounded-[10px] px-3 py-2.5 border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+              <FileText className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--pp-text8)' }} />
+              <a href={f.url} target="_blank" rel="noreferrer" className="text-[13px] truncate flex-1 hover:underline" style={{ color: 'var(--pp-text2)' }}>{f.name}</a>
+              <button onClick={() => handleRemoveFile(i)} style={{ color: 'var(--pp-text3)' }}><X className="w-4 h-4" /></button>
+            </div>
+          ))}
+          <label className="flex items-center justify-center gap-2 border-dashed border rounded-[10px] px-3 py-3 text-[13px] cursor-pointer transition-colors hover:border-[#C6202B] hover:text-[#C6202B]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
+            <Paperclip className="w-4 h-4" /> {archivos.length ? 'Adjuntar otro PDF' : 'Adjuntar PDF'}
+            <input type="file" accept="application/pdf" multiple onChange={handleFile} className="hidden" />
+          </label>
+        </div>
+      </div>
+      <button onClick={handleSendEst} disabled={sending} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#8E1620] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: 'var(--pp-accent)' }}>
+        <Send className="w-4 h-4" /> {sending ? 'Enviando…' : order.estimado ? 'Actualizar estimado' : 'Enviar estimado al taller'}
+      </button>
+    </div>
+  );
+
+  const tabs = [
+    { id: 'detalles', label: 'Detalles', icon: ClipboardList },
+    { id: 'estimado', label: 'Estimado', icon: FileText },
+  ];
+
+  const chatContent = (
+    <OrderChat order={order} role="admin" otherPartyName={taller?.nombre}
+      onSendMessage={(orderId, texto, attachment) => onSendMessage(orderId, texto, 'admin', attachment)}
+      onDeleteMessage={(mensajes, index) => onDeleteMessage(order.id, mensajes, index)} />
+  );
+
+  const notifyModal = showNotify && (
+    <Modal title="Notificar al taller · Piezas listas" onClose={() => setShowNotify(false)}>
+      <div className="space-y-4">
+        <p className="text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>Revisa y edita el mensaje antes de enviarlo por el canal que prefieras.</p>
+        <FormField label="Mensaje">
+          <textarea value={notifyBody} onChange={e => setNotifyBody(e.target.value)} rows={9} className={`${inputClass} resize-none`} />
+        </FormField>
+        <div className="grid gap-2.5" style={{ gridTemplateColumns: taller?.email && whatsappNumber ? '1fr 1fr' : '1fr' }}>
+          {taller?.email && (
+            <a
+              href={`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(taller.email)}&su=${encodeURIComponent(`Piezas listas para entrega — ${order.vehiculo || ''}${order.pieza ? ` (${order.pieza})` : ''}`)}&body=${encodeURIComponent(notifyBody)}`}
+              target="_blank" rel="noreferrer"
+              className="flex items-center justify-center gap-2 py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:brightness-105 transition-all"
+              style={{ background: 'linear-gradient(160deg, #059669, #047857)' }}
+            >
+              <Mail className="w-4 h-4" /> Abrir en correo
+            </a>
+          )}
+          {whatsappNumber && (
+            <a
+              href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(notifyBody)}`}
+              target="_blank" rel="noreferrer"
+              className="flex items-center justify-center gap-2 py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:brightness-105 transition-all"
+              style={{ background: 'linear-gradient(160deg, #25D366, #1DA851)' }}
+            >
+              <MessageCircle className="w-4 h-4" /> Abrir en WhatsApp
+            </a>
+          )}
+        </div>
+        <button
+          onClick={() => navigator.clipboard.writeText(notifyBody).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); })}
+          className="w-full py-2.5 rounded-[11px] text-[13px] font-semibold border flex items-center justify-center gap-2 hover:bg-[#1e1e1e] transition-colors"
+          style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}
+        >
+          {copied ? <><CheckCircle2 className="w-4 h-4" /> ¡Copiado!</> : <><Paperclip className="w-4 h-4" /> Copiar mensaje</>}
+        </button>
+      </div>
+    </Modal>
+  );
+
+  /* ── Página completa de escritorio: detalle a la izquierda, chat fijo a la derecha ── */
+  return (
+    <div className="w-full">
+      <div className="flex items-center gap-3 mb-5">
+        <button onClick={onClose} className="w-9 h-9 rounded-[10px] border flex items-center justify-center hover:bg-[#1e1e1e] transition-colors flex-shrink-0" style={{ borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }} title="Volver">
+          <ArrowLeft className="w-[18px] h-[18px]" />
+        </button>
+        <div className="min-w-0 flex-1">
+          <div className="font-mono text-[12px] font-semibold" style={{ color: 'var(--pp-text3)' }}>{order.folio || order.id?.slice(0,8)}</div>
+          <h1 className="text-[22px] font-bold leading-tight truncate" style={{ color: 'var(--pp-text)', letterSpacing: '-.02em' }}>{order.vehiculo || '—'}</h1>
+        </div>
+        <StatusBadge estado={estado} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 items-start">
+        {/* Columna principal: pestañas Detalles / Estimado */}
+        <div className="min-w-0 rounded-[16px] border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+          <div className="flex px-6" style={{ borderBottom: '1px solid var(--pp-border2)' }}>
+            {tabs.map(({ id, label, icon: Icon }) => (
+              <button key={id} onClick={() => setTab(id)} className="flex items-center gap-1.5 px-1 py-3.5 text-[13px] font-semibold border-b-2 mr-6 transition-colors" style={{ borderBottomColor: tab === id ? 'var(--pp-accent)' : 'transparent', color: tab === id ? 'var(--pp-text)' : 'var(--pp-text3)' }}>
+                <Icon className="w-4 h-4" strokeWidth={1.8} /> {label}
+              </button>
+            ))}
+          </div>
+          <div className="p-6">
+            {tab === 'detalles' && detallesContent}
+            {tab === 'estimado' && estimadoContent}
+          </div>
+        </div>
+
+        {/* Columna fija: mensajes siempre visibles */}
+        <div className="lg:sticky lg:top-5 rounded-[16px] border flex flex-col" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', height: 'calc(100vh - 180px)' }}>
+          <div className="flex items-center gap-2 px-4 py-3.5 flex-shrink-0" style={{ borderBottom: '1px solid var(--pp-border2)' }}>
+            <MessageSquare className="w-4 h-4" style={{ color: 'var(--pp-text2)' }} />
+            <span className="text-[13px] font-bold flex-1" style={{ color: 'var(--pp-text)' }}>Mensajes</span>
+            {msgCount > 0 && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'var(--pp-active-bg)', color: 'var(--pp-text8)' }}>{msgCount}</span>}
+          </div>
+          <div className="flex-1 min-h-0 p-4">
+            {chatContent}
+          </div>
+        </div>
+      </div>
+
+      {notifyModal}
+    </div>
+  );
+}
