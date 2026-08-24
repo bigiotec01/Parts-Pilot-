@@ -8,7 +8,7 @@ import { hasNewActivity, saveOrderSeen } from '../../utils/activity';
 import { ThemeToggleBtn } from '../shared/ThemeToggleBtn';
 import { OrderCard, OrderListHeader, OrderListRow } from '../shared/OrderCard';
 import { ViewToggle } from '../shared/ViewToggle';
-import { OrderDrawer } from '../shared/OrderDrawer';
+import { OrderPage } from '../shared/OrderPage';
 import { OrderSheet } from '../shared/OrderSheet';
 import { EmptyState } from '../shared/FormField';
 import { fmtCur } from '../../utils/format';
@@ -235,11 +235,9 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
       onSendMessage: (orderId, texto, attachment) => onSendMessage(orderId, texto, 'taller', attachment),
     },
   };
-  const orderModal = selectedOrder && (
-    isDesktop
-      ? <OrderDrawer {...orderDetailProps} />
-      : <OrderSheet {...orderDetailProps} />
-  );
+  // En escritorio el detalle se muestra en pagina completa dentro de <main>
+  // (ver mas abajo); el modal OrderSheet solo se usa en movil.
+  const orderModal = selectedOrder && !isDesktop && <OrderSheet {...orderDetailProps} />;
 
   /* ── DESKTOP (lg+): sidebar layout ── */
   return isDesktop ? (
@@ -315,20 +313,21 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
 
         {/* Main */}
         <div className="flex-1 min-w-0 flex flex-col">
-          <header className="h-[70px] flex-shrink-0 flex items-center px-8 border-b sticky top-0 z-20" style={{ background: 'var(--pp-topbar3)', backdropFilter: 'blur(8px)', borderColor: 'var(--pp-border)' }}>
-            <div>
-              <h1 className="text-[18px] font-bold" style={{ color: 'var(--pp-text)', letterSpacing: '-.02em' }}>
-                {{ pedidos: 'Mis pedidos', estimados: 'Estimados', historial: 'Historial', nueva: 'Solicitar estimado', perfil: 'Mi Perfil' }[activeTab]}
-              </h1>
-            </div>
-          </header>
+          {!selectedOrder && (
+            <header className="h-[70px] flex-shrink-0 flex items-center px-8 border-b sticky top-0 z-20" style={{ background: 'var(--pp-topbar3)', backdropFilter: 'blur(8px)', borderColor: 'var(--pp-border)' }}>
+              <div>
+                <h1 className="text-[18px] font-bold" style={{ color: 'var(--pp-text)', letterSpacing: '-.02em' }}>
+                  {{ pedidos: 'Mis pedidos', estimados: 'Estimados', historial: 'Historial', nueva: 'Solicitar estimado', perfil: 'Mi Perfil' }[activeTab]}
+                </h1>
+              </div>
+            </header>
+          )}
           <main className="flex-1 overflow-y-auto px-8 py-7 pb-14">
-            <div className="max-w-[900px] mx-auto">
-              {contentView}
+            <div className={selectedOrder ? 'max-w-[1400px] mx-auto' : 'max-w-[900px] mx-auto'}>
+              {selectedOrder ? <OrderPage {...orderDetailProps} /> : contentView}
             </div>
           </main>
         </div>
-        {orderModal}
       </div>
 
     </>
