@@ -568,9 +568,15 @@ export function useFacturasPro(user) {
   useEffect(() => {
     setFacturasPro([]); // limpia datos de una sesión/cuenta anterior antes de suscribirse a la nueva
     if (!user || user.role !== 'admin') return;
+    // Sin orderBy en la query (evita depender de un índice compuesto que no existe
+    // para esta colección nueva) — se ordena al vuelo, más reciente primero.
     const unsub = onSnapshot(
-      query(collection(db, 'facturasPro'), where('tenantId', '==', user.tenantId), orderBy('createdAt', 'desc')),
-      (snap) => setFacturasPro(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      query(collection(db, 'facturasPro'), where('tenantId', '==', user.tenantId)),
+      (snap) => {
+        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        docs.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        setFacturasPro(docs);
+      },
       (err) => console.error('useFacturasPro error:', err.code)
     );
     return unsub;
