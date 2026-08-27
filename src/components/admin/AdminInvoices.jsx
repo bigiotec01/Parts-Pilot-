@@ -91,81 +91,141 @@ function ConfigFacturacionModal({ config, onGuardar, onClose }) {
 /*  Genera el HTML imprimible/PDF de una factura (mismo patrón que el   */
 /*  "Imprimir / PDF" de Facturas y Reportes: ventana nueva + print()).   */
 /* ------------------------------------------------------------------ */
+// Estilo "factura de mostrador" clásico (formato tipo DMS de dealer: cajas con
+// bordes, todo en monoespaciada, franja de membrete en negro, "FACTURAR A" con
+// etiqueta vertical al margen, caja de políticas abajo a la izquierda y caja de
+// totales abajo a la derecha) — a pedido, para que se sienta como una factura
+// impresa "de verdad" en vez de un PDF genérico.
 function imprimirFactura(factura, config) {
+  const money = (n) => `$${Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+
   const rows = (factura.items || []).map(it => `
     <tr>
-      <td>${it.descripcion || ''}</td>
-      <td style="text-align:center">${Number(it.cantidad || 0)}</td>
-      <td style="text-align:right">$${Number(it.precioUnitario || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-      <td style="text-align:right">$${(Number(it.cantidad || 0) * Number(it.precioUnitario || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+      <td class="c-cant">${Number(it.cantidad || 0)}</td>
+      <td class="c-desc">${(it.descripcion || '').toUpperCase()}</td>
+      <td class="c-num">${money(it.precioUnitario)}</td>
+      <td class="c-num">${money((Number(it.cantidad) || 0) * (Number(it.precioUnitario) || 0))}</td>
     </tr>`).join('');
+
+  const estadoLabel = (ESTADO_CFG[factura.estado]?.label || factura.estado || '').toUpperCase();
 
   const html = `<!DOCTYPE html><html lang="es"><head>
     <meta charset="utf-8">
     <title>Factura ${factura.numeroFactura}</title>
     <style>
-      *{box-sizing:border-box} body{font-family:Arial,sans-serif;font-size:12px;margin:0;padding:36px;color:#1c1917}
-      .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #C6202B;padding-bottom:18px;margin-bottom:24px}
-      .emisor h1{font-size:19px;font-weight:bold;margin:0 0 4px;text-transform:uppercase;letter-spacing:.03em}
-      .emisor p{margin:2px 0;font-size:11.5px;color:#57534e}
-      .factura-meta{text-align:right}
-      .factura-meta h2{font-size:22px;font-weight:bold;margin:0 0 6px;color:#C6202B;letter-spacing:.04em}
-      .factura-meta p{margin:2px 0;font-size:11.5px;color:#57534e}
-      .bloques{display:flex;gap:32px;margin-bottom:26px}
-      .bloque{flex:1}
-      .bloque h3{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#a8a29e;margin:0 0 6px}
-      .bloque p{margin:2px 0;font-size:12.5px}
-      .bloque .nombre{font-weight:bold;font-size:13.5px}
-      table{width:100%;border-collapse:collapse;margin-bottom:4px}
-      thead th{background:#1c1917;color:#fff;text-align:left;padding:9px 12px;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em}
-      thead th:nth-child(2){text-align:center} thead th:nth-child(3),thead th:nth-child(4){text-align:right}
-      td{padding:9px 12px;border-bottom:1px solid #e7e5e4}
-      .totales{width:280px;margin-left:auto;margin-top:14px}
-      .totales div{display:flex;justify-content:space-between;padding:5px 12px;font-size:12.5px}
-      .totales .total{border-top:2px solid #1c1917;font-weight:bold;font-size:15px;margin-top:4px;padding-top:9px}
-      .politicas{margin-top:34px;padding-top:16px;border-top:1px solid #e7e5e4;font-size:10.5px;color:#78716c;white-space:pre-wrap}
-      .politicas h4{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#a8a29e;margin:0 0 6px}
-      .estado{display:inline-block;margin-top:6px;padding:3px 10px;border-radius:99px;font-size:10.5px;font-weight:bold;text-transform:uppercase}
-      @media print{@page{margin:1.4cm}body{padding:0}}
+      *{box-sizing:border-box}
+      html,body{height:100%;margin:0}
+      body{font-family:'Courier New',Courier,monospace;font-size:10.5px;padding:16px;color:#111;display:flex}
+      .marco{border:2px solid #111;padding:14px;flex:1;display:flex;flex-direction:column;min-height:0}
+
+      /* Franjas tipo "papel continuo" (greenbar) que rellenan el resto de la
+         hoja legal, igual que el área en blanco/sombreada del ejemplo — para
+         que la factura ocupe la hoja completa aunque tenga pocos ítems. */
+      .relleno{flex:1 1 auto;min-height:24px;margin-top:2px;
+        background:repeating-linear-gradient(180deg,#fff 0 7mm,#f1f1f1 7mm 14mm);
+        border-left:1.4px solid #111;border-right:1.4px solid #111}
+
+      .membrete{text-align:center;margin-bottom:10px}
+      .membrete .barra{background:#111;color:#fff;display:inline-block;padding:8px 26px;font-size:22px;font-weight:bold;letter-spacing:.08em;text-transform:uppercase}
+      .membrete p{margin:5px 0 0;font-size:10.5px;letter-spacing:.02em;text-transform:uppercase}
+
+      table.meta{width:100%;border-collapse:collapse;margin-bottom:0;table-layout:fixed}
+      table.meta td{border:1.4px solid #111;padding:4px 7px;vertical-align:top}
+      table.meta .lbl{font-size:8px;letter-spacing:.04em;display:block;margin-bottom:3px}
+      table.meta .val{font-size:11px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+      .cliente{border:1.4px solid #111;border-top:none;padding:8px 10px 8px 30px;position:relative;min-height:70px}
+      .cliente .tag{position:absolute;left:0;top:0;bottom:0;width:20px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center}
+      .cliente .tag span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px;letter-spacing:.15em;font-weight:bold}
+      .cliente .pagina{position:absolute;right:10px;top:6px;font-size:8.5px}
+      .cliente .nombre{font-weight:bold;font-size:12.5px;text-transform:uppercase;margin:0 0 2px}
+      .cliente p{margin:1px 0;font-size:10px}
+
+      table.items{width:100%;border-collapse:collapse;margin-top:10px}
+      table.items thead th{background:#111;color:#fff;font-size:9px;letter-spacing:.04em;text-transform:uppercase;padding:5px 7px;text-align:left;border:1.4px solid #111}
+      table.items td{border:1px solid #111;padding:4px 7px;font-size:10px}
+      table.items .c-cant{width:50px;text-align:center}
+      table.items .c-desc{width:auto}
+      table.items .c-num{width:100px;text-align:right;white-space:nowrap}
+      table.items thead th.c-cant,table.items thead th.c-num{text-align:right}
+      table.items thead th.c-cant{text-align:center}
+
+      .abajo{display:flex;gap:14px;margin-top:12px;align-items:flex-start}
+      .politicas{flex:1;border:1.4px solid #111;padding:8px 10px;font-size:9px;min-height:120px}
+      .politicas h4{margin:0 0 5px;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid #111;padding-bottom:4px}
+      .politicas .txt{white-space:pre-wrap;line-height:1.5}
+      .politicas .notas{margin-top:8px;padding-top:6px;border-top:1px dashed #111}
+      .firma{margin-top:16px;font-size:9.5px}
+      .firma .linea{display:inline-block;border-bottom:1px solid #111;width:190px;margin-left:6px}
+
+      .totales{width:230px;border:1.4px solid #111}
+      .totales div{display:flex;justify-content:space-between;padding:5px 9px;font-size:10.5px;border-top:1px solid #111}
+      .totales div:first-child{border-top:none}
+      .totales .total{font-weight:bold;font-size:13.5px;border-top:2px solid #111;padding-top:7px}
+
+      .pie{text-align:center;margin-top:16px;padding-top:8px;border-top:1.4px solid #111;font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:bold}
+      .copyright{margin-top:4px;font-size:7.5px;text-align:left;letter-spacing:.02em;opacity:.7}
+
+      /* Papel legal (8.5 x 14) de punta a punta, como el ejemplo. */
+      @page{size:legal;margin:10mm}
+      @media print{body{padding:0}}
     </style>
   </head><body>
-    <div class="header">
-      <div class="emisor">
-        <h1>${config?.nombreEmpresa || 'Tu empresa'}</h1>
-        ${config?.direccion ? `<p>${config.direccion}</p>` : ''}
-        ${config?.telefono ? `<p>Tel: ${config.telefono}</p>` : ''}
-        ${config?.email ? `<p>${config.email}</p>` : ''}
-        ${config?.rfc ? `<p>RFC/Tax ID: ${config.rfc}</p>` : ''}
+    <div class="marco">
+
+      <div class="membrete">
+        <div class="barra">${(config?.nombreEmpresa || 'TU EMPRESA').toUpperCase()}</div>
+        <p>
+          ${[config?.direccion, config?.telefono ? `Tel: ${config.telefono}` : '', config?.email, config?.rfc ? `RFC/Tax ID: ${config.rfc}` : '']
+            .filter(Boolean).join(' &middot; ')}
+        </p>
       </div>
-      <div class="factura-meta">
-        <h2>FACTURA</h2>
-        <p><strong>No.</strong> ${factura.numeroFactura}</p>
-        <p><strong>Fecha:</strong> ${fmtDateDisp(factura.fecha)}</p>
-        ${factura.fechaVencimiento ? `<p><strong>Vence:</strong> ${fmtDateDisp(factura.fechaVencimiento)}</p>` : ''}
-        <span class="estado" style="background:${ESTADO_CFG[factura.estado]?.bg || '#eee'};color:${ESTADO_CFG[factura.estado]?.color || '#333'}">${ESTADO_CFG[factura.estado]?.label || factura.estado}</span>
-      </div>
-    </div>
-    <div class="bloques">
-      <div class="bloque">
-        <h3>Facturar a</h3>
+
+      <table class="meta">
+        <tr>
+          <td style="width:25%"><span class="lbl">FECHA</span><span class="val">${fmtDateDisp(factura.fecha)}</span></td>
+          <td style="width:25%"><span class="lbl">FACTURA NO.</span><span class="val">${factura.numeroFactura}</span></td>
+          <td style="width:25%"><span class="lbl">VENCE</span><span class="val">${factura.fechaVencimiento ? fmtDateDisp(factura.fechaVencimiento) : '&mdash;'}</span></td>
+          <td style="width:25%"><span class="lbl">ESTADO</span><span class="val">${estadoLabel}</span></td>
+        </tr>
+      </table>
+
+      <div class="cliente">
+        <div class="tag"><span>FACTURAR A</span></div>
+        <div class="pagina">PÁGINA 1 DE 1</div>
         <p class="nombre">${factura.clienteNombre || ''}</p>
         ${factura.clienteRfc ? `<p>RFC/Tax ID: ${factura.clienteRfc}</p>` : ''}
         ${factura.clienteDireccion ? `<p>${factura.clienteDireccion}</p>` : ''}
         ${factura.clienteTelefono ? `<p>Tel: ${factura.clienteTelefono}</p>` : ''}
         ${factura.clienteEmail ? `<p>${factura.clienteEmail}</p>` : ''}
       </div>
+
+      <table class="items">
+        <thead><tr><th class="c-cant">Cant.</th><th class="c-desc">Descripción</th><th class="c-num">Precio</th><th class="c-num">Importe</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+
+      <div class="relleno"></div>
+
+      <div class="abajo">
+        <div>
+          <div class="politicas">
+            <h4>Políticas / Términos</h4>
+            <div class="txt">${factura.politicas || 'Sin políticas registradas.'}</div>
+            ${factura.notas ? `<div class="notas"><strong>NOTAS:</strong> ${factura.notas}</div>` : ''}
+          </div>
+          <div class="firma">Recibido por: X<span class="linea"></span></div>
+        </div>
+        <div class="totales">
+          <div><span>SUBTOTAL</span><span>${money(factura.subtotal)}</span></div>
+          <div><span>IMPUESTO (${Number(factura.impuestoPct || 0)}%)</span><span>${money(factura.impuestoMonto)}</span></div>
+          <div class="total"><span>TOTAL</span><span>${money(factura.total)}</span></div>
+        </div>
+      </div>
+
+      <div class="pie">Copia · Cliente</div>
+      <div class="copyright">Generado por Parts Pilot &middot; ${factura.numeroFactura}</div>
     </div>
-    <table>
-      <thead><tr><th>Descripción</th><th>Cant.</th><th>Precio unit.</th><th>Importe</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <div class="totales">
-      <div><span>Subtotal</span><span>$${Number(factura.subtotal || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span></div>
-      <div><span>Impuesto (${Number(factura.impuestoPct || 0)}%)</span><span>$${Number(factura.impuestoMonto || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span></div>
-      <div class="total"><span>Total</span><span>$${Number(factura.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span></div>
-    </div>
-    ${factura.notas ? `<div class="politicas"><h4>Notas</h4>${factura.notas}</div>` : ''}
-    ${factura.politicas ? `<div class="politicas"><h4>Políticas / Términos</h4>${factura.politicas}</div>` : ''}
   </body></html>`;
 
   const w = window.open('', '_blank', 'width=900,height=1000');
