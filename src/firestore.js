@@ -35,6 +35,16 @@ export async function actualizarMarcasFactura(marcas) {
   return data.marcas;
 }
 
+// Configuración de facturación del tenant (membrete: nombre, RFC, dirección, impuesto
+// y políticas por defecto de CADA factura profesional). Vive dentro de empresas/{tenantId},
+// que el cliente no puede escribir directo (ver firestore.rules) — por eso pasa por Cloud Function,
+// igual que actualizarMarcasFactura.
+export async function actualizarFacturacionConfig(config) {
+  const fn = httpsCallable(functions, 'actualizarFacturacionConfig');
+  const { data } = await fn({ config });
+  return data.facturacionConfig;
+}
+
 // ── Pedidos en tiempo real ──────────────────────────────────────────
 export function usePedidos(user) {
   const [pedidos, setPedidos] = useState([]);
@@ -510,4 +520,89 @@ export async function eliminarFCMToken(uid) {
 export async function crearTaller({ nombre, contacto, telefono, email, usuario, password }) {
   const fn = httpsCallable(functions, 'crearTallerCF');
   await fn({ nombre, contacto, telefono, email, usuario, password });
+}
+
+/* ------------------------------------------------------------------ */
+/*  CUENTAS EMPRESA (clientes de facturación que no son Taller)         */
+/* ------------------------------------------------------------------ */
+// A diferencia de Talleres, una cuenta Empresa no inicia sesión — es solo un
+// registro de datos (para poder facturarle), así que es escritura directa de
+// cliente (sin Cloud Function), igual que Facturas.
+
+export function useEmpresasClientes(user) {
+  const [empresasClientes, setEmpresasClientes] = useState([]);
+  useEffect(() => {
+    setEmpresasClientes([]); // limpia datos de una sesión/cuenta anterior antes de suscribirse a la nueva
+    if (!user || user.role !== 'admin') return;
+    const unsub = onSnapshot(
+      query(collection(db, 'empresasClientes'), where('tenantId', '==', user.tenantId)),
+      (snap) => setEmpresasClientes(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      (err) => console.error('useEmpresasClientes error:', err.code)
+    );
+    return unsub;
+  }, [user]);
+  return empresasClientes;
+}
+
+export async function crearEmpresaCliente(data) {
+  await addDoc(collection(db, 'empresasClientes'), { ...data, createdAt: serverTimestamp() });
+}
+
+export async function actualizarEmpresaCliente(id, data) {
+  await updateDoc(doc(db, 'empresasClientes', id), data);
+}
+
+export async function eliminarEmpresaCliente(id) {
+  await deleteDoc(doc(db, 'empresasClientes', id));
+}
+
+/* ------------------------------------------------------------------ */
+/*  FACTURAS PROFESIONALES (Invoice itemizado, cualquier cliente/ítem)  */
+/* ------------------------------------------------------------------ */
+// Distinto del libro de "Facturas" (facturas/, cuentas por cobrar cargadas a mano):
+// esto SÍ genera el documento de factura en sí — con líneas de ítems, impuesto y
+// políticas — imprimible/PDF vía window.print(), igual que ReporteModal.
+
+export function useFacturasPro(user) {
+  const [facturasPro, setFacturasPro] = useState([]);
+  useEffect(() => {
+    setFacturasPro([]); // limpia datos de una sesión/cuenta anterior antes de suscribirse a la nueva
+    if (!user || user.role !== 'admin') return;
+    const unsub = onSnapshot(
+      query(collection(db, 'facturasPro'), where('tenantId', '==', user.tenantId), orderBy('createdAt', 'desc')),
+      (snap) => setFacturasPro(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      (err) => console.error('useFacturasPro error:', err.code)
+    );
+    return unsub;
+  }, [user]);
+  return facturasPro;
+}
+
+// Numera la factura de forma correlativa por tenant (mismo patrón/contador que los
+// folios de pedidos), pero el admin puede sobrescribir el número antes de guardar.
+export async function crearFacturaPro(data) {
+  const { tenantId, numeroFactura, ...rest } = data;
+  const countersRef = doc(db, 'empresas', tenantId, 'counters', 'facturasPro');
+  const facturaRef = doc(collection(db, 'facturasPro'));
+
+  await runTransaction(db, async (tx) => {
+    let numero = numeroFactura;
+    if (!numero) {
+      const snap = await tx.get(countersRef);
+      const next = (snap.exists() ? (snap.data().facturasPro || 0) : 0) + 1;
+      numero = `INV-${String(next).padStart(4, '0')}`;
+      tx.set(countersRef, { facturasPro: next }, { merge: true });
+    }
+    tx.set(facturaRef, { ...rest, tenantId, numeroFactura: numero, createdAt: serverTimestamp() });
+  });
+
+  return facturaRef.id;
+}
+
+export async function actualizarFacturaPro(id, data) {
+  await updateDoc(doc(db, 'facturasPro', id), data);
+}
+
+export async function eliminarFacturaPro(id) {
+  await deleteDoc(doc(db, 'facturasPro', id));
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  FileText, LogOut, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt, ChevronUp, Building2, Calculator, MessageCircle
+  FileText, LogOut, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt, ChevronUp, Building2, Calculator, MessageCircle, FileSpreadsheet
 } from 'lucide-react';
 import { APP_VERSION } from '../../constants/app';
 import { ThemeToggleBtn } from '../shared/ThemeToggleBtn';
@@ -12,12 +12,14 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
     canView('estimados') && { id: 'estimados',  label: 'Estimados',  icon: FileText, badge: solicitudesCount, accent: true },
     canView('pedidos')   && { id: 'mensajes',   label: 'Mensajes',   icon: MessageCircle, badge: mensajesCount },
     canView('talleres')  && { id: 'talleres',   label: 'Talleres',   icon: Users },
+    canView('empresas')  && { id: 'empresas',   label: 'Empresas',   icon: Building2 },
     isPlatformSuperAdmin && { id: 'calcular', label: 'Calcular', icon: Calculator, onClick: onOpenCalcular },
     canView('pedidos')   && { id: 'historial',  label: 'Historial',  icon: History },
   ].filter(Boolean);
   const secondaryItems = [
     canEdit('estimados') && { id: 'cotizacion', label: 'Nueva cotización', icon: ClipboardCheck },
     canView('facturas')  && { id: 'facturas',   label: 'Facturas',         icon: Receipt },
+    canView('facturas')  && { id: 'invoices',   label: 'Invoice',          icon: FileSpreadsheet },
     canManageEquipo      && { id: 'equipo',     label: 'Equipo',           icon: Users },
   ].filter(Boolean);
 

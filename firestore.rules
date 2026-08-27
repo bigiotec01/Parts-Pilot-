@@ -157,6 +157,27 @@ service cloud.firestore {
       allow delete: if isAdminOfTenant(resource.data.tenantId) && hasTallerAccess(resource.data.tallerId);
     }
 
+    // Cuentas Empresa: clientes de facturación que no son Taller (no inician sesión,
+    // solo son un registro para poder facturarles). Acceso exclusivo del admin del tenant —
+    // a diferencia de talleres/pedidos, no hay noción de "hasTallerAccess" aquí porque
+    // una cuenta Empresa no pertenece a un taller.
+    match /empresasClientes/{empresaClienteId} {
+      allow read:   if isAdminOfTenant(resource.data.tenantId) || isPlatformSuperAdmin();
+      allow create: if isAdminOfTenant(request.resource.data.tenantId);
+      allow update: if isAdminOfTenant(resource.data.tenantId);
+      allow delete: if isAdminOfTenant(resource.data.tenantId);
+    }
+
+    // Facturas Profesionales (Invoice itemizado): mismo aislamiento por tenant que
+    // facturas/, pero sin exposición a talleres — es un documento administrativo/contable
+    // que solo el admin de la empresa genera y consulta.
+    match /facturasPro/{facturaProId} {
+      allow read:   if isAdminOfTenant(resource.data.tenantId) || isPlatformSuperAdmin();
+      allow create: if isAdminOfTenant(request.resource.data.tenantId);
+      allow update: if isAdminOfTenant(resource.data.tenantId);
+      allow delete: if isAdminOfTenant(resource.data.tenantId);
+    }
+
     // Backups de facturas: el dueño de la empresa puede crear, leer, restaurar o borrar
     // SOLO los backups de su propia empresa — nunca los de otro tenant.
     match /facturaBackups/{backupId} {

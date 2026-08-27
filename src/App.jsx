@@ -8,7 +8,9 @@ import {
   actualizarPermisosAdmin, eliminarAdminUsuario, useTallerUsuarios, crearTallerUsuario,
   eliminarTallerUsuario, actualizarTallerUsuario, guardarFCMToken, eliminarFCMToken,
   useFacturaBackups, crearBackupFacturas, restaurarBackupFacturas, eliminarBackupFacturas,
-  useEmpresa, actualizarMarcasFactura, generarGuestToken
+  useEmpresa, actualizarMarcasFactura, generarGuestToken,
+  useEmpresasClientes, crearEmpresaCliente, actualizarEmpresaCliente, eliminarEmpresaCliente,
+  useFacturasPro, crearFacturaPro, actualizarFacturaPro, eliminarFacturaPro, actualizarFacturacionConfig
 } from './firestore';
 import { ThemeProvider } from './theme/ThemeContext';
 import { LoginScreen } from './components/shared/LoginScreen';
@@ -31,6 +33,8 @@ function AppContent() {
   const isSuperadmin   = user?.role === 'admin' && !perfil?.permisos;
   const backups        = useFacturaBackups(isSuperadmin, perfil?.tenantId);
   const empresa        = useEmpresa(user?.role === 'admin' ? perfil?.tenantId : null);
+  const empresasClientes = useEmpresasClientes(user);
+  const facturasPro    = useFacturasPro(user);
 
   const [notifToast, setNotifToast] = useState(null);
   const notifTimerRef = useRef(null);
@@ -158,6 +162,15 @@ function AppContent() {
           onCrearBackup={() => crearBackupFacturas(facturas, perfil?.tenantId)}
           onRestaurarBackup={(backupId) => restaurarBackupFacturas(backupId, perfil?.tenantId)}
           onEliminarBackup={(backupId) => eliminarBackupFacturas(backupId)}
+          empresasClientes={empresasClientes}
+          onCrearEmpresaCliente={(data) => crearEmpresaCliente({ ...data, tenantId: perfil?.tenantId })}
+          onActualizarEmpresaCliente={(id, data) => actualizarEmpresaCliente(id, data)}
+          onEliminarEmpresaCliente={(id) => eliminarEmpresaCliente(id)}
+          facturasPro={facturasPro}
+          onCrearFacturaPro={(data) => crearFacturaPro({ ...data, tenantId: perfil?.tenantId })}
+          onActualizarFacturaPro={(id, data) => actualizarFacturaPro(id, data)}
+          onEliminarFacturaPro={(id) => eliminarFacturaPro(id)}
+          onActualizarFacturacionConfig={(config) => actualizarFacturacionConfig(config)}
         />
       </>
     );

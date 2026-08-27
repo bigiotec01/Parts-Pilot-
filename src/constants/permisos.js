@@ -2,6 +2,7 @@ export const MODULOS_PERM = [
   { id: 'pedidos',   label: 'Pedidos' },
   { id: 'estimados', label: 'Estimados' },
   { id: 'talleres',  label: 'Talleres' },
+  { id: 'empresas',  label: 'Empresas' },
   { id: 'facturas',  label: 'Facturas' },
 ];
 

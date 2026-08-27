@@ -219,6 +219,30 @@ exports.actualizarMarcasFactura = onCall(async (request) => {
   return { ok: true, marcas: limpias };
 });
 
+// Configuración de facturación (membrete) que se usa como remitente en cada Factura
+// Profesional: nombre de la empresa, RFC/tax id, dirección, contacto, impuesto por
+// defecto y políticas/términos por defecto (el admin puede sobrescribir estos últimos
+// dos en cada factura individual). Mismo patrón/permiso que actualizarMarcasFactura.
+exports.actualizarFacturacionConfig = onCall(async (request) => {
+  const caller = await requireCallerAdmin(request);
+  if (caller.rol !== 'admin' && caller.permisos?.facturas !== 'edit') {
+    throw new HttpsError('permission-denied', 'No tienes permiso para gestionar facturas.');
+  }
+  const { config } = request.data || {};
+  if (!config || typeof config !== 'object') throw new HttpsError('invalid-argument', 'Falta la configuración de facturación.');
+  const limpio = {
+    nombreEmpresa:       String(config.nombreEmpresa || '').trim().slice(0, 120),
+    rfc:                 String(config.rfc || '').trim().slice(0, 40),
+    direccion:           String(config.direccion || '').trim().slice(0, 300),
+    telefono:            String(config.telefono || '').trim().slice(0, 40),
+    email:               String(config.email || '').trim().slice(0, 120),
+    impuestoDefaultPct:  Math.max(0, Math.min(100, Number(config.impuestoDefaultPct) || 0)),
+    politicasDefault:    String(config.politicasDefault || '').trim().slice(0, 4000),
+  };
+  await db.collection('empresas').doc(caller.tenantId).update({ facturacionConfig: limpio });
+  return { ok: true, facturacionConfig: limpio };
+});
+
 // Borra PERMANENTEMENTE una empresa: cuentas de Auth y todos sus documentos
 // (admins, talleres, tallerUsuarios, pedidos, facturas, facturaBackups, fcmTokens).
 // Irreversible. Exige que el llamante escriba el tenantId exacto como confirmación.
