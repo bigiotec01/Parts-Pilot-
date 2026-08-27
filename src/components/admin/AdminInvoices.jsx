@@ -113,58 +113,58 @@ function imprimirFactura(factura, config) {
     <meta charset="utf-8">
     <title>Factura ${factura.numeroFactura}</title>
     <style>
-      *{box-sizing:border-box}
+      *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
       html,body{height:100%;margin:0}
-      body{font-family:'Courier New',Courier,monospace;font-size:10.5px;padding:16px;color:#111;display:flex}
-      .marco{border:2px solid #111;padding:14px;flex:1;display:flex;flex-direction:column;min-height:0}
+      body{font-family:'Courier New',Courier,monospace;font-size:14px;padding:20px;color:#111;display:flex}
+      .marco{border:2.5px solid #111;padding:22px;flex:1;display:flex;flex-direction:column;min-height:0}
 
       /* Franjas tipo "papel continuo" (greenbar) que rellenan el resto de la
          hoja legal, igual que el área en blanco/sombreada del ejemplo — para
          que la factura ocupe la hoja completa aunque tenga pocos ítems. */
-      .relleno{flex:1 1 auto;min-height:24px;margin-top:2px;
-        background:repeating-linear-gradient(180deg,#fff 0 7mm,#f1f1f1 7mm 14mm);
+      .relleno{flex:1 1 auto;min-height:30px;margin-top:4px;
+        background:repeating-linear-gradient(180deg,#fff 0 9mm,#eee 9mm 18mm);
         border-left:1.4px solid #111;border-right:1.4px solid #111}
 
-      .membrete{text-align:center;margin-bottom:10px}
-      .membrete .barra{background:#111;color:#fff;display:inline-block;padding:8px 26px;font-size:22px;font-weight:bold;letter-spacing:.08em;text-transform:uppercase}
-      .membrete p{margin:5px 0 0;font-size:10.5px;letter-spacing:.02em;text-transform:uppercase}
+      .membrete{text-align:center;margin-bottom:16px}
+      .membrete .barra{background:#111;color:#fff;display:inline-block;padding:14px 46px;font-size:32px;font-weight:bold;letter-spacing:.09em;text-transform:uppercase}
+      .membrete p{margin:9px 0 0;font-size:13.5px;letter-spacing:.02em;text-transform:uppercase}
 
       table.meta{width:100%;border-collapse:collapse;margin-bottom:0;table-layout:fixed}
-      table.meta td{border:1.4px solid #111;padding:4px 7px;vertical-align:top}
-      table.meta .lbl{font-size:8px;letter-spacing:.04em;display:block;margin-bottom:3px}
-      table.meta .val{font-size:11px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      table.meta td{border:1.4px solid #111;padding:9px 14px;vertical-align:top}
+      table.meta .lbl{font-size:10.5px;letter-spacing:.04em;display:block;margin-bottom:5px}
+      table.meta .val{font-size:16px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-      .cliente{border:1.4px solid #111;border-top:none;padding:8px 10px 8px 30px;position:relative;min-height:70px}
-      .cliente .tag{position:absolute;left:0;top:0;bottom:0;width:20px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center}
-      .cliente .tag span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px;letter-spacing:.15em;font-weight:bold}
-      .cliente .pagina{position:absolute;right:10px;top:6px;font-size:8.5px}
-      .cliente .nombre{font-weight:bold;font-size:12.5px;text-transform:uppercase;margin:0 0 2px}
-      .cliente p{margin:1px 0;font-size:10px}
+      .cliente{border:1.4px solid #111;border-top:none;padding:14px 16px 14px 42px;position:relative;min-height:110px}
+      .cliente .tag{position:absolute;left:0;top:0;bottom:0;width:26px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center}
+      .cliente .tag span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;letter-spacing:.18em;font-weight:bold}
+      .cliente .pagina{position:absolute;right:14px;top:10px;font-size:10.5px}
+      .cliente .nombre{font-weight:bold;font-size:17px;text-transform:uppercase;margin:0 0 5px}
+      .cliente p{margin:2px 0;font-size:13.5px}
 
-      table.items{width:100%;border-collapse:collapse;margin-top:10px}
-      table.items thead th{background:#111;color:#fff;font-size:9px;letter-spacing:.04em;text-transform:uppercase;padding:5px 7px;text-align:left;border:1.4px solid #111}
-      table.items td{border:1px solid #111;padding:4px 7px;font-size:10px}
-      table.items .c-cant{width:50px;text-align:center}
+      table.items{width:100%;border-collapse:collapse;margin-top:16px}
+      table.items thead th{background:#111;color:#fff;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;padding:10px 14px;text-align:left;border:1.4px solid #111}
+      table.items td{border:1px solid #111;padding:11px 14px;font-size:13.5px}
+      table.items .c-cant{width:70px;text-align:center}
       table.items .c-desc{width:auto}
-      table.items .c-num{width:100px;text-align:right;white-space:nowrap}
+      table.items .c-num{width:140px;text-align:right;white-space:nowrap}
       table.items thead th.c-cant,table.items thead th.c-num{text-align:right}
       table.items thead th.c-cant{text-align:center}
 
-      .abajo{display:flex;gap:14px;margin-top:12px;align-items:flex-start}
-      .politicas{flex:1;border:1.4px solid #111;padding:8px 10px;font-size:9px;min-height:120px}
-      .politicas h4{margin:0 0 5px;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid #111;padding-bottom:4px}
-      .politicas .txt{white-space:pre-wrap;line-height:1.5}
-      .politicas .notas{margin-top:8px;padding-top:6px;border-top:1px dashed #111}
-      .firma{margin-top:16px;font-size:9.5px}
-      .firma .linea{display:inline-block;border-bottom:1px solid #111;width:190px;margin-left:6px}
+      .abajo{display:flex;gap:20px;margin-top:18px;align-items:flex-start}
+      .politicas{flex:1;border:1.4px solid #111;padding:14px 16px;font-size:12.5px;min-height:170px}
+      .politicas h4{margin:0 0 8px;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid #111;padding-bottom:6px}
+      .politicas .txt{white-space:pre-wrap;line-height:1.6}
+      .politicas .notas{margin-top:12px;padding-top:9px;border-top:1px dashed #111}
+      .firma{margin-top:22px;font-size:13.5px}
+      .firma .linea{display:inline-block;border-bottom:1px solid #111;width:260px;margin-left:8px}
 
-      .totales{width:230px;border:1.4px solid #111}
-      .totales div{display:flex;justify-content:space-between;padding:5px 9px;font-size:10.5px;border-top:1px solid #111}
+      .totales{width:290px;border:1.4px solid #111}
+      .totales div{display:flex;justify-content:space-between;padding:9px 14px;font-size:13.5px;border-top:1px solid #111}
       .totales div:first-child{border-top:none}
-      .totales .total{font-weight:bold;font-size:13.5px;border-top:2px solid #111;padding-top:7px}
+      .totales .total{font-weight:bold;font-size:18px;border-top:2px solid #111;padding-top:11px}
 
-      .pie{text-align:center;margin-top:16px;padding-top:8px;border-top:1.4px solid #111;font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:bold}
-      .copyright{margin-top:4px;font-size:7.5px;text-align:left;letter-spacing:.02em;opacity:.7}
+      .pie{text-align:center;margin-top:22px;padding-top:12px;border-top:1.4px solid #111;font-size:13px;letter-spacing:.12em;text-transform:uppercase;font-weight:bold}
+      .copyright{margin-top:6px;font-size:9.5px;text-align:left;letter-spacing:.02em;opacity:.7}
 
       /* Papel legal (8.5 x 14) de punta a punta, como el ejemplo. */
       @page{size:legal;margin:10mm}
