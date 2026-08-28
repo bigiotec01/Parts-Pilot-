@@ -115,8 +115,8 @@ function imprimirFactura(factura, config) {
     <style>
       *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
       html,body{height:100%;margin:0}
-      body{font-family:'Courier New',Courier,monospace;font-size:14px;padding:20px;color:#111;display:flex}
-      .marco{border:2.5px solid #111;padding:22px;flex:1;display:flex;flex-direction:column;min-height:0}
+      body{font-family:'Courier New',Courier,monospace;font-size:14px;padding:16px 8px;color:#111;display:flex}
+      .marco{border:2.5px solid #111;padding:20px 12px;flex:1;display:flex;flex-direction:column;min-height:0}
 
       /* Franjas tipo "papel continuo" (greenbar) que rellenan el resto de la
          hoja legal, igual que el área en blanco/sombreada del ejemplo — para
@@ -166,9 +166,10 @@ function imprimirFactura(factura, config) {
       .pie{text-align:center;margin-top:22px;padding-top:12px;border-top:1.4px solid #111;font-size:13px;letter-spacing:.12em;text-transform:uppercase;font-weight:bold}
       .copyright{margin-top:6px;font-size:9.5px;text-align:left;letter-spacing:.02em;opacity:.7}
 
-      /* Papel legal (8.5 x 14) de punta a punta, como el ejemplo. */
-      @page{size:legal;margin:10mm}
-      @media print{body{padding:0}}
+      /* Papel legal (8.5 x 14) de punta a punta, como el ejemplo — margen
+         chico a los lados para que no sobre tanto espacio en blanco. */
+      @page{size:legal;margin:8mm 4mm}
+      @media print{body{padding:16px 6px}}
     </style>
   </head><body>
     <div class="marco">
