@@ -132,6 +132,11 @@ function SolicitudListRow({ p, onSelect }) {
             <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>Actualizado</span>
           )}
         </div>
+        {(p.numeroPO || p.numeroOrden) && (
+          <p className="text-[11px] mt-0.5 truncate font-medium" style={{ color: 'var(--pp-text3)' }}>
+            {[p.numeroPO && `PO# ${p.numeroPO}`, p.numeroOrden && `Orden ${p.numeroOrden}`].filter(Boolean).join('  ·  ')}
+          </p>
+        )}
       </div>
       <span className="hidden sm:flex items-center gap-1.5 text-[11.5px] font-semibold flex-shrink-0" style={{ color: '#f59e0b' }}>
         <Clock className="w-3.5 h-3.5" /> Esperando estimado
@@ -270,6 +275,12 @@ export function ClientEstimados({ solicitudes, cotizaciones = [], onRespond, onS
                         </span>
                       )}
                     </div>
+                    {(p.numeroPO || p.numeroOrden) && (
+                      <div className="flex gap-1.5 mt-1 flex-wrap">
+                        {p.numeroPO && <span className="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md font-medium">PO# {p.numeroPO}</span>}
+                        {p.numeroOrden && <span className="text-[11px] bg-violet-50 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-md font-medium">Orden {p.numeroOrden}</span>}
+                      </div>
+                    )}
                   </div>
                   <StatusBadge estado={p.estado} />
                 </div>
