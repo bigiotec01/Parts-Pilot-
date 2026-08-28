@@ -244,24 +244,31 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
     <>
       {/* ── DESKTOP ── */}
       <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--pp-bg)' }}>
-        {/* Sidebar */}
-        <aside className="w-[230px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: 'var(--pp-nav)' }}>
+        {/* Sidebar — siempre oscuro (igual que el de Admin), sin importar el tema
+            claro/oscuro de la app: antes usaba variables de tema que en modo claro
+            quedaban casi del mismo color que el fondo principal. */}
+        <aside className="w-[230px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: '#151519' }}>
           <div className="px-5 py-[22px] flex items-center gap-2.5">
             <img src="/pwa-192x192.png" alt="Parts Pilot" className="w-9 h-9 rounded-[10px] flex-shrink-0" style={{ boxShadow: '0 6px 16px -6px rgba(0,0,0,0.3)' }} />
             <div className="min-w-0">
-              <div className="font-extrabold text-[14px] leading-tight truncate" style={{ color: 'var(--pp-text)' }}>{taller.nombre || 'Parts Pilot'}</div>
-              <div className="text-[10.5px] font-bold uppercase mt-0.5" style={{ color: 'var(--pp-text4)', letterSpacing: '.04em' }}>Taller</div>
+              <div className="font-extrabold text-[14px] leading-tight truncate" style={{ color: '#F4F5F7' }}>{taller.nombre || 'Parts Pilot'}</div>
+              <div className="text-[10.5px] font-bold uppercase mt-0.5" style={{ color: '#7A7F8C', letterSpacing: '.04em' }}>Taller</div>
             </div>
           </div>
 
           <div className="px-3 flex-1 relative">
-            <div className="text-[10.5px] font-bold uppercase px-2.5 py-2 mb-1" style={{ color: 'var(--pp-text5)', letterSpacing: '.08em' }}>Menú</div>
+            <div className="text-[10.5px] font-bold uppercase px-2.5 py-2 mb-1" style={{ color: '#5B5F6B', letterSpacing: '.08em' }}>Menú</div>
             {sideNavItems.map(({ id, label, icon: Icon, badge, accent }) => {
               const active = activeTab === id;
               return (
                 <button key={id} onClick={() => goTab(id)}
                   className={`w-full flex items-center gap-2.5 px-2.5 py-[9px] rounded-[10px] text-[13px] font-semibold mb-0.5 transition-colors ${!active ? 'hover:bg-[#1e1e1e]' : ''}`}
-                  style={{ background: active ? 'var(--pp-active-bg)' : 'transparent', color: active ? 'var(--pp-text)' : 'var(--pp-text2)', border: active ? '1px solid var(--pp-active-border)' : '1px solid transparent' }}
+                  style={active ? {
+                    background: 'var(--pp-active-bg)',
+                    border: '1px solid var(--pp-active-border)',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08)',
+                    color: '#F4F5F7',
+                  } : { background: 'transparent', border: '1px solid transparent', color: '#D5D7DC' }}
                 >
                   <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.8} />
                   {label}
@@ -274,10 +281,15 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
                 </button>
               );
             })}
-            <div className="my-3" style={{ borderTop: '1px solid var(--pp-border2)' }} />
+            <div className="my-3" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }} />
             <button onClick={() => goTab('nueva')}
               className={`w-full flex items-center gap-2.5 px-2.5 py-[9px] rounded-[10px] text-[13px] font-semibold mb-0.5 transition-colors ${activeTab === 'nueva' ? '' : 'hover:bg-[#1e1e1e]'}`}
-              style={{ background: activeTab === 'nueva' ? 'var(--pp-active-bg)' : 'transparent', color: activeTab === 'nueva' ? 'var(--pp-text)' : 'var(--pp-text2)', border: activeTab === 'nueva' ? '1px solid var(--pp-active-border)' : '1px solid transparent' }}
+              style={activeTab === 'nueva' ? {
+                background: 'var(--pp-active-bg)',
+                border: '1px solid var(--pp-active-border)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08)',
+                color: '#F4F5F7',
+              } : { background: 'transparent', border: '1px solid transparent', color: '#D5D7DC' }}
             >
               <Plus className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.8} />
               Solicitar estimado
@@ -286,28 +298,28 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
             {/* Watermark decorativo */}
             <div className="absolute inset-x-0 bottom-3 flex justify-center pointer-events-none select-none" aria-hidden="true">
               <svg width="120" height="120" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.05, filter: 'drop-shadow(0 1px 0 rgba(255,255,255,0.06))' }}>
-                <path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="var(--pp-text)" />
+                <path d="M12 2.5 21 19.5 12 15.2 3 19.5 12 2.5Z" fill="#F4F5F7" />
               </svg>
             </div>
           </div>
 
           <div className="p-3.5">
-            <div className="rounded-[13px] p-3 flex items-center gap-2.5" style={{ background: 'var(--pp-card)' }}>
-              <div className="w-9 h-9 rounded-[9px] flex items-center justify-center text-[12px] font-bold flex-shrink-0" style={{ background: 'var(--pp-surface)', color: 'var(--pp-text7)' }}>
+            <div className="rounded-[13px] p-3 flex items-center gap-2.5" style={{ background: '#1C1D22' }}>
+              <div className="w-9 h-9 rounded-[9px] flex items-center justify-center text-[12px] font-bold flex-shrink-0" style={{ background: '#2A2B32', color: '#C7CAD1' }}>
                 {initials(taller.nombre)}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[12px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{taller.contacto || taller.nombre}</div>
-                <div className="text-[10.5px] truncate" style={{ color: 'var(--pp-text4)' }}>{taller.isSubUser ? 'taller' : (taller.usuario || 'taller')}</div>
+                <div className="text-[12px] font-bold truncate" style={{ color: '#F4F5F7' }}>{taller.contacto || taller.nombre}</div>
+                <div className="text-[10.5px] truncate" style={{ color: '#6E7280' }}>{taller.isSubUser ? 'taller' : (taller.usuario || 'taller')}</div>
               </div>
               <div className="flex gap-1 flex-shrink-0">
                 <ThemeToggleBtn small />
-                <button onClick={onLogout} className="w-[28px] h-[28px] rounded-[7px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: 'var(--pp-card)', color: 'var(--pp-text3)' }} title="Salir">
+                <button onClick={onLogout} className="w-[28px] h-[28px] rounded-[7px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: '#1C1D22', color: '#9297A3' }} title="Salir">
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
-            <div className="text-center mt-2 text-[10px]" style={{ color: 'var(--pp-text5)' }}>v{APP_VERSION}</div>
+            <div className="text-center mt-2 text-[10px]" style={{ color: '#45474F' }}>v{APP_VERSION}</div>
           </div>
         </aside>
 

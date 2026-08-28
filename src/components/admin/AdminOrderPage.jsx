@@ -464,7 +464,11 @@ export function AdminOrderPage({ order, taller, onClose, onChangeStatus, onGener
           <ArrowLeft className="w-[18px] h-[18px]" />
         </button>
         <div className="min-w-0 flex-1">
-          <div className="font-mono text-[12px] font-semibold" style={{ color: 'var(--pp-text3)' }}>{order.folio || order.id?.slice(0,8)}</div>
+          <div className="font-mono text-[12px] font-semibold flex items-center gap-2 flex-wrap" style={{ color: 'var(--pp-text3)' }}>
+            <span>{order.folio || order.id?.slice(0,8)}</span>
+            {order.numeroPO && <span className="px-1.5 py-0.5 rounded-md text-[10.5px] font-bold" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6' }}>PO# {order.numeroPO}</span>}
+            {order.numeroOrden && <span className="px-1.5 py-0.5 rounded-md text-[10.5px] font-bold" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6' }}>Orden {order.numeroOrden}</span>}
+          </div>
           <h1 className="text-[22px] font-bold leading-tight truncate" style={{ color: 'var(--pp-text)', letterSpacing: '-.02em' }}>{order.vehiculo || '—'}</h1>
         </div>
         <StatusBadge estado={estado} />

@@ -9,14 +9,39 @@ import { db, functions } from '../../firebase';
 import { inputClass } from '../../constants/styles';
 import { formatDate, fmtCur } from '../../utils/format';
 import { FormField } from '../shared/FormField';
+import { MODULOS_TENANT } from '../../constants/permisos';
 import { TenantSupportView } from './TenantSupportView';
 import { AuditLogsView } from './AuditLogsView';
 import { NotasView } from './NotasView';
 
+// Checklist de secciones del sidebar que esta empresa tendrá disponibles, según lo
+// que haya comprado del sistema. Se usa tanto al crear como al editar una empresa.
+function ModulosChecklist({ seleccionados, onToggle }) {
+  return (
+    <FormField label="Secciones habilitadas (según su compra del sistema)">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 py-1">
+        {MODULOS_TENANT.map(m => (
+          <label key={m.id} className="flex items-center gap-2 text-[12.5px] font-medium cursor-pointer" style={{ color: 'var(--pp-text2)' }}>
+            <input type="checkbox" checked={seleccionados.has(m.id)} onChange={() => onToggle(m.id)} className="w-3.5 h-3.5" />
+            {m.label}
+          </label>
+        ))}
+      </div>
+    </FormField>
+  );
+}
+
 function NuevaEmpresaModal({ onClose }) {
   const [form, setForm] = useState({ nombreEmpresa: '', nombreAdmin: '', email: '', password: '' });
+  const [modulos, setModulos] = useState(() => new Set(MODULOS_TENANT.map(m => m.id)));
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
+
+  const toggleModulo = (id) => setModulos(prev => {
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
 
   const submit = async (e) => {
     e.preventDefault();
@@ -24,7 +49,8 @@ function NuevaEmpresaModal({ onClose }) {
     setGuardando(true);
     try {
       const fn = httpsCallable(functions, 'crearEmpresa');
-      await fn(form);
+      const todos = modulos.size === MODULOS_TENANT.length;
+      await fn({ ...form, modulosHabilitados: todos ? null : [...modulos] });
       onClose();
     } catch (err) {
       setError(err.message || 'Error al crear la empresa.');
@@ -35,7 +61,7 @@ function NuevaEmpresaModal({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
-      <form onSubmit={submit} className="w-full max-w-[420px] rounded-[18px] p-6 space-y-4" style={{ background: 'var(--pp-card)' }}>
+      <form onSubmit={submit} className="w-full max-w-[420px] rounded-[18px] p-6 space-y-4 max-h-[90vh] overflow-y-auto" style={{ background: 'var(--pp-card)' }}>
         <div className="flex items-center justify-between">
           <h2 className="text-[17px] font-bold" style={{ color: 'var(--pp-text)' }}>Nueva empresa</h2>
           <button type="button" onClick={onClose}><X className="w-4 h-4" style={{ color: 'var(--pp-text3)' }} /></button>
@@ -52,6 +78,7 @@ function NuevaEmpresaModal({ onClose }) {
         <FormField label="Contraseña temporal">
           <input required type="text" minLength={6} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className={inputClass} placeholder="mínimo 6 caracteres" />
         </FormField>
+        <ModulosChecklist seleccionados={modulos} onToggle={toggleModulo} />
         {error && <p className="text-[12.5px]" style={{ color: '#dc2626' }}>{error}</p>}
         <button disabled={guardando} type="submit" className="w-full py-[12px] rounded-[11px] text-white font-bold text-[14px] transition-all hover:brightness-105 disabled:opacity-50" style={{ background: 'linear-gradient(160deg, #D42A38, #A81823)' }}>
           {guardando ? 'Creando…' : 'Crear empresa'}
@@ -63,16 +90,29 @@ function NuevaEmpresaModal({ onClose }) {
 
 function EditarEmpresaModal({ empresa, onClose }) {
   const [nombre, setNombre] = useState(empresa.nombre || '');
+  // empresa.modulosHabilitados null/undefined = todas habilitadas.
+  const [modulos, setModulos] = useState(() => new Set(
+    Array.isArray(empresa.modulosHabilitados) ? empresa.modulosHabilitados : MODULOS_TENANT.map(m => m.id)
+  ));
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
+
+  const toggleModulo = (id) => setModulos(prev => {
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
 
   const submit = async (e) => {
     e.preventDefault();
     setError('');
     setGuardando(true);
     try {
-      const fn = httpsCallable(functions, 'actualizarEmpresa');
-      await fn({ tenantId: empresa.id, nombre });
+      const todos = modulos.size === MODULOS_TENANT.length;
+      await Promise.all([
+        httpsCallable(functions, 'actualizarEmpresa')({ tenantId: empresa.id, nombre }),
+        httpsCallable(functions, 'actualizarModulosEmpresa')({ tenantId: empresa.id, modulosHabilitados: todos ? null : [...modulos] }),
+      ]);
       onClose();
     } catch (err) {
       setError(err.message || 'Error al editar la empresa.');
@@ -83,7 +123,7 @@ function EditarEmpresaModal({ empresa, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
-      <form onSubmit={submit} className="w-full max-w-[420px] rounded-[18px] p-6 space-y-4" style={{ background: 'var(--pp-card)' }}>
+      <form onSubmit={submit} className="w-full max-w-[420px] rounded-[18px] p-6 space-y-4 max-h-[90vh] overflow-y-auto" style={{ background: 'var(--pp-card)' }}>
         <div className="flex items-center justify-between">
           <h2 className="text-[17px] font-bold" style={{ color: 'var(--pp-text)' }}>Editar empresa</h2>
           <button type="button" onClick={onClose}><X className="w-4 h-4" style={{ color: 'var(--pp-text3)' }} /></button>
@@ -91,6 +131,7 @@ function EditarEmpresaModal({ empresa, onClose }) {
         <FormField label="Nombre de la empresa">
           <input required value={nombre} onChange={e => setNombre(e.target.value)} className={inputClass} />
         </FormField>
+        <ModulosChecklist seleccionados={modulos} onToggle={toggleModulo} />
         {error && <p className="text-[12.5px]" style={{ color: '#dc2626' }}>{error}</p>}
         <button disabled={guardando} type="submit" className="w-full py-[12px] rounded-[11px] text-white font-bold text-[14px] transition-all hover:brightness-105 disabled:opacity-50" style={{ background: 'var(--pp-accent)' }}>
           {guardando ? 'Guardando…' : 'Guardar cambios'}

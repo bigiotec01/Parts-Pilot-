@@ -39,6 +39,12 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
   const canEdit = (mod) => isSuperadmin || perfil?.permisos?.[mod] === 'edit';
   const canManageEquipo = isSuperadmin || perfil?.permisos?.equipo === true;
 
+  // Secciones de sidebar habilitadas para esta empresa (tenant) según su compra del
+  // sistema — la decide el Super Admin al crear/editar la empresa. null/undefined en
+  // modulosHabilitados = sin restricción (todas disponibles), para no romper empresas
+  // creadas antes de que existiera esta función.
+  const tenantHasModulo = (mod) => !empresa?.modulosHabilitados || empresa.modulosHabilitados.includes(mod);
+
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
@@ -189,11 +195,11 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
   if (isMobile) {
     const mobileNav = [
       { id: 'dashboard', label: 'Resumen',   icon: LayoutDashboard },
-      canView('pedidos')   && { id: 'pedidos',  label: 'Pedidos',   icon: ClipboardList, badge: pedidosCount },
-      canView('estimados') && { id: 'estimados',label: 'Estimados', icon: FileText, badge: solicitudesCount, accent: true },
-      canView('facturas')  && { id: 'facturas',  label: 'Facturas',  icon: Receipt },
-      canView('pedidos')   && { id: 'historial', label: 'Historial', icon: History },
-      canView('pedidos')   && { id: 'mensajes',  label: 'Mensajes',  icon: MessageCircle, badge: mensajesCount },
+      canView('pedidos')   && tenantHasModulo('pedidos')   && { id: 'pedidos',  label: 'Pedidos',   icon: ClipboardList, badge: pedidosCount },
+      canView('estimados') && tenantHasModulo('estimados') && { id: 'estimados',label: 'Estimados', icon: FileText, badge: solicitudesCount, accent: true },
+      canView('facturas')  && tenantHasModulo('facturas')  && { id: 'facturas',  label: 'Facturas',  icon: Receipt },
+      canView('pedidos')   && tenantHasModulo('historial') && { id: 'historial', label: 'Historial', icon: History },
+      canView('pedidos')   && tenantHasModulo('mensajes')  && { id: 'mensajes',  label: 'Mensajes',  icon: MessageCircle, badge: mensajesCount },
     ].filter(Boolean);
 
     return (
@@ -291,6 +297,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
         canView={canView}
         canEdit={canEdit}
         canManageEquipo={canManageEquipo}
+        tenantHasModulo={tenantHasModulo}
         perfil={perfil}
         isSuperadmin={isSuperadmin}
         isPlatformSuperAdmin={isPlatformSuperAdmin}

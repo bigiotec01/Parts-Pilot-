@@ -18,6 +18,8 @@ export function ClientOrderDetail({ order, onRespond }) {
     <h1>${order.referencia || order.vehiculo}</h1>
     <p>${order.referencia ? order.vehiculo : ''}</p>
     <table><tr><th>Folio</th><td>${order.folio || order.id.slice(0,8)}</td></tr>
+    ${order.numeroPO ? `<tr><th>No. PO</th><td>${order.numeroPO}</td></tr>` : ''}
+    ${order.numeroOrden ? `<tr><th>No. Orden</th><td>${order.numeroOrden}</td></tr>` : ''}
     <tr><th>Vehículo</th><td>${order.vehiculo || '—'}</td></tr>
     <tr><th>Estado</th><td>${STATUS_CONFIG[order.estado]?.label || order.estado}</td></tr>
     <tr><th>Fecha registro</th><td>${order.fecha ? new Date(order.fecha?.toDate ? order.fecha.toDate() : order.fecha).toLocaleDateString('es-MX') : '—'}</td></tr>
@@ -51,6 +53,8 @@ export function ClientOrderDetail({ order, onRespond }) {
       <div className="grid grid-cols-2 gap-2 text-sm">
         <InfoItem label="Fecha" value={formatDate(order.fecha)} />
         <InfoItem label="Folio" value={order.folio || order.id.slice(0, 8)} />
+        {order.numeroPO && <InfoItem label="No. PO" value={order.numeroPO} />}
+        {order.numeroOrden && <InfoItem label="No. Orden" value={order.numeroOrden} />}
         {order.fechaEntrega && <InfoItem label="Entrega est." value={formatDate(order.fechaEntrega)} />}
       </div>
 

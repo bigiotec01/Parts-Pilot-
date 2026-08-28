@@ -106,10 +106,23 @@ async function crearUsuarioAuth(email, password, displayName) {
   }
 }
 
+// Módulos de sidebar que se pueden activar/desactivar por empresa (tenant), según lo
+// que haya comprado del sistema. Debe reflejar los ids reales usados en AdminSidebar/
+// AdminApp — si se agrega una sección nueva ahí, agregarla también acá.
+const MODULOS_TENANT_VALIDOS = ['pedidos', 'estimados', 'mensajes', 'talleres', 'empresas', 'historial', 'facturas', 'invoices', 'equipo'];
+
+// undefined/null en modulosHabilitados = sin restricción (todas las secciones
+// disponibles) — así ninguna empresa ya creada antes de esta función pierde acceso.
+function limpiarModulosHabilitados(modulos) {
+  if (!Array.isArray(modulos) || modulos.length === 0) return null;
+  const limpios = [...new Set(modulos.filter(m => MODULOS_TENANT_VALIDOS.includes(m)))];
+  return limpios.length ? limpios : null;
+}
+
 // Crea una empresa (tenant) nueva con su administrador principal. Solo el Super Admin.
 exports.crearEmpresa = onCall(async (request) => {
   await requireSuperAdmin(request);
-  const { nombreEmpresa, nombreAdmin, email, password } = request.data || {};
+  const { nombreEmpresa, nombreAdmin, email, password, modulosHabilitados } = request.data || {};
   if (!nombreEmpresa) throw new HttpsError('invalid-argument', 'Falta el nombre de la empresa.');
   if (!nombreAdmin) throw new HttpsError('invalid-argument', 'Falta el nombre del administrador.');
   validarEmailPassword(email, password);
@@ -117,6 +130,7 @@ exports.crearEmpresa = onCall(async (request) => {
   const tenantId = await generarSlugUnico(nombreEmpresa);
   // Clave propia para integraciones externas (Tag Logic), aislada por empresa.
   const tagLogicApiKey = crypto.randomBytes(24).toString('hex');
+  const modulos = limpiarModulosHabilitados(modulosHabilitados);
 
   const userRecord = await crearUsuarioAuth(email, password, nombreAdmin);
   try {
@@ -131,6 +145,9 @@ exports.crearEmpresa = onCall(async (request) => {
       emailAdminPrincipal: email,
       tagLogicApiKey,
       marcasFactura: [],
+      // Secciones de sidebar que esta empresa puede usar, según su compra —
+      // null significa "todas" (sin restricción, valor por defecto).
+      modulosHabilitados: modulos,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
     await db.collection('admins').doc(userRecord.uid).set({
@@ -141,8 +158,20 @@ exports.crearEmpresa = onCall(async (request) => {
     throw e;
   }
 
-  await registrarAuditLog(request, 'crear_empresa', { tenantId, nombreEmpresa, emailAdmin: email });
+  await registrarAuditLog(request, 'crear_empresa', { tenantId, nombreEmpresa, emailAdmin: email, modulosHabilitados: modulos });
   return { tenantId, uid: userRecord.uid, tagLogicApiKey };
+});
+
+// Cambia qué secciones del sidebar puede usar una empresa ya creada, según lo que
+// tenga contratado del sistema. Solo el Super Admin.
+exports.actualizarModulosEmpresa = onCall(async (request) => {
+  await requireSuperAdmin(request);
+  const { tenantId, modulosHabilitados } = request.data || {};
+  if (!tenantId) throw new HttpsError('invalid-argument', 'Falta tenantId.');
+  const modulos = limpiarModulosHabilitados(modulosHabilitados);
+  await db.collection('empresas').doc(tenantId).update({ modulosHabilitados: modulos });
+  await registrarAuditLog(request, 'actualizar_modulos_empresa', { tenantId, modulosHabilitados: modulos });
+  return { ok: true, modulosHabilitados: modulos };
 });
 
 // Activa o suspende una empresa. Solo el Super Admin.
@@ -220,9 +249,10 @@ exports.actualizarMarcasFactura = onCall(async (request) => {
 });
 
 // Configuración de facturación (membrete) que se usa como remitente en cada Factura
-// Profesional: nombre de la empresa, RFC/tax id, dirección, contacto, impuesto por
-// defecto y políticas/términos por defecto (el admin puede sobrescribir estos últimos
-// dos en cada factura individual). Mismo patrón/permiso que actualizarMarcasFactura.
+// Profesional: nombre de la empresa, RFC/tax id, dirección, contacto, DOS impuestos
+// por defecto (ej. Estatal + Municipal, como el IVU de PR) y políticas/términos por
+// defecto (el admin puede sobrescribir todo esto en cada factura individual).
+// Mismo patrón/permiso que actualizarMarcasFactura.
 exports.actualizarFacturacionConfig = onCall(async (request) => {
   const caller = await requireCallerAdmin(request);
   if (caller.rol !== 'admin' && caller.permisos?.facturas !== 'edit') {
@@ -231,13 +261,16 @@ exports.actualizarFacturacionConfig = onCall(async (request) => {
   const { config } = request.data || {};
   if (!config || typeof config !== 'object') throw new HttpsError('invalid-argument', 'Falta la configuración de facturación.');
   const limpio = {
-    nombreEmpresa:       String(config.nombreEmpresa || '').trim().slice(0, 120),
-    rfc:                 String(config.rfc || '').trim().slice(0, 40),
-    direccion:           String(config.direccion || '').trim().slice(0, 300),
-    telefono:            String(config.telefono || '').trim().slice(0, 40),
-    email:               String(config.email || '').trim().slice(0, 120),
-    impuestoDefaultPct:  Math.max(0, Math.min(100, Number(config.impuestoDefaultPct) || 0)),
-    politicasDefault:    String(config.politicasDefault || '').trim().slice(0, 4000),
+    nombreEmpresa:    String(config.nombreEmpresa || '').trim().slice(0, 120),
+    rfc:              String(config.rfc || '').trim().slice(0, 40),
+    direccion:        String(config.direccion || '').trim().slice(0, 300),
+    telefono:         String(config.telefono || '').trim().slice(0, 40),
+    email:            String(config.email || '').trim().slice(0, 120),
+    impuesto1Nombre:  String(config.impuesto1Nombre || '').trim().slice(0, 40) || 'Estatal',
+    impuesto1Pct:     Math.max(0, Math.min(100, Number(config.impuesto1Pct) || 0)),
+    impuesto2Nombre:  String(config.impuesto2Nombre || '').trim().slice(0, 40) || 'Municipal',
+    impuesto2Pct:     Math.max(0, Math.min(100, Number(config.impuesto2Pct) || 0)),
+    politicasDefault: String(config.politicasDefault || '').trim().slice(0, 4000),
   };
   await db.collection('empresas').doc(caller.tenantId).update({ facturacionConfig: limpio });
   return { ok: true, facturacionConfig: limpio };

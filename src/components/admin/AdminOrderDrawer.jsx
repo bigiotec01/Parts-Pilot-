@@ -468,7 +468,11 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onGen
             <div className="w-10 h-1 rounded-full mx-auto mt-3 mb-3" style={{ background: 'var(--pp-surface)' }} />
             <div className="flex items-center gap-3 px-5 pb-3">
               <div className="min-w-0 flex-1">
-                <div className="font-mono text-[11px] font-semibold" style={{ color: 'var(--pp-text3)' }}>{order.folio || order.id?.slice(0,8)}</div>
+                <div className="font-mono text-[11px] font-semibold flex items-center gap-1.5 flex-wrap" style={{ color: 'var(--pp-text3)' }}>
+                  <span>{order.folio || order.id?.slice(0,8)}</span>
+                  {order.numeroPO && <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6' }}>PO# {order.numeroPO}</span>}
+                  {order.numeroOrden && <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6' }}>Orden {order.numeroOrden}</span>}
+                </div>
                 <h2 className="text-[17px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{order.vehiculo}</h2>
               </div>
               <StatusBadge estado={estado} />
@@ -503,7 +507,11 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onGen
         {/* ── Header ── */}
         <div className="flex items-center gap-4 px-7 py-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--pp-border2)' }}>
           <div className="min-w-0 flex-1">
-            <div className="font-mono text-[12px] font-semibold" style={{ color: 'var(--pp-text3)' }}>{order.folio || order.id?.slice(0,8)}</div>
+            <div className="font-mono text-[12px] font-semibold flex items-center gap-2 flex-wrap" style={{ color: 'var(--pp-text3)' }}>
+              <span>{order.folio || order.id?.slice(0,8)}</span>
+              {order.numeroPO && <span className="px-1.5 py-0.5 rounded-md text-[10.5px] font-bold" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6' }}>PO# {order.numeroPO}</span>}
+              {order.numeroOrden && <span className="px-1.5 py-0.5 rounded-md text-[10.5px] font-bold" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6' }}>Orden {order.numeroOrden}</span>}
+            </div>
             <h2 className="text-[19px] font-bold leading-tight truncate" style={{ color: 'var(--pp-text)', letterSpacing: '-.02em' }}>{order.vehiculo || '—'}</h2>
           </div>
           <StatusBadge estado={estado} />

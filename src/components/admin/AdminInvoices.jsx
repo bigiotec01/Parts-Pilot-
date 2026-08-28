@@ -20,10 +20,13 @@ const hoyISO = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
-function calcularTotales(items, impuestoPct) {
+// Dos impuestos independientes (ej. Estatal + Municipal, como el IVU de PR)
+// en vez de uno solo — cada uno con su propio % y nombre editables.
+function calcularTotales(items, impuesto1Pct, impuesto2Pct) {
   const subtotal = items.reduce((s, it) => s + (Number(it.cantidad) || 0) * (Number(it.precioUnitario) || 0), 0);
-  const impuestoMonto = subtotal * (Number(impuestoPct) || 0) / 100;
-  return { subtotal, impuestoMonto, total: subtotal + impuestoMonto };
+  const impuesto1Monto = subtotal * (Number(impuesto1Pct) || 0) / 100;
+  const impuesto2Monto = subtotal * (Number(impuesto2Pct) || 0) / 100;
+  return { subtotal, impuesto1Monto, impuesto2Monto, total: subtotal + impuesto1Monto + impuesto2Monto };
 }
 
 /* ------------------------------------------------------------------ */
@@ -38,7 +41,10 @@ function ConfigFacturacionModal({ config, onGuardar, onClose }) {
     direccion: config?.direccion || '',
     telefono: config?.telefono || '',
     email: config?.email || '',
-    impuestoDefaultPct: config?.impuestoDefaultPct ?? 0,
+    impuesto1Nombre: config?.impuesto1Nombre || 'Estatal',
+    impuesto1Pct: config?.impuesto1Pct ?? 0,
+    impuesto2Nombre: config?.impuesto2Nombre || 'Municipal',
+    impuesto2Pct: config?.impuesto2Pct ?? 0,
     politicasDefault: config?.politicasDefault || '',
   });
   const [saving, setSaving] = useState(false);
@@ -72,9 +78,22 @@ function ConfigFacturacionModal({ config, onGuardar, onClose }) {
         </div>
         <FormField label="Correo electrónico"><input type="email" value={form.email} onChange={e => set('email', e.target.value)} className={inputClass} /></FormField>
         <FormField label="Dirección"><input value={form.direccion} onChange={e => set('direccion', e.target.value)} className={inputClass} /></FormField>
-        <FormField label="Impuesto por defecto (%)">
-          <input type="number" step="0.01" min="0" max="100" value={form.impuestoDefaultPct} onChange={e => set('impuestoDefaultPct', e.target.value)} className={`${inputClass} w-32`} />
-        </FormField>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Tax 1 — nombre">
+            <input value={form.impuesto1Nombre} onChange={e => set('impuesto1Nombre', e.target.value)} placeholder="ej. Estatal" className={inputClass} />
+          </FormField>
+          <FormField label="Tax 1 — % por defecto">
+            <input type="number" step="0.01" min="0" max="100" value={form.impuesto1Pct} onChange={e => set('impuesto1Pct', e.target.value)} className={inputClass} />
+          </FormField>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Tax 2 — nombre">
+            <input value={form.impuesto2Nombre} onChange={e => set('impuesto2Nombre', e.target.value)} placeholder="ej. Municipal" className={inputClass} />
+          </FormField>
+          <FormField label="Tax 2 — % por defecto">
+            <input type="number" step="0.01" min="0" max="100" value={form.impuesto2Pct} onChange={e => set('impuesto2Pct', e.target.value)} className={inputClass} />
+          </FormField>
+        </div>
         <FormField label="Políticas / términos por defecto">
           <textarea value={form.politicasDefault} onChange={e => set('politicasDefault', e.target.value)} rows={4} placeholder="ej. Pago a 15 días. Precios en USD. Mercancía vendida no tiene devolución sin autorización previa…" className={`${inputClass} resize-none`} />
         </FormField>
@@ -219,7 +238,8 @@ function imprimirFactura(factura, config) {
         </div>
         <div class="totales">
           <div><span>SUBTOTAL</span><span>${money(factura.subtotal)}</span></div>
-          <div><span>IMPUESTO (${Number(factura.impuestoPct || 0)}%)</span><span>${money(factura.impuestoMonto)}</span></div>
+          ${Number(factura.impuesto1Pct || 0) > 0 || Number(factura.impuesto1Monto || 0) > 0 ? `<div><span>${(factura.impuesto1Nombre || 'TAX 1').toUpperCase()} (${Number(factura.impuesto1Pct || 0)}%)</span><span>${money(factura.impuesto1Monto)}</span></div>` : ''}
+          ${Number(factura.impuesto2Pct || 0) > 0 || Number(factura.impuesto2Monto || 0) > 0 ? `<div><span>${(factura.impuesto2Nombre || 'TAX 2').toUpperCase()} (${Number(factura.impuesto2Pct || 0)}%)</span><span>${money(factura.impuesto2Monto)}</span></div>` : ''}
           <div class="total"><span>TOTAL</span><span>${money(factura.total)}</span></div>
         </div>
       </div>
@@ -251,14 +271,17 @@ function FacturaForm({ talleres, empresasClientes, config, initial, onGuardar, o
   const [fechaVencimiento, setFechaVencimiento] = useState(initial?.fechaVencimiento || '');
   const [numeroFactura, setNumeroFactura] = useState(initial?.numeroFactura || '');
   const [items, setItems] = useState(initial?.items?.length ? initial.items : [{ ...ITEM_VACIO }]);
-  const [impuestoPct, setImpuestoPct] = useState(initial?.impuestoPct ?? config?.impuestoDefaultPct ?? 0);
+  const [impuesto1Nombre, setImpuesto1Nombre] = useState(initial?.impuesto1Nombre ?? config?.impuesto1Nombre ?? 'Estatal');
+  const [impuesto1Pct, setImpuesto1Pct] = useState(initial?.impuesto1Pct ?? config?.impuesto1Pct ?? 0);
+  const [impuesto2Nombre, setImpuesto2Nombre] = useState(initial?.impuesto2Nombre ?? config?.impuesto2Nombre ?? 'Municipal');
+  const [impuesto2Pct, setImpuesto2Pct] = useState(initial?.impuesto2Pct ?? config?.impuesto2Pct ?? 0);
   const [notas, setNotas] = useState(initial?.notas || '');
   const [politicas, setPoliticas] = useState(initial?.politicas ?? config?.politicasDefault ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const cliente = clientesFacturables.find(c => `${c.tipo}:${c.id}` === clienteKey);
-  const { subtotal, impuestoMonto, total } = calcularTotales(items, impuestoPct);
+  const { subtotal, impuesto1Monto, impuesto2Monto, total } = calcularTotales(items, impuesto1Pct, impuesto2Pct);
 
   const setItem = (idx, field, value) => setItems(prev => prev.map((it, i) => i === idx ? { ...it, [field]: value } : it));
   const addItem = () => setItems(prev => [...prev, { ...ITEM_VACIO }]);
@@ -270,7 +293,7 @@ function FacturaForm({ talleres, empresasClientes, config, initial, onGuardar, o
     if (!itemsValidos.length) { setError('Agregá al menos un ítem con descripción y cantidad.'); return; }
     setSaving(true); setError('');
     try {
-      const totales = calcularTotales(itemsValidos, impuestoPct);
+      const totales = calcularTotales(itemsValidos, impuesto1Pct, impuesto2Pct);
       await onGuardar({
         clienteTipo: cliente.tipo,
         clienteId: cliente.id,
@@ -283,9 +306,13 @@ function FacturaForm({ talleres, empresasClientes, config, initial, onGuardar, o
         fechaVencimiento,
         numeroFactura: numeroFactura.trim() || undefined,
         items: itemsValidos.map(it => ({ descripcion: it.descripcion.trim(), cantidad: Number(it.cantidad), precioUnitario: Number(it.precioUnitario) || 0 })),
-        impuestoPct: Number(impuestoPct) || 0,
+        impuesto1Nombre: impuesto1Nombre.trim() || 'Tax 1',
+        impuesto1Pct: Number(impuesto1Pct) || 0,
+        impuesto2Nombre: impuesto2Nombre.trim() || 'Tax 2',
+        impuesto2Pct: Number(impuesto2Pct) || 0,
         subtotal: totales.subtotal,
-        impuestoMonto: totales.impuestoMonto,
+        impuesto1Monto: totales.impuesto1Monto,
+        impuesto2Monto: totales.impuesto2Monto,
         total: totales.total,
         notas: notas.trim(),
         politicas: politicas.trim(),
@@ -359,9 +386,22 @@ function FacturaForm({ talleres, empresasClientes, config, initial, onGuardar, o
 
       <div className="flex items-start justify-between gap-6 flex-wrap">
         <div className="flex-1 min-w-[220px] space-y-3">
-          <FormField label="Impuesto (%)">
-            <input type="number" min="0" max="100" step="0.01" value={impuestoPct} onChange={e => setImpuestoPct(e.target.value)} className={`${inputClass} w-32`} />
-          </FormField>
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="Tax 1 — nombre">
+              <input value={impuesto1Nombre} onChange={e => setImpuesto1Nombre(e.target.value)} placeholder="ej. Estatal" className={inputClass} />
+            </FormField>
+            <FormField label="Tax 1 (%)">
+              <input type="number" min="0" max="100" step="0.01" value={impuesto1Pct} onChange={e => setImpuesto1Pct(e.target.value)} className={inputClass} />
+            </FormField>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="Tax 2 — nombre">
+              <input value={impuesto2Nombre} onChange={e => setImpuesto2Nombre(e.target.value)} placeholder="ej. Municipal" className={inputClass} />
+            </FormField>
+            <FormField label="Tax 2 (%)">
+              <input type="number" min="0" max="100" step="0.01" value={impuesto2Pct} onChange={e => setImpuesto2Pct(e.target.value)} className={inputClass} />
+            </FormField>
+          </div>
           <FormField label="Notas (opcional)">
             <textarea value={notas} onChange={e => setNotas(e.target.value)} rows={2} className={`${inputClass} resize-none`} />
           </FormField>
@@ -371,7 +411,8 @@ function FacturaForm({ talleres, empresasClientes, config, initial, onGuardar, o
         </div>
         <div className="w-full sm:w-64 rounded-[13px] p-4 space-y-1.5" style={{ background: 'var(--pp-surface)' }}>
           <div className="flex justify-between text-[13px]" style={{ color: 'var(--pp-text2)' }}><span>Subtotal</span><span>{fmtCur(subtotal)}</span></div>
-          <div className="flex justify-between text-[13px]" style={{ color: 'var(--pp-text2)' }}><span>Impuesto</span><span>{fmtCur(impuestoMonto)}</span></div>
+          <div className="flex justify-between text-[13px]" style={{ color: 'var(--pp-text2)' }}><span>{impuesto1Nombre || 'Tax 1'} ({Number(impuesto1Pct) || 0}%)</span><span>{fmtCur(impuesto1Monto)}</span></div>
+          <div className="flex justify-between text-[13px]" style={{ color: 'var(--pp-text2)' }}><span>{impuesto2Nombre || 'Tax 2'} ({Number(impuesto2Pct) || 0}%)</span><span>{fmtCur(impuesto2Monto)}</span></div>
           <div className="flex justify-between text-[16px] font-extrabold pt-2" style={{ color: 'var(--pp-text)', borderTop: '1px solid var(--pp-border3)' }}><span>Total</span><span>{fmtCur(total)}</span></div>
         </div>
       </div>

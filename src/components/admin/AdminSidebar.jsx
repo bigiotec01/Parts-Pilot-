@@ -5,22 +5,27 @@ import {
 import { APP_VERSION } from '../../constants/app';
 import { ThemeToggleBtn } from '../shared/ThemeToggleBtn';
 
-export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, mensajesCount, onLogout, canView, canEdit, canManageEquipo, perfil, isSuperadmin, isPlatformSuperAdmin, onOpenSuperAdmin, onOpenCalcular }) {
+export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, mensajesCount, onLogout, canView, canEdit, canManageEquipo, tenantHasModulo, perfil, isSuperadmin, isPlatformSuperAdmin, onOpenSuperAdmin, onOpenCalcular }) {
+  // tenantHasModulo: si la empresa no tiene esa sección habilitada (según su compra
+  // del sistema), no se muestra aunque el admin individual tenga permiso — se
+  // combina con canView/canEdit/canManageEquipo, que siguen siendo el permiso por
+  // usuario dentro de lo que la empresa sí tiene.
+  const tHas = tenantHasModulo || (() => true);
   const primaryItems = [
     { id: 'dashboard',                     label: 'Resumen',    icon: LayoutDashboard },
-    canView('pedidos')   && { id: 'pedidos',    label: 'Pedidos',    icon: ClipboardList, badge: pedidosCount },
-    canView('estimados') && { id: 'estimados',  label: 'Estimados',  icon: FileText, badge: solicitudesCount, accent: true },
-    canView('pedidos')   && { id: 'mensajes',   label: 'Mensajes',   icon: MessageCircle, badge: mensajesCount },
-    canView('talleres')  && { id: 'talleres',   label: 'Talleres',   icon: Users },
-    canView('empresas')  && { id: 'empresas',   label: 'Empresas',   icon: Building2 },
+    canView('pedidos')   && tHas('pedidos')   && { id: 'pedidos',    label: 'Pedidos',    icon: ClipboardList, badge: pedidosCount },
+    canView('estimados') && tHas('estimados') && { id: 'estimados',  label: 'Estimados',  icon: FileText, badge: solicitudesCount, accent: true },
+    canView('pedidos')   && tHas('mensajes')  && { id: 'mensajes',   label: 'Mensajes',   icon: MessageCircle, badge: mensajesCount },
+    canView('talleres')  && tHas('talleres')  && { id: 'talleres',   label: 'Talleres',   icon: Users },
+    canView('empresas')  && tHas('empresas')  && { id: 'empresas',   label: 'Empresas',   icon: Building2 },
     isPlatformSuperAdmin && { id: 'calcular', label: 'Calcular', icon: Calculator, onClick: onOpenCalcular },
-    canView('pedidos')   && { id: 'historial',  label: 'Historial',  icon: History },
+    canView('pedidos')   && tHas('historial') && { id: 'historial',  label: 'Historial',  icon: History },
   ].filter(Boolean);
   const secondaryItems = [
-    canEdit('estimados') && { id: 'cotizacion', label: 'Nueva cotización', icon: ClipboardCheck },
-    canView('facturas')  && { id: 'facturas',   label: 'Facturas',         icon: Receipt },
-    canView('facturas')  && { id: 'invoices',   label: 'Invoice',          icon: FileSpreadsheet },
-    canManageEquipo      && { id: 'equipo',     label: 'Equipo',           icon: Users },
+    canEdit('estimados') && tHas('estimados') && { id: 'cotizacion', label: 'Nueva cotización', icon: ClipboardCheck },
+    canView('facturas')  && tHas('facturas')  && { id: 'facturas',   label: 'Facturas',         icon: Receipt },
+    canView('facturas')  && tHas('invoices')  && { id: 'invoices',   label: 'Invoice',          icon: FileSpreadsheet },
+    canManageEquipo      && tHas('equipo')    && { id: 'equipo',     label: 'Equipo',           icon: Users },
   ].filter(Boolean);
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
