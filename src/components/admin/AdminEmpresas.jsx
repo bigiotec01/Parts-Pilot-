@@ -127,7 +127,7 @@ export function AdminEmpresas({ empresasClientes, onCrear, onActualizar, onElimi
             <button type="button" onClick={() => handleChange('facturacionHabilitada', !form.facturacionHabilitada)}
               className="relative w-11 h-6 rounded-full flex-shrink-0 transition-colors"
               style={{ background: form.facturacionHabilitada ? 'var(--pp-accent)' : '#9297A3', boxShadow: form.facturacionHabilitada ? 'none' : 'inset 0 0 0 1px rgba(0,0,0,0.08)' }}>
-              <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform" style={{ transform: form.facturacionHabilitada ? 'translateX(22px)' : 'translateX(2px)' }} />
+              <span className="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform" style={{ transform: form.facturacionHabilitada ? 'translateX(20px)' : 'translateX(0)' }} />
             </button>
           </div>
           {error && (
@@ -174,7 +174,7 @@ export function AdminEmpresas({ empresasClientes, onCrear, onActualizar, onElimi
                     <button type="button" onClick={() => setEditForm(f => ({ ...f, facturacionHabilitada: !f.facturacionHabilitada }))}
                       className="relative w-11 h-6 rounded-full flex-shrink-0 transition-colors"
                       style={{ background: editForm.facturacionHabilitada ? 'var(--pp-accent)' : '#9297A3', boxShadow: editForm.facturacionHabilitada ? 'none' : 'inset 0 0 0 1px rgba(0,0,0,0.08)' }}>
-                      <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform" style={{ transform: editForm.facturacionHabilitada ? 'translateX(22px)' : 'translateX(2px)' }} />
+                      <span className="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform" style={{ transform: editForm.facturacionHabilitada ? 'translateX(20px)' : 'translateX(0)' }} />
                     </button>
                   </div>
                   {editError && <div className="flex items-center gap-2 text-[13px] px-3 py-2 rounded-[11px]" style={{ background: '#fdecec', color: '#dc2626' }}><AlertCircle className="w-4 h-4 flex-shrink-0" />{editError}</div>}
