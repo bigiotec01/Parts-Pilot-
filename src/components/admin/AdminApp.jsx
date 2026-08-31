@@ -78,7 +78,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
   const filteredPedidos = solosPedidos.filter(p => {
     if (filterTaller !== 'todos' && String(p.tallerId) !== filterTaller) return false;
     if (filterEstado !== 'todos' && p.estado !== filterEstado) return false;
-    if (search && !`${p.referencia || ''} ${p.vehiculo} ${p.folio || ''} ${p.id}`.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !`${p.referencia || ''} ${p.vehiculo} ${p.folio || ''} ${p.numeroPO || ''} ${p.numeroOrden || ''} ${p.id}`.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
@@ -149,6 +149,9 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
           onNotifSelect={handleNotifSelect}
           onDismissAll={handleDismissAll}
           hideNuevoBtn={activeTab === 'nuevo' || activeTab === 'cotizacion'}
+          pedidos={pedidos}
+          getTaller={getTaller}
+          onSelectOrder={selectOrder}
         />
       )}
       <main className="flex-1 overflow-y-auto px-4 py-5 pb-24" style={{ paddingLeft: isMobile ? 16 : 30, paddingRight: isMobile ? 16 : 30, paddingTop: isMobile ? 16 : 28 }}>

@@ -57,7 +57,69 @@ export function NotificationPanel({ notifications, onSelect, onDismissAll }) {
   );
 }
 
-export function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo, notifications = [], onNotifSelect, onDismissAll, hideNuevoBtn }) {
+// Búsqueda rápida global: filtra en todos los pedidos (pedidos, estimados e
+// historial a la vez) por vehículo, referencia, folio o PO/Orden, y al elegir
+// un resultado salta directo a ese pedido sin importar en qué pestaña estés.
+function BusquedaGlobal({ pedidos = [], getTaller, onSelectOrder }) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const boxRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const q = query.trim().toLowerCase();
+  const resultados = q
+    ? pedidos.filter(p => `${p.referencia || ''} ${p.vehiculo || ''} ${p.folio || ''} ${p.numeroPO || ''} ${p.numeroOrden || ''} ${p.id}`.toLowerCase().includes(q)).slice(0, 8)
+    : [];
+
+  const elegir = (id) => {
+    onSelectOrder(id);
+    setQuery('');
+    setOpen(false);
+  };
+
+  return (
+    <div className="relative flex items-center" ref={boxRef}>
+      <Search className="w-4 h-4 absolute left-3 pointer-events-none" style={{ color: 'var(--pp-text3)' }} />
+      <input
+        value={query}
+        onChange={e => { setQuery(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={e => { if (e.key === 'Escape') { setQuery(''); setOpen(false); } if (e.key === 'Enter' && resultados[0]) elegir(resultados[0].id); }}
+        placeholder="Buscar pedido, vehículo, folio…"
+        className="pl-9 pr-3 py-[9px] rounded-[10px] text-[13px] border outline-none transition-[width] focus:w-[280px] focus:border-[#C6202B] focus:ring-2 focus:ring-[#C6202B]/10"
+        style={{ width: 240, background: 'var(--pp-card)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }}
+      />
+      {open && q && (
+        <div className="absolute left-0 top-[calc(100%+8px)] w-[320px] rounded-[13px] border z-50 overflow-hidden" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border3)', boxShadow: '0 24px 48px rgba(0,0,0,0.6)' }}>
+          {resultados.length === 0 ? (
+            <div className="py-8 text-center text-[13px]" style={{ color: 'var(--pp-text3)' }}>Sin resultados para "{query}"</div>
+          ) : (
+            <div className="max-h-[360px] overflow-y-auto pp-scroll">
+              {resultados.map(p => (
+                <button key={p.id} onClick={() => elegir(p.id)} className="w-full text-left px-4 py-2.5 flex flex-col hover:bg-[#1e1e1e] transition-colors" style={{ borderBottom: '1px solid var(--pp-border2)' }}>
+                  <span className="text-[12.5px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>
+                    {(p.numeroPO || p.numeroOrden) ? [p.numeroPO && `PO# ${p.numeroPO}`, p.numeroOrden && `Orden ${p.numeroOrden}`].filter(Boolean).join('  ·  ') : (p.referencia || p.vehiculo)}
+                  </span>
+                  <span className="text-[11px] truncate mt-0.5" style={{ color: 'var(--pp-text3)' }}>
+                    {p.folio || p.id.slice(0, 8)} · {p.vehiculo} · {getTaller?.(p.tallerId)?.nombre || '—'}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo, notifications = [], onNotifSelect, onDismissAll, hideNuevoBtn, pedidos, getTaller, onSelectOrder }) {
   const [showNotifs, setShowNotifs] = useState(false);
   const bellRef = useRef(null);
 
@@ -75,10 +137,7 @@ export function AdminTopbar({ pageTitle, pageSub, solicitudesCount, onGoToNuevo,
       </div>
       <div className="ml-auto flex items-center gap-3">
         <FechaHora />
-        <div className="relative flex items-center">
-          <Search className="w-4 h-4 absolute left-3 pointer-events-none" style={{ color: 'var(--pp-text3)' }} />
-          <input placeholder="Buscar pedido, vehículo, folio…" className="pl-9 pr-3 py-[9px] rounded-[10px] text-[13px] border outline-none transition-[width] focus:w-[280px] focus:border-[#C6202B] focus:ring-2 focus:ring-[#C6202B]/10" style={{ width: 240, background: 'var(--pp-card)', borderColor: 'var(--pp-border4)', color: 'var(--pp-text)' }} />
-        </div>
+        {onSelectOrder && <BusquedaGlobal pedidos={pedidos} getTaller={getTaller} onSelectOrder={onSelectOrder} />}
         <div className="relative" ref={bellRef}>
           <button onClick={() => setShowNotifs(v => !v)} className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center border transition-colors hover:bg-[#252525]" style={{ background: showNotifs ? '#252525' : 'var(--pp-card)', borderColor: showNotifs ? 'var(--pp-border3)' : 'var(--pp-surface)', color: 'var(--pp-text2)' }} title="Notificaciones">
             <Bell className="w-[18px] h-[18px]" strokeWidth={1.8} />
