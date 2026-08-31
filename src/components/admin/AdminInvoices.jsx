@@ -128,13 +128,84 @@ function imprimirFactura(factura, config) {
 
   const estadoLabel = (ESTADO_CFG[factura.estado]?.label || factura.estado || '').toUpperCase();
 
+  // Se imprimen 3 copias completas de la factura, una por hoja — igual que el
+  // talonario de papel de una imprenta de piezas (customer / file / accounting).
+  const COPIAS = ['CUSTOMER COPY', 'FILE COPY', 'ACCOUNTING COPY'];
+
+  const marco = (copia, idx, totalCopias) => `
+    <div class="marco">
+
+      <div class="membrete">
+        <div class="barra">${(config?.nombreEmpresa || 'TU EMPRESA').toUpperCase()}</div>
+        <p>
+          ${[config?.direccion, config?.telefono ? `Tel: ${config.telefono}` : '', config?.email, config?.rfc ? `RFC/Tax ID: ${config.rfc}` : '']
+            .filter(Boolean).join(' &middot; ')}
+        </p>
+      </div>
+
+      <table class="meta">
+        <tr>
+          <td style="width:25%"><span class="lbl">FECHA</span><span class="val">${fmtDateDisp(factura.fecha)}</span></td>
+          <td style="width:25%"><span class="lbl">FACTURA NO.</span><span class="val">${factura.numeroFactura}</span></td>
+          <td style="width:25%"><span class="lbl">VENCE</span><span class="val">${factura.fechaVencimiento ? fmtDateDisp(factura.fechaVencimiento) : '&mdash;'}</span></td>
+          <td style="width:25%"><span class="lbl">ESTADO</span><span class="val">${estadoLabel}</span></td>
+        </tr>
+      </table>
+
+      <div class="cliente">
+        <div class="tag"><span>FACTURAR A</span></div>
+        <div class="pagina">${copia} &middot; ${idx + 1} DE ${totalCopias}</div>
+        <p class="nombre">${factura.clienteNombre || ''}</p>
+        ${factura.clienteRfc ? `<p>RFC/Tax ID: ${factura.clienteRfc}</p>` : ''}
+        ${factura.clienteDireccion ? `<p>${factura.clienteDireccion}</p>` : ''}
+        ${factura.clienteTelefono ? `<p>Tel: ${factura.clienteTelefono}</p>` : ''}
+        ${factura.clienteEmail ? `<p>${factura.clienteEmail}</p>` : ''}
+      </div>
+
+      <table class="items">
+        <thead><tr><th class="c-cant">Cant.</th><th class="c-desc">Descripción</th><th class="c-num">Precio</th><th class="c-num">Importe</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+
+      <div class="relleno"></div>
+
+      <div class="abajo">
+        <div>
+          <div class="politicas">
+            <h4>Políticas / Términos</h4>
+            <div class="txt">${factura.politicas || 'Sin políticas registradas.'}</div>
+            ${factura.notas ? `<div class="notas"><strong>NOTAS:</strong> ${factura.notas}</div>` : ''}
+          </div>
+          <div class="firma">Recibido por: X<span class="linea"></span></div>
+        </div>
+        <div class="totales">
+          <div><span>SUBTOTAL</span><span>${money(factura.subtotal)}</span></div>
+          ${Number(factura.impuesto1Pct || 0) > 0 || Number(factura.impuesto1Monto || 0) > 0 ? `<div><span>${(factura.impuesto1Nombre || 'TAX 1').toUpperCase()} (${Number(factura.impuesto1Pct || 0)}%)</span><span>${money(factura.impuesto1Monto)}</span></div>` : ''}
+          ${Number(factura.impuesto2Pct || 0) > 0 || Number(factura.impuesto2Monto || 0) > 0 ? `<div><span>${(factura.impuesto2Nombre || 'TAX 2').toUpperCase()} (${Number(factura.impuesto2Pct || 0)}%)</span><span>${money(factura.impuesto2Monto)}</span></div>` : ''}
+          <div class="total"><span>TOTAL</span><span>${money(factura.total)}</span></div>
+        </div>
+      </div>
+
+      <div class="pie">${copia}</div>
+      <div class="copyright">Generado por Parts Pilot &middot; ${factura.numeroFactura}</div>
+    </div>`;
+
+  const hojas = COPIAS.map((copia, idx) => `<div class="hoja">${marco(copia, idx, COPIAS.length)}</div>`).join('');
+
   const html = `<!DOCTYPE html><html lang="es"><head>
     <meta charset="utf-8">
     <title>Factura ${factura.numeroFactura}</title>
     <style>
       *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-      html,body{height:100%;margin:0}
-      body{font-family:'Courier New',Courier,monospace;font-size:14px;padding:12px 3px;color:#111;display:flex}
+      html,body{margin:0}
+      body{font-family:'Courier New',Courier,monospace;font-size:14px;color:#111}
+
+      /* Cada copia (customer/file/accounting) es su propia hoja legal completa,
+         con salto de página entre una y otra al imprimir. */
+      .hoja{padding:12px 3px;display:flex;min-height:100vh;page-break-after:always}
+      .hoja:last-child{page-break-after:auto}
+      @media print{.hoja{padding:12px 2px;min-height:0}}
+
       .marco{border:2.5px solid #111;padding:18px 6px;flex:1;display:flex;flex-direction:column;min-height:0}
 
       /* Franjas tipo "papel continuo" (greenbar) que rellenan el resto de la
@@ -188,66 +259,8 @@ function imprimirFactura(factura, config) {
       /* Papel legal (8.5 x 14) de punta a punta, como el ejemplo — margen
          chico a los lados para que no sobre tanto espacio en blanco. */
       @page{size:legal;margin:6mm 2mm}
-      @media print{body{padding:12px 2px}}
     </style>
-  </head><body>
-    <div class="marco">
-
-      <div class="membrete">
-        <div class="barra">${(config?.nombreEmpresa || 'TU EMPRESA').toUpperCase()}</div>
-        <p>
-          ${[config?.direccion, config?.telefono ? `Tel: ${config.telefono}` : '', config?.email, config?.rfc ? `RFC/Tax ID: ${config.rfc}` : '']
-            .filter(Boolean).join(' &middot; ')}
-        </p>
-      </div>
-
-      <table class="meta">
-        <tr>
-          <td style="width:25%"><span class="lbl">FECHA</span><span class="val">${fmtDateDisp(factura.fecha)}</span></td>
-          <td style="width:25%"><span class="lbl">FACTURA NO.</span><span class="val">${factura.numeroFactura}</span></td>
-          <td style="width:25%"><span class="lbl">VENCE</span><span class="val">${factura.fechaVencimiento ? fmtDateDisp(factura.fechaVencimiento) : '&mdash;'}</span></td>
-          <td style="width:25%"><span class="lbl">ESTADO</span><span class="val">${estadoLabel}</span></td>
-        </tr>
-      </table>
-
-      <div class="cliente">
-        <div class="tag"><span>FACTURAR A</span></div>
-        <div class="pagina">PÁGINA 1 DE 1</div>
-        <p class="nombre">${factura.clienteNombre || ''}</p>
-        ${factura.clienteRfc ? `<p>RFC/Tax ID: ${factura.clienteRfc}</p>` : ''}
-        ${factura.clienteDireccion ? `<p>${factura.clienteDireccion}</p>` : ''}
-        ${factura.clienteTelefono ? `<p>Tel: ${factura.clienteTelefono}</p>` : ''}
-        ${factura.clienteEmail ? `<p>${factura.clienteEmail}</p>` : ''}
-      </div>
-
-      <table class="items">
-        <thead><tr><th class="c-cant">Cant.</th><th class="c-desc">Descripción</th><th class="c-num">Precio</th><th class="c-num">Importe</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-
-      <div class="relleno"></div>
-
-      <div class="abajo">
-        <div>
-          <div class="politicas">
-            <h4>Políticas / Términos</h4>
-            <div class="txt">${factura.politicas || 'Sin políticas registradas.'}</div>
-            ${factura.notas ? `<div class="notas"><strong>NOTAS:</strong> ${factura.notas}</div>` : ''}
-          </div>
-          <div class="firma">Recibido por: X<span class="linea"></span></div>
-        </div>
-        <div class="totales">
-          <div><span>SUBTOTAL</span><span>${money(factura.subtotal)}</span></div>
-          ${Number(factura.impuesto1Pct || 0) > 0 || Number(factura.impuesto1Monto || 0) > 0 ? `<div><span>${(factura.impuesto1Nombre || 'TAX 1').toUpperCase()} (${Number(factura.impuesto1Pct || 0)}%)</span><span>${money(factura.impuesto1Monto)}</span></div>` : ''}
-          ${Number(factura.impuesto2Pct || 0) > 0 || Number(factura.impuesto2Monto || 0) > 0 ? `<div><span>${(factura.impuesto2Nombre || 'TAX 2').toUpperCase()} (${Number(factura.impuesto2Pct || 0)}%)</span><span>${money(factura.impuesto2Monto)}</span></div>` : ''}
-          <div class="total"><span>TOTAL</span><span>${money(factura.total)}</span></div>
-        </div>
-      </div>
-
-      <div class="pie">Copia · Cliente</div>
-      <div class="copyright">Generado por Parts Pilot &middot; ${factura.numeroFactura}</div>
-    </div>
-  </body></html>`;
+  </head><body>${hojas}</body></html>`;
 
   const w = window.open('', '_blank', 'width=900,height=1000');
   if (!w) return;
