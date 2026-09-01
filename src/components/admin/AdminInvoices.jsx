@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import {
   Plus, X, Trash2, Printer, Settings, AlertCircle, CheckCircle2, FileText, Pencil, Ban, RotateCcw
 } from 'lucide-react';
@@ -283,6 +283,7 @@ function FacturaForm({ talleres, empresasClientes, config, initial, onGuardar, o
   const [fecha, setFecha] = useState(initial?.fecha || hoyISO());
   const [fechaVencimiento, setFechaVencimiento] = useState(initial?.fechaVencimiento || '');
   const [numeroFactura, setNumeroFactura] = useState(initial?.numeroFactura || '');
+  const [numeroEmpleado, setNumeroEmpleado] = useState(initial?.numeroEmpleado || '');
   const [items, setItems] = useState(initial?.items?.length ? initial.items : [{ ...ITEM_VACIO }]);
   const [impuesto1Nombre, setImpuesto1Nombre] = useState(initial?.impuesto1Nombre ?? config?.impuesto1Nombre ?? 'Estatal');
   const [impuesto1Pct, setImpuesto1Pct] = useState(initial?.impuesto1Pct ?? config?.impuesto1Pct ?? 0);
@@ -318,6 +319,7 @@ function FacturaForm({ talleres, empresasClientes, config, initial, onGuardar, o
         fecha,
         fechaVencimiento,
         numeroFactura: numeroFactura.trim() || undefined,
+        numeroEmpleado: numeroEmpleado.trim(),
         items: itemsValidos.map(it => ({ descripcion: it.descripcion.trim(), cantidad: Number(it.cantidad), precioUnitario: Number(it.precioUnitario) || 0 })),
         impuesto1Nombre: impuesto1Nombre.trim() || 'Tax 1',
         impuesto1Pct: Number(impuesto1Pct) || 0,
@@ -336,8 +338,27 @@ function FacturaForm({ talleres, empresasClientes, config, initial, onGuardar, o
     } finally { setSaving(false); }
   };
 
+  // Enter avanza al siguiente campo (como en una caja registradora / sistema de
+  // facturación) en vez de no hacer nada o mandar el formulario. Se ignora en
+  // textarea (ahí Enter debe seguir siendo un salto de línea normal).
+  const formRef = useRef(null);
+  const avanzarConEnter = (e) => {
+    if (e.key !== 'Enter') return;
+    const tag = e.target.tagName;
+    if (tag !== 'INPUT' && tag !== 'SELECT') return;
+    e.preventDefault();
+    const campos = Array.from(formRef.current.querySelectorAll('input, select, textarea'))
+      .filter(el => !el.disabled && el.offsetParent !== null);
+    const idx = campos.indexOf(e.target);
+    const siguiente = campos[idx + 1];
+    if (siguiente) {
+      siguiente.focus();
+      if (siguiente.select) siguiente.select();
+    }
+  };
+
   return (
-    <div className="rounded-[16px] border p-6 space-y-5" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+    <div ref={formRef} onKeyDown={avanzarConEnter} className="rounded-[16px] border p-6 space-y-5" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
       <div className="flex items-center justify-between">
         <p className="text-[14px] font-bold" style={{ color: 'var(--pp-text)' }}>{initial ? 'Editar factura' : 'Nueva factura'}</p>
         <button onClick={onCancelar} className="w-8 h-8 rounded-[9px] flex items-center justify-center hover:bg-[#1e1e1e] transition-colors" style={{ color: 'var(--pp-text3)' }}><X className="w-4 h-4" /></button>
@@ -364,12 +385,15 @@ function FacturaForm({ talleres, empresasClientes, config, initial, onGuardar, o
         </FormField>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <FormField label="Fecha">
           <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} onClick={e => { try { e.target.showPicker(); } catch (_) {} }} className={`${inputClass} cursor-pointer`} />
         </FormField>
         <FormField label="Fecha de vencimiento (opcional)">
           <input type="date" value={fechaVencimiento} onChange={e => setFechaVencimiento(e.target.value)} onClick={e => { try { e.target.showPicker(); } catch (_) {} }} className={`${inputClass} cursor-pointer`} />
+        </FormField>
+        <FormField label="No. de empleado">
+          <input value={numeroEmpleado} onChange={e => setNumeroEmpleado(e.target.value)} placeholder="ej. 42" className={`${inputClass} font-mono`} />
         </FormField>
       </div>
 
