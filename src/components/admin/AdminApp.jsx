@@ -13,7 +13,7 @@ import { AdminTalleres } from './AdminTalleres';
 import { AdminNuevoPedido } from './AdminNuevoPedido';
 import { AdminNuevaCotizacion } from './AdminNuevaCotizacion';
 import { ReporteModal } from './ReporteModal';
-import { CalcularModal } from './CalcularModal';
+import { openCalcularWindow } from './CalcularWindow';
 import { AdminEstimados } from './AdminEstimados';
 import { AdminFacturas } from './AdminFacturas';
 import { AdminEmpresas } from './AdminEmpresas';
@@ -31,7 +31,6 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
   const [filterEstado, setFilterEstado] = useState('todos');
   const [search, setSearch] = useState('');
   const [showReporte, setShowReporte] = useState(false);
-  const [showCalcular, setShowCalcular] = useState(false);
 
   // Permisos: si perfil no tiene 'permisos' = superadmin con acceso total
   const isSuperadmin = !perfil?.permisos;
@@ -305,11 +304,10 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
         isSuperadmin={isSuperadmin}
         isPlatformSuperAdmin={isPlatformSuperAdmin}
         onOpenSuperAdmin={onOpenSuperAdmin}
-        onOpenCalcular={() => setShowCalcular(true)}
+        onOpenCalcular={openCalcularWindow}
       />
       {mainContent}
       {showReporte && <ReporteModal pedidos={pedidos} talleres={talleres} onClose={() => setShowReporte(false)} />}
-      {showCalcular && <CalcularModal onClose={() => setShowCalcular(false)} />}
     </div>
   );
 }
