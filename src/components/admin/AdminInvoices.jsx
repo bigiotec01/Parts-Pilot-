@@ -186,18 +186,6 @@ function imprimirFactura(factura, config) {
         </div>
       </div>
 
-      <div class="disclaimer">
-        <h5>Disclaimer para facturas de piezas</h5>
-        <ul>
-          <li>Piezas correctamente despachadas no tienen devolución.</li>
-          <li>Piezas eléctricas no tienen devolución.</li>
-          <li>Órdenes de piezas no se pueden cancelar.</li>
-          <li>Si ha dejado un depósito para un pedido debe traer copia de recibo para despachar la pieza.</li>
-          <li>No se devolverá depósito por pieza pre-pagada, se hará un crédito.</li>
-          <li>Toda reclamación debe estar acompañada de su factura.</li>
-        </ul>
-      </div>
-
       <div class="pie">${copia}</div>
       <div class="copyright">Generado por Parts Pilot &middot; ${factura.numeroFactura}</div>
     </div>`;
@@ -253,26 +241,20 @@ function imprimirFactura(factura, config) {
       table.items thead th.c-cant{text-align:center}
 
       .abajo{display:flex;gap:20px;margin-top:18px;align-items:flex-start}
-      .politicas{flex:1;border:1.4px solid #111;padding:14px 16px;font-size:12.5px;min-height:170px}
-      .politicas h4{margin:0 0 8px;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid #111;padding-bottom:6px}
-      .politicas .txt{white-space:pre-wrap;line-height:1.6}
-      .politicas .notas{margin-top:12px;padding-top:9px;border-top:1px dashed #111}
-      .firma{margin-top:22px;font-size:13.5px}
+      /* Cuadro chico: antes tenía min-height:170px y letra 12.5px, obligándolo
+         a verse enorme aunque el texto fuera corto. Ahora se ajusta al
+         contenido, con letra chica — "un cuadro pequeño" como se pidió. */
+      .politicas{flex:1;border:1.4px solid #111;padding:8px 10px;font-size:9px;line-height:1.5}
+      .politicas h4{margin:0 0 5px;font-size:9px;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid #111;padding-bottom:4px}
+      .politicas .txt{white-space:pre-wrap}
+      .politicas .notas{margin-top:8px;padding-top:6px;border-top:1px dashed #111}
+      .firma{margin-top:14px;font-size:13.5px}
       .firma .linea{display:inline-block;border-bottom:1px solid #111;width:260px;margin-left:8px}
 
       .totales{width:290px;border:1.4px solid #111}
       .totales div{display:flex;justify-content:space-between;padding:9px 14px;font-size:13.5px;border-top:1px solid #111}
       .totales div:first-child{border-top:none}
       .totales .total{font-weight:bold;font-size:18px;border-top:2px solid #111;padding-top:11px}
-
-      /* Cuadro chico y fijo de disclaimer legal — a diferencia de "Políticas /
-         Términos" (editable por factura), este siempre imprime el mismo texto
-         en las 3 copias, con letra pequeña para que no compita visualmente
-         con el resto de la factura. */
-      .disclaimer{border:1.4px solid #111;padding:8px 12px;margin-top:12px;font-size:8.5px;line-height:1.55}
-      .disclaimer h5{margin:0 0 5px;font-size:9px;letter-spacing:.05em;text-transform:uppercase;font-weight:bold;border-bottom:1px solid #111;padding-bottom:4px}
-      .disclaimer ul{margin:0;padding-left:14px}
-      .disclaimer li{margin-bottom:2px}
 
       .pie{text-align:center;margin-top:22px;padding-top:12px;border-top:1.4px solid #111;font-size:13px;letter-spacing:.12em;text-transform:uppercase;font-weight:bold}
       .copyright{margin-top:6px;font-size:9.5px;text-align:left;letter-spacing:.02em;opacity:.7}
