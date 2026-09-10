@@ -114,15 +114,17 @@ export function agregarPiezaManual(piezasActuales, { numeroPieza, descripcion })
 }
 
 // Corrige el número de pieza y/o descripción de una pieza ya guardada
-// (ej. se capturó mal al agregarla manualmente).
-export function editarPieza(piezasActuales, numeroPiezaOriginal, { numeroPieza, descripcion }) {
+// (ej. se capturó mal al agregarla manualmente). Se ubica por posición
+// (index) y no por numeroPieza: si dos piezas distintas llegaran a compartir
+// el mismo número, buscar por valor editaba/eliminaba a las dos a la vez.
+export function editarPieza(piezasActuales, index, { numeroPieza, descripcion }) {
   const numero = String(numeroPieza || '').trim();
   if (!numero) throw new Error('Ingresa un número de pieza.');
   const piezas = (piezasActuales || []).map(p => ({ ...p }));
-  if (numero !== numeroPiezaOriginal && piezas.some(p => p.numeroPieza === numero)) {
+  if (piezas.some((p, i) => i !== index && p.numeroPieza === numero)) {
     throw new Error(`La pieza ${numero} ya está en la lista.`);
   }
-  const pieza = piezas.find(p => p.numeroPieza === numeroPiezaOriginal);
+  const pieza = piezas[index];
   if (!pieza) throw new Error('No se encontró la pieza a editar.');
   pieza.numeroPieza = numero;
   pieza.descripcion = String(descripcion || '').trim();
@@ -130,7 +132,8 @@ export function editarPieza(piezasActuales, numeroPiezaOriginal, { numeroPieza, 
   return piezas;
 }
 
-// Quita una pieza de la lista (ej. se agregó por error).
-export function eliminarPieza(piezasActuales, numeroPieza) {
-  return (piezasActuales || []).filter(p => p.numeroPieza !== numeroPieza);
+// Quita una pieza de la lista (ej. se agregó por error), por su posición
+// (index) — ver nota arriba sobre por qué no se busca por numeroPieza.
+export function eliminarPieza(piezasActuales, index) {
+  return (piezasActuales || []).filter((_, i) => i !== index);
 }

@@ -1,7 +1,7 @@
 import { formatDate, daysSince } from '../../utils/format';
 import { Pencil, Trash2 } from 'lucide-react';
 
-function PiezaRow({ p, onEdit, onDelete }) {
+function PiezaRow({ p, i, onEdit, onDelete }) {
   const dias = p.estado === 'pendiente' ? daysSince(p.primeraDeteccion) : null;
   return (
     <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-[8px]" style={{ background: 'var(--pp-input-bg)' }}>
@@ -22,12 +22,12 @@ function PiezaRow({ p, onEdit, onDelete }) {
         {(onEdit || onDelete) && (
           <div className="flex items-center gap-0.5">
             {onEdit && (
-              <button type="button" onClick={() => onEdit(p)} title="Editar pieza" className="w-6 h-6 rounded-[6px] flex items-center justify-center transition-colors hover:bg-[#ffffff1a]" style={{ color: 'var(--pp-text3)' }}>
+              <button type="button" onClick={() => onEdit(p, i)} title="Editar pieza" className="w-6 h-6 rounded-[6px] flex items-center justify-center transition-colors hover:bg-[#ffffff1a]" style={{ color: 'var(--pp-text3)' }}>
                 <Pencil className="w-3.5 h-3.5" />
               </button>
             )}
             {onDelete && (
-              <button type="button" onClick={() => onDelete(p)} title="Eliminar pieza" className="w-6 h-6 rounded-[6px] flex items-center justify-center transition-colors hover:bg-[#ffffff1a]" style={{ color: 'var(--pp-text3)' }}>
+              <button type="button" onClick={() => onDelete(p, i)} title="Eliminar pieza" className="w-6 h-6 rounded-[6px] flex items-center justify-center transition-colors hover:bg-[#ffffff1a]" style={{ color: 'var(--pp-text3)' }}>
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             )}
@@ -44,11 +44,18 @@ function PiezaRow({ p, onEdit, onDelete }) {
 const ORDEN_ESTADO = { pendiente: 0, en_tienda: 1, recibida: 2 };
 
 export function PiezasList({ piezas, onEdit, onDelete }) {
-  const ordenadas = [...piezas].sort((a, b) => (ORDEN_ESTADO[a.estado] ?? 99) - (ORDEN_ESTADO[b.estado] ?? 99));
+  // Se guarda el índice original (posición real en order.piezas) junto con
+  // cada pieza ANTES de ordenar para mostrar — es lo que se le pasa a
+  // onEdit/onDelete, en vez de numeroPieza: dos piezas distintas podían
+  // compartir el mismo número y entonces editar/eliminar "una" afectaba a
+  // todas las que tuvieran ese número.
+  const ordenadas = piezas
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => (ORDEN_ESTADO[a.p.estado] ?? 99) - (ORDEN_ESTADO[b.p.estado] ?? 99));
 
   return (
     <div className="space-y-1.5">
-      {ordenadas.map(p => <PiezaRow key={p.numeroPieza} p={p} onEdit={onEdit} onDelete={onDelete} />)}
+      {ordenadas.map(({ p, i }) => <PiezaRow key={i} p={p} i={i} onEdit={onEdit} onDelete={onDelete} />)}
     </div>
   );
 }

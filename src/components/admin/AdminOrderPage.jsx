@@ -177,20 +177,23 @@ export function AdminOrderPage({ order, taller, onClose, onChangeStatus, onGener
     }
   };
 
-  const [piezaModal, setPiezaModal] = useState(null); // null | { mode: 'add' } | { mode: 'edit', numeroPieza }
+  const [piezaModal, setPiezaModal] = useState(null); // null | { mode: 'add' } | { mode: 'edit', index }
   const [manualNumero, setManualNumero] = useState('');
   const [manualDescripcion, setManualDescripcion] = useState('');
   const [manualError, setManualError] = useState('');
   const [manualGuardando, setManualGuardando] = useState(false);
   const abrirAgregarPieza = () => { setManualNumero(''); setManualDescripcion(''); setManualError(''); setPiezaModal({ mode: 'add' }); };
-  const abrirEditarPieza = (p) => { setManualNumero(p.numeroPieza); setManualDescripcion(p.descripcion || ''); setManualError(''); setPiezaModal({ mode: 'edit', numeroPieza: p.numeroPieza }); };
+  // Se guarda el índice (posición en order.piezas), no numeroPieza — así
+  // editar/eliminar afecta siempre a la pieza exacta que se tocó, aunque
+  // otra pieza distinta comparta el mismo número.
+  const abrirEditarPieza = (p, index) => { setManualNumero(p.numeroPieza); setManualDescripcion(p.descripcion || ''); setManualError(''); setPiezaModal({ mode: 'edit', index }); };
   const handleGuardarPieza = async (e) => {
     e.preventDefault();
     setManualError('');
     setManualGuardando(true);
     try {
       const piezas = piezaModal.mode === 'edit'
-        ? editarPieza(order.piezas, piezaModal.numeroPieza, { numeroPieza: manualNumero, descripcion: manualDescripcion })
+        ? editarPieza(order.piezas, piezaModal.index, { numeroPieza: manualNumero, descripcion: manualDescripcion })
         : agregarPiezaManual(order.piezas, { numeroPieza: manualNumero, descripcion: manualDescripcion });
       await onImportarPiezas(order.id, piezas);
       setManualNumero(''); setManualDescripcion(''); setPiezaModal(null);
@@ -200,9 +203,9 @@ export function AdminOrderPage({ order, taller, onClose, onChangeStatus, onGener
       setManualGuardando(false);
     }
   };
-  const handleEliminarPieza = async (p) => {
+  const handleEliminarPieza = async (p, index) => {
     if (!window.confirm(`¿Eliminar la pieza ${p.numeroPieza}?`)) return;
-    await onImportarPiezas(order.id, eliminarPieza(order.piezas, p.numeroPieza));
+    await onImportarPiezas(order.id, eliminarPieza(order.piezas, index));
   };
 
   const openDatePicker = (e) => { try { e.target.showPicker(); } catch (_) {} };
