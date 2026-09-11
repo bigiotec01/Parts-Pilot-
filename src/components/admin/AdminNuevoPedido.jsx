@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react';
 import {
-  CheckCircle2
+  CheckCircle2, Plus
 } from 'lucide-react';
 import { FormField } from '../shared/FormField';
+import { PiezasList } from '../shared/PiezasList';
 import { inputClass } from '../../constants/styles';
+import { agregarPiezaManual, ESTADOS_PIEZA } from '../../utils/piezasExcel';
 
 const Required = () => <span style={{ color: '#ef4444' }}> *</span>;
 
@@ -14,6 +16,27 @@ export function AdminNuevoPedido({ talleres, pedidos = [], onCreate }) {
   const [usarHoy, setUsarHoy] = useState(true);
   const [fechaPersonalizada, setFechaPersonalizada] = useState('');
   const [done, setDone] = useState(false);
+
+  // Piezas en espera que se registran de una vez al crear el pedido (sin
+  // tener que entrar después a subir el Excel o agregarlas a mano). Se
+  // construyen igual que en "Piezas en espera" dentro del pedido — se van
+  // acumulando localmente y se mandan junto con el resto del formulario.
+  const [piezas, setPiezas] = useState([]);
+  const [piezaNumero, setPiezaNumero] = useState('');
+  const [piezaDescripcion, setPiezaDescripcion] = useState('');
+  const [piezaEstado, setPiezaEstado] = useState('pendiente');
+  const [piezaError, setPiezaError] = useState('');
+
+  const handleAgregarPieza = () => {
+    try {
+      setPiezas(prev => agregarPiezaManual(prev, { numeroPieza: piezaNumero, descripcion: piezaDescripcion, estado: piezaEstado }));
+      setPiezaNumero(''); setPiezaDescripcion(''); setPiezaEstado('pendiente'); setPiezaError('');
+    } catch (err) {
+      setPiezaError(err.message || 'No se pudo agregar la pieza.');
+    }
+  };
+  const handleQuitarPieza = (index) => setPiezas(prev => prev.filter((_, i) => i !== index));
+  const piezaEnterAgrega = (e) => { if (e.key === 'Enter') { e.preventDefault(); handleAgregarPieza(); } };
 
   const handleChange = (field, value) => setForm(f => ({ ...f, [field]: value }));
 
@@ -29,12 +52,14 @@ export function AdminNuevoPedido({ talleres, pedidos = [], onCreate }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onCreate({ ...form, numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim(), fechaPersonalizada: usarHoy ? '' : fechaPersonalizada });
+    onCreate({ ...form, numeroPO: numeroPO.trim(), numeroOrden: numeroOrden.trim(), fechaPersonalizada: usarHoy ? '' : fechaPersonalizada, piezas });
     setForm({ tallerId: talleres[0]?.uid ?? '', vehiculo: '', notas: '' });
     setNumeroPO('');
     setNumeroOrden('');
     setUsarHoy(true);
     setFechaPersonalizada('');
+    setPiezas([]);
+    setPiezaNumero(''); setPiezaDescripcion(''); setPiezaEstado('pendiente'); setPiezaError('');
     setDone(true);
     setTimeout(() => setDone(false), 3000);
   };
@@ -70,6 +95,46 @@ export function AdminNuevoPedido({ talleres, pedidos = [], onCreate }) {
             <input value={numeroOrden} onChange={e => setNumeroOrden(e.target.value)} placeholder="ej. T-7890" className={inputClass} />
           </FormField>
         </div>
+        <FormField label="Piezas en espera (opcional)">
+          <p className="text-xs mb-2" style={{ color: 'var(--pp-text3)' }}>Regístralas de una vez si ya sabes cuáles vas a esperar — luego puedes subir el reporte del proveedor o editarlas desde el pedido.</p>
+          {piezas.length > 0 && (
+            <div className="mb-2.5">
+              <PiezasList piezas={piezas} onDelete={(p, i) => handleQuitarPieza(i)} />
+            </div>
+          )}
+          <div className="rounded-[10px] border p-2.5 space-y-2" style={{ borderColor: 'var(--pp-border4)' }}>
+            <div className="grid grid-cols-2 gap-2">
+              <input value={piezaNumero} onChange={e => setPiezaNumero(e.target.value)} onKeyDown={piezaEnterAgrega} placeholder="No. de pieza" className={inputClass} />
+              <input value={piezaDescripcion} onChange={e => setPiezaDescripcion(e.target.value)} onKeyDown={piezaEnterAgrega} placeholder="Descripción (opcional)" className={inputClass} />
+            </div>
+            <div className="flex items-center gap-1 rounded-[10px] border p-1" style={{ borderColor: 'var(--pp-border4)' }}>
+              {ESTADOS_PIEZA.map(op => (
+                <button
+                  key={op.value}
+                  type="button"
+                  onClick={() => setPiezaEstado(op.value)}
+                  className="flex-1 px-2 py-1.5 rounded-[8px] text-[12px] font-semibold transition-colors"
+                  style={{
+                    background: piezaEstado === op.value ? 'var(--pp-accent)' : 'transparent',
+                    color: piezaEstado === op.value ? '#fff' : 'var(--pp-text2)',
+                  }}
+                >
+                  {op.label}
+                </button>
+              ))}
+            </div>
+            {piezaError && <p className="text-[12px]" style={{ color: '#dc2626' }}>{piezaError}</p>}
+            <button
+              type="button"
+              onClick={handleAgregarPieza}
+              disabled={!piezaNumero.trim()}
+              className="w-full py-2 rounded-[9px] text-[12.5px] font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50 transition-colors"
+              style={{ background: 'var(--pp-surface)', color: 'var(--pp-text2)' }}
+            >
+              <Plus className="w-3.5 h-3.5" /> Agregar pieza
+            </button>
+          </div>
+        </FormField>
         <FormField label="Notas (opcional)">
           <textarea value={form.notas} onChange={e => handleChange('notas', e.target.value)} rows={3} placeholder="Detalles adicionales..." className={`${inputClass} resize-none`} />
         </FormField>

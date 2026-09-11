@@ -99,10 +99,11 @@ export function mergePiezas(piezasActuales, filasExcel) {
   return piezas;
 }
 
-// Agrega a mano una pieza que ya está físicamente en la tienda pero no pasó
-// por el reporte del proveedor (ej. quedó de un pedido anterior, stock propio).
-// Queda marcada "en_tienda" — distinta de "recibida" (que solo viene del Excel).
-export function agregarPiezaManual(piezasActuales, { numeroPieza, descripcion }) {
+// Agrega a mano una pieza — por defecto "en_tienda" (ej. quedó de un pedido
+// anterior, stock propio, no pasó por el reporte del proveedor), pero admite
+// otro estado explícito (ej. "pendiente" al registrar de una vez las piezas
+// en espera desde el formulario de un pedido nuevo).
+export function agregarPiezaManual(piezasActuales, { numeroPieza, descripcion, estado = 'en_tienda' }) {
   const numero = String(numeroPieza || '').trim();
   if (!numero) throw new Error('Ingresa un número de pieza.');
   const piezas = (piezasActuales || []).map(p => ({ ...p }));
@@ -113,8 +114,8 @@ export function agregarPiezaManual(piezasActuales, { numeroPieza, descripcion })
   piezas.push({
     numeroPieza: numero,
     descripcion: String(descripcion || '').trim(),
-    estado: 'en_tienda',
-    fechaRecibida: null,
+    estado,
+    fechaRecibida: estado === 'recibida' ? ahora : null,
     primeraDeteccion: ahora,
     ultimaActualizacion: ahora,
   });
