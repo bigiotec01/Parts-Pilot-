@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  FileText, LogOut, LayoutDashboard, ClipboardList, History, Receipt, Building2, MessageCircle
+  FileText, LogOut, LayoutDashboard, ClipboardList, History, Receipt, Building2
 } from 'lucide-react';
 import { APP_VERSION } from '../../constants/app';
 import { getAdminNotifications, hasNewActivity, saveOrderSeen } from '../../utils/activity';
@@ -201,7 +201,6 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
       canView('estimados') && tenantHasModulo('estimados') && { id: 'estimados',label: 'Estimados', icon: FileText, badge: solicitudesCount, accent: true },
       canView('facturas')  && tenantHasModulo('facturas')  && { id: 'facturas',  label: 'Facturas',  icon: Receipt },
       canView('pedidos')   && tenantHasModulo('historial') && { id: 'historial', label: 'Historial', icon: History },
-      canView('pedidos')   && tenantHasModulo('mensajes')  && { id: 'mensajes',  label: 'Mensajes',  icon: MessageCircle, badge: mensajesCount },
     ].filter(Boolean);
 
     return (

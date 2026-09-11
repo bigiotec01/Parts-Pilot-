@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  FileText, LogOut, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt, ChevronUp, Building2, Calculator, MessageCircle, FileSpreadsheet
+  FileText, LogOut, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt, ChevronUp, Building2, Calculator, FileSpreadsheet
 } from 'lucide-react';
 import { APP_VERSION } from '../../constants/app';
 import { ThemeToggleBtn } from '../shared/ThemeToggleBtn';
@@ -15,7 +15,6 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
     { id: 'dashboard',                     label: 'Resumen',    icon: LayoutDashboard },
     canView('pedidos')   && tHas('pedidos')   && { id: 'pedidos',    label: 'Pedidos',    icon: ClipboardList, badge: pedidosCount },
     canView('estimados') && tHas('estimados') && { id: 'estimados',  label: 'Estimados',  icon: FileText, badge: solicitudesCount, accent: true },
-    canView('pedidos')   && tHas('mensajes')  && { id: 'mensajes',   label: 'Mensajes',   icon: MessageCircle, badge: mensajesCount },
     canView('talleres')  && tHas('talleres')  && { id: 'talleres',   label: 'Talleres',   icon: Users },
     canView('empresas')  && tHas('empresas')  && { id: 'empresas',   label: 'Empresas',   icon: Building2 },
     isPlatformSuperAdmin && { id: 'calcular', label: 'Calcular', icon: Calculator, onClick: onOpenCalcular },

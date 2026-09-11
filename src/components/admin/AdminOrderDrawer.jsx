@@ -11,7 +11,7 @@ import { QuickActionsMenu } from '../shared/QuickActionsMenu';
 import { PiezasList } from '../shared/PiezasList';
 import { inputClass } from '../../constants/styles';
 import { avgDeliveryLeadDays, suggestDeliveryDate, cleanText, filesOf } from '../../utils/format';
-import { parsePiezasExcel, mergePiezas, agregarPiezaManual, editarPieza, eliminarPieza } from '../../utils/piezasExcel';
+import { parsePiezasExcel, mergePiezas, agregarPiezaManual, editarPieza, eliminarPieza, ESTADOS_PIEZA } from '../../utils/piezasExcel';
 
 const AUTO_DATE_STATES = ['en_transito', 'recibido'];
 
@@ -181,20 +181,21 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onGen
   const [piezaModal, setPiezaModal] = useState(null); // null | { mode: 'add' } | { mode: 'edit', index }
   const [manualNumero, setManualNumero] = useState('');
   const [manualDescripcion, setManualDescripcion] = useState('');
+  const [manualEstado, setManualEstado] = useState('pendiente');
   const [manualError, setManualError] = useState('');
   const [manualGuardando, setManualGuardando] = useState(false);
   const abrirAgregarPieza = () => { setManualNumero(''); setManualDescripcion(''); setManualError(''); setPiezaModal({ mode: 'add' }); };
   // Se guarda el índice (posición en order.piezas), no numeroPieza — así
   // editar/eliminar afecta siempre a la pieza exacta que se tocó, aunque
   // otra pieza distinta comparta el mismo número.
-  const abrirEditarPieza = (p, index) => { setManualNumero(p.numeroPieza); setManualDescripcion(p.descripcion || ''); setManualError(''); setPiezaModal({ mode: 'edit', index }); };
+  const abrirEditarPieza = (p, index) => { setManualNumero(p.numeroPieza); setManualDescripcion(p.descripcion || ''); setManualEstado(p.estado || 'pendiente'); setManualError(''); setPiezaModal({ mode: 'edit', index }); };
   const handleGuardarPieza = async (e) => {
     e.preventDefault();
     setManualError('');
     setManualGuardando(true);
     try {
       const piezas = piezaModal.mode === 'edit'
-        ? editarPieza(order.piezas, piezaModal.index, { numeroPieza: manualNumero, descripcion: manualDescripcion })
+        ? editarPieza(order.piezas, piezaModal.index, { numeroPieza: manualNumero, descripcion: manualDescripcion, estado: manualEstado })
         : agregarPiezaManual(order.piezas, { numeroPieza: manualNumero, descripcion: manualDescripcion });
       await onImportarPiezas(order.id, piezas);
       setManualNumero(''); setManualDescripcion(''); setPiezaModal(null);
@@ -306,6 +307,26 @@ export function AdminOrderDrawer({ order, taller, onClose, onChangeStatus, onGen
             <FormField label="Descripción (opcional)">
               <input value={manualDescripcion} onChange={e => setManualDescripcion(e.target.value)} placeholder="ej. Cover-Rr Bumper, Upr" className={inputClass} />
             </FormField>
+            {piezaModal.mode === 'edit' && (
+              <FormField label="Estado">
+                <div className="flex items-center gap-1 rounded-[10px] border p-1" style={{ borderColor: 'var(--pp-border4)' }}>
+                  {ESTADOS_PIEZA.map(op => (
+                    <button
+                      key={op.value}
+                      type="button"
+                      onClick={() => setManualEstado(op.value)}
+                      className="flex-1 px-2 py-1.5 rounded-[8px] text-[12px] font-semibold transition-colors"
+                      style={{
+                        background: manualEstado === op.value ? 'var(--pp-accent)' : 'transparent',
+                        color: manualEstado === op.value ? '#fff' : 'var(--pp-text2)',
+                      }}
+                    >
+                      {op.label}
+                    </button>
+                  ))}
+                </div>
+              </FormField>
+            )}
             {manualError && <p className="text-[12.5px]" style={{ color: '#dc2626' }}>{manualError}</p>}
             <button type="submit" disabled={manualGuardando || !manualNumero.trim()} className="w-full py-[11px] rounded-[11px] text-white font-bold text-[13px] hover:bg-[#8E1620] disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: 'var(--pp-accent)' }}>
               <Plus className="w-4 h-4" /> {manualGuardando ? 'Guardando…' : piezaModal.mode === 'edit' ? 'Guardar cambios' : 'Agregar pieza · En tienda'}

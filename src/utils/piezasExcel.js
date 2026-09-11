@@ -1,5 +1,13 @@
 import * as XLSX from 'xlsx';
 
+// Estados posibles de una pieza y su etiqueta para mostrar — se usa tanto en
+// la lista (PiezasList) como en el selector del modal de editar.
+export const ESTADOS_PIEZA = [
+  { value: 'pendiente', label: 'En espera' },
+  { value: 'en_tienda', label: 'En tienda' },
+  { value: 'recibida', label: 'Recibida' },
+];
+
 // Los encabezados del reporte (ej. "Last Recv \nDate") traen saltos de línea y
 // espacios variables — se normalizan para no depender del formato exacto del archivo.
 function normalizeHeader(h) {
@@ -113,11 +121,13 @@ export function agregarPiezaManual(piezasActuales, { numeroPieza, descripcion })
   return piezas;
 }
 
-// Corrige el número de pieza y/o descripción de una pieza ya guardada
-// (ej. se capturó mal al agregarla manualmente). Se ubica por posición
-// (index) y no por numeroPieza: si dos piezas distintas llegaran a compartir
-// el mismo número, buscar por valor editaba/eliminaba a las dos a la vez.
-export function editarPieza(piezasActuales, index, { numeroPieza, descripcion }) {
+// Corrige el número de pieza, descripción y/o estado de una pieza ya
+// guardada (ej. se capturó mal al agregarla manualmente, o llegó el
+// proveedor y hay que marcarla recibida a mano sin esperar el Excel). Se
+// ubica por posición (index) y no por numeroPieza: si dos piezas distintas
+// llegaran a compartir el mismo número, buscar por valor editaba/eliminaba
+// a las dos a la vez.
+export function editarPieza(piezasActuales, index, { numeroPieza, descripcion, estado }) {
   const numero = String(numeroPieza || '').trim();
   if (!numero) throw new Error('Ingresa un número de pieza.');
   const piezas = (piezasActuales || []).map(p => ({ ...p }));
@@ -128,6 +138,13 @@ export function editarPieza(piezasActuales, index, { numeroPieza, descripcion })
   if (!pieza) throw new Error('No se encontró la pieza a editar.');
   pieza.numeroPieza = numero;
   pieza.descripcion = String(descripcion || '').trim();
+  if (estado && estado !== pieza.estado) {
+    pieza.estado = estado;
+    // "Recibida" sin fecha del reporte todavía necesita una fecha para
+    // mostrar en la lista — se usa "ahora" ya que se está marcando a mano.
+    // Al sacarla de "recibida" esa fecha ya no aplica.
+    pieza.fechaRecibida = estado === 'recibida' ? (pieza.fechaRecibida || new Date()) : null;
+  }
   pieza.ultimaActualizacion = new Date();
   return piezas;
 }
