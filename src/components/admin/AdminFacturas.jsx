@@ -678,21 +678,26 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
                 <table className="w-full" style={{ minWidth: 800 }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--pp-border2)' }}>
-                      {['Fecha','# Factura','PO Tag','Valor','Pagado','# Check','F. Pago',''].map((h, i) => (
+                      {['Fecha','# Factura','PO Tag','Valor','Pagado','Pendiente','# Check','F. Pago',''].map((h, i) => (
                         <th key={i} className={`text-left py-2.5 text-[10.5px] font-bold uppercase ${i===0?'pl-5 pr-2':'px-2'}`} style={{ color: 'var(--pp-text3)', letterSpacing: '.06em' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {facturasPagadasFiltradas.length === 0 ? (
-                      <tr><td colSpan={8} className="py-8 text-center text-[13px]" style={{ color: 'var(--pp-text3)' }}>Sin facturas pagadas en ese rango de fechas.</td></tr>
-                    ) : facturasPagadasFiltradas.map(f => (
+                      <tr><td colSpan={9} className="py-8 text-center text-[13px]" style={{ color: 'var(--pp-text3)' }}>Sin facturas pagadas en ese rango de fechas.</td></tr>
+                    ) : facturasPagadasFiltradas.map(f => editId === f.id
+                      // Misma fila editable que en pendientes — así una factura ya
+                      // pagada se puede corregir (ej. # de check o monto mal puesto).
+                      ? <FacturaInlineRow key={f.id} form={editForm} setForm={setEditForm} onSave={saveEdit} onCancel={cancelEdit} saving={saving} />
+                      : (
                       <tr key={f.id} onClick={() => startEdit(f)} className="cursor-pointer hover:bg-[#1e1e1e] transition-colors" style={{ borderTop: '1px solid var(--pp-border2)' }}>
                         <td className="py-3 pl-5 pr-2 text-[12px] whitespace-nowrap" style={{ color: 'var(--pp-text2)' }}>{fmtDateDisp(f.fechaFactura)}</td>
                         <td className="py-3 px-2 font-mono font-semibold text-[12px]" style={{ color: 'var(--pp-text)' }}>{f.numeroFactura}</td>
                         <td className="py-3 px-2 font-mono text-[12px]" style={{ color: 'var(--pp-text3)' }}>{f.poTag||'—'}</td>
                         <td className="py-3 px-2 text-[12px] font-semibold" style={{ color: 'var(--pp-text)' }}>{fmtCur(f.valor)}</td>
                         <td className="py-3 px-2 text-[12px] font-semibold" style={{ color: '#34d399' }}>{fmtCur(f.pagado)}</td>
+                        <td className="py-3 px-2 text-[12px] font-semibold" style={{ color: '#34d399' }}>{fmtCur(f.pendiente)}</td>
                         <td className="py-3 px-2 font-mono text-[12px]" style={{ color: 'var(--pp-text3)' }}>{f.numeroCheck||'—'}</td>
                         <td className="py-3 px-2 text-[12px] whitespace-nowrap" style={{ color: 'var(--pp-text3)' }}>{fmtDateDisp(f.fechaPago)}</td>
                         <td className="py-3 pr-4">
@@ -709,7 +714,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
                         <td colSpan={3} className="py-2.5 pl-5 text-[12px] font-bold" style={{ color: 'var(--pp-text3)' }}>TOTAL PAGADAS</td>
                         <td className="py-2.5 px-2 text-[12px] font-bold" style={{ color: 'var(--pp-text)' }}>{fmtCur(facturasPagadasFiltradas.reduce((s,f)=>s+Number(f.valor||0),0))}</td>
                         <td className="py-2.5 px-2 text-[12px] font-bold" style={{ color: '#34d399' }}>{fmtCur(facturasPagadasFiltradas.reduce((s,f)=>s+Number(f.pagado||0),0))}</td>
-                        <td colSpan={3} />
+                        <td colSpan={4} />
                       </tr>
                     </tfoot>
                   )}
