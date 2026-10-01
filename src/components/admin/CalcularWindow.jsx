@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Calculator } from 'lucide-react';
 import { inputClass } from '../../constants/styles';
 import { fmtCur } from '../../utils/format';
+import { avisar } from '../shared/Dialogs';
 
 const FACTOR_MARCA = { KIA: 0.45, NISSAN: 0.55 };
 const FACTOR_COSTO = 1.01;
@@ -95,7 +96,7 @@ export function openCalcularWindow() {
 
   const win = window.open('', 'pp_calcular_window', 'width=380,height=600,resizable=yes');
   if (!win) {
-    alert('El navegador bloqueó la ventana de "Calcular". Permite ventanas emergentes para Parts Pilot e inténtalo de nuevo.');
+    avisar('El navegador bloqueó la ventana de "Calcular". Permite ventanas emergentes para Parts Pilot e inténtalo de nuevo.');
     return;
   }
   calcWin = win;

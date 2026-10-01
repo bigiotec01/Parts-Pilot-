@@ -17,6 +17,7 @@ import { LoginScreen } from './components/shared/LoginScreen';
 import { NotifToast } from './components/shared/NotifToast';
 import { WhatsNewModal } from './components/shared/WhatsNewModal';
 import { UpdatePrompt } from './components/shared/UpdatePrompt';
+import { DialogHost } from './components/shared/Dialogs';
 
 // Cada tipo de usuario descarga solo su parte de la app: un taller no baja el
 // código del admin ni del super admin, y el link de seguimiento guest no baja nada de eso.
@@ -212,6 +213,7 @@ export default function App() {
         <AppContent />
       </Suspense>
       <UpdatePrompt />
+      <DialogHost />
     </ThemeProvider>
   );
 }

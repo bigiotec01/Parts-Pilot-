@@ -7,6 +7,7 @@ import { inputClass } from '../../constants/styles';
 import { MODULOS_PERM } from '../../constants/permisos';
 import { PermBadge, PermSelector } from '../shared/PermSelector';
 import { TallerAccessBadge, TallerSelector } from '../shared/TallerSelector';
+import { confirmar } from '../shared/Dialogs';
 
 const AVATAR_GRADIENTS = [
   'linear-gradient(160deg, #3b82f6, #2563eb)',
@@ -204,7 +205,7 @@ export function AdminEquipo({ equipo, talleres, currentUid, perfil, onCrear, onA
                       className="w-8 h-8 rounded-[8px] flex items-center justify-center hover:bg-[#1e1e1e] transition-colors" style={{ color: 'var(--pp-text3)' }}>
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
-                    <button onClick={() => { if (window.confirm(`¿Eliminar a ${u.nombre || u.email}?`)) onEliminar(u.uid); }} title="Eliminar"
+                    <button onClick={async () => { if (await confirmar(`¿Eliminar a ${u.nombre || u.email}?`, { peligro: true })) onEliminar(u.uid); }} title="Eliminar"
                       className="w-8 h-8 rounded-[8px] flex items-center justify-center transition-colors" style={{ color: 'var(--pp-text3)' }}
                       onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.12)'; e.currentTarget.style.color = '#ef4444'; }}
                       onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--pp-text3)'; }}>

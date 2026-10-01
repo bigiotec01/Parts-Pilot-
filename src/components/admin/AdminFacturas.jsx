@@ -7,6 +7,7 @@ import { CalculadoraPopover } from '../shared/CalculadoraPopover';
 import { inputClass } from '../../constants/styles';
 import { MARCAS_FACTURA_DEFAULT } from '../../constants/facturas';
 import { fmtCur, fmtDateDisp, formatDate } from '../../utils/format';
+import { confirmar, avisar } from '../shared/Dialogs';
 
 // Editor de las marcas de fabricante que esta empresa usa para separar sus facturas
 // (ej. KIA/NISSAN, o cualquier otra que aplique al negocio de cada empresa).
@@ -155,12 +156,14 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
   };
 
   const handleRestore = async (b) => {
-    const paso1 = window.confirm(
-      `¿Restaurar el backup del ${formatDate(b.fecha)}?\n\nEsto BORRARÁ las ${facturas.length} facturas actuales de TODOS los talleres y marcas, y las reemplazará por las ${b.count} facturas guardadas en ese backup.\n\nEsta acción no se puede deshacer.`
+    const paso1 = await confirmar(
+      `¿Restaurar el backup del ${formatDate(b.fecha)}?\n\nEsto BORRARÁ las ${facturas.length} facturas actuales de TODOS los talleres y marcas, y las reemplazará por las ${b.count} facturas guardadas en ese backup.\n\nEsta acción no se puede deshacer.`,
+      { peligro: true, titulo: 'Restaurar backup', confirmarTexto: 'Continuar' }
     );
     if (!paso1) return;
-    const paso2 = window.confirm(
-      'Confirmación final: se perderán todos los cambios hechos después de ese backup. ¿Continuar con la restauración?'
+    const paso2 = await confirmar(
+      'Confirmación final: se perderán todos los cambios hechos después de ese backup. ¿Continuar con la restauración?',
+      { peligro: true, titulo: 'Confirmación final', confirmarTexto: 'Restaurar' }
     );
     if (!paso2) return;
     setRestoringId(b.id);
@@ -175,7 +178,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
   };
 
   const handleDeleteBackup = async (backupId) => {
-    if (!window.confirm('¿Eliminar este backup? No vas a poder restaurarlo después.')) return;
+    if (!(await confirmar('¿Eliminar este backup? No vas a poder restaurarlo después.', { peligro: true }))) return;
     setBackupError('');
     try {
       await onEliminarBackup(backupId);
@@ -216,7 +219,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
 
   const handleArchivarPagadas = async () => {
     if (!pagadasSinArch.length) return;
-    if (!window.confirm(`¿Archivar ${pagadasSinArch.length} factura(s) totalmente pagada(s)? Se moverán al historial.`)) return;
+    if (!(await confirmar(`¿Archivar ${pagadasSinArch.length} factura(s) totalmente pagada(s)? Se moverán al historial.`, { titulo: 'Archivar pagadas', confirmarTexto: 'Archivar' }))) return;
     for (const f of pagadasSinArch) await onActualizar(f.id, { archivada: true });
   };
 
@@ -389,13 +392,13 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
         }).filter(r => r.numeroFactura !== '');
 
         if (parsed.length === 0) {
-          alert(`No se encontraron filas de datos.\n\nEl archivo tiene ${raw.length} filas en total. Asegúrate de que la hoja tenga encabezados con la palabra FACTURA y filas de datos debajo.`);
+          avisar(`No se encontraron filas de datos.\n\nEl archivo tiene ${raw.length} filas en total. Asegúrate de que la hoja tenga encabezados con la palabra FACTURA y filas de datos debajo.`);
           return;
         }
 
         setImportRows(parsed);
       } catch (err) {
-        alert('Error al leer el archivo: ' + err.message);
+        avisar('Error al leer el archivo: ' + err.message, { titulo: 'Error' });
       }
     };
     reader.readAsArrayBuffer(file);
@@ -600,7 +603,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
                   <td className={`${tdCls} px-2 font-mono hidden lg:table-cell`} style={{ color: 'var(--pp-text2)' }}>{f.numeroCheck || '—'}</td>
                   <td className={`${tdCls} px-2 whitespace-nowrap hidden lg:table-cell`} style={{ color: 'var(--pp-text2)' }}>{fmtDateDisp(f.fechaPago)}</td>
                   <td className="py-2 pl-1 pr-4">
-                    <button onClick={e => { e.stopPropagation(); if (window.confirm('¿Eliminar esta factura?')) onEliminar(f.id); }} className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ color: 'var(--pp-text3)' }}>
+                    <button onClick={async e => { e.stopPropagation(); if (await confirmar('¿Eliminar esta factura?', { peligro: true })) onEliminar(f.id); }} className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ color: 'var(--pp-text3)' }}>
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </td>
@@ -702,7 +705,7 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
                         <td className="py-3 px-2 font-mono text-[12px]" style={{ color: 'var(--pp-text3)' }}>{f.numeroCheck||'—'}</td>
                         <td className="py-3 px-2 text-[12px] whitespace-nowrap" style={{ color: 'var(--pp-text3)' }}>{fmtDateDisp(f.fechaPago)}</td>
                         <td className="py-3 pr-4">
-                          <button onClick={e => { e.stopPropagation(); if (window.confirm('¿Eliminar esta factura?')) onEliminar(f.id); }} className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ color: 'var(--pp-text3)' }}>
+                          <button onClick={async e => { e.stopPropagation(); if (await confirmar('¿Eliminar esta factura?', { peligro: true })) onEliminar(f.id); }} className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ color: 'var(--pp-text3)' }}>
                             <X className="w-3.5 h-3.5" />
                           </button>
                         </td>

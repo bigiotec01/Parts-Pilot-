@@ -5,6 +5,7 @@ import {
 import { FormField } from '../shared/FormField';
 import { EmptyState } from '../shared/FormField';
 import { inputClass } from '../../constants/styles';
+import { confirmar } from '../shared/Dialogs';
 
 const FORM_VACIO = { nombre: '', rfc: '', contacto: '', telefono: '', email: '', direccion: '', notas: '', facturacionHabilitada: true };
 
@@ -221,7 +222,7 @@ export function AdminEmpresas({ empresasClientes, onCrear, onActualizar, onElimi
                     <button onClick={() => startEdit(emp)} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[9px] border text-[12.5px] font-semibold transition-colors hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text2)' }}>
                       <Pencil className="w-3.5 h-3.5" /> Editar
                     </button>
-                    <button onClick={() => { if (window.confirm(`¿Eliminar la empresa "${emp.nombre}"? Sus facturas ya emitidas no se borran.`)) onEliminar(emp.id); }} className="w-9 h-9 rounded-[9px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors flex-shrink-0" style={{ color: 'var(--pp-text3)' }}>
+                    <button onClick={async () => { if (await confirmar(`¿Eliminar la empresa "${emp.nombre}"? Sus facturas ya emitidas no se borran.`, { peligro: true })) onEliminar(emp.id); }} className="w-9 h-9 rounded-[9px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors flex-shrink-0" style={{ color: 'var(--pp-text3)' }}>
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>

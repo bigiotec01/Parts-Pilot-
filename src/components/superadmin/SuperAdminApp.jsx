@@ -13,6 +13,7 @@ import { MODULOS_TENANT } from '../../constants/permisos';
 import { TenantSupportView } from './TenantSupportView';
 import { AuditLogsView } from './AuditLogsView';
 import { NotasView } from './NotasView';
+import { avisar } from '../shared/Dialogs';
 
 // Checklist de secciones del sidebar que esta empresa tendrá disponibles, según lo
 // que haya comprado del sistema. Se usa tanto al crear como al editar una empresa.
@@ -426,7 +427,7 @@ export function SuperAdminApp({ onLogout, onExit }) {
       const fn = httpsCallable(functions, 'actualizarEstadoEmpresa');
       await fn({ tenantId: empresa.id, estado: empresa.estado === 'activa' ? 'suspendida' : 'activa' });
     } catch (err) {
-      alert(err.message);
+      avisar(err.message, { titulo: 'Error' });
     } finally {
       setBusyId(null);
     }

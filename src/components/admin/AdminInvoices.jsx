@@ -6,6 +6,7 @@ import { Modal } from '../shared/Modal';
 import { FormField, EmptyState } from '../shared/FormField';
 import { inputClass } from '../../constants/styles';
 import { fmtCur, fmtDateDisp } from '../../utils/format';
+import { confirmar } from '../shared/Dialogs';
 
 const ITEM_VACIO = { descripcion: '', cantidad: 1, precioUnitario: '' };
 
@@ -623,9 +624,9 @@ export function AdminInvoices({ talleres, empresasClientes, facturasPro, factura
                                   <button onClick={() => cambiarEstado(f, 'pendiente')} title="Marcar como pendiente" className="w-7 h-7 rounded-[7px] flex items-center justify-center hover:bg-[#1e1e1e] transition-colors" style={{ color: 'var(--pp-text3)' }}><RotateCcw className="w-3.5 h-3.5" /></button>
                                 )}
                                 {f.estado !== 'anulada' && (
-                                  <button onClick={() => { if (window.confirm(`¿Anular la factura ${f.numeroFactura}? Queda registrada pero fuera de tus totales.`)) cambiarEstado(f, 'anulada'); }} title="Anular" className="w-7 h-7 rounded-[7px] flex items-center justify-center hover:bg-[#1e1e1e] transition-colors" style={{ color: 'var(--pp-text3)' }}><Ban className="w-3.5 h-3.5" /></button>
+                                  <button onClick={async () => { if (await confirmar(`¿Anular la factura ${f.numeroFactura}? Queda registrada pero fuera de tus totales.`, { peligro: true, titulo: 'Anular factura', confirmarTexto: 'Anular' })) cambiarEstado(f, 'anulada'); }} title="Anular" className="w-7 h-7 rounded-[7px] flex items-center justify-center hover:bg-[#1e1e1e] transition-colors" style={{ color: 'var(--pp-text3)' }}><Ban className="w-3.5 h-3.5" /></button>
                                 )}
-                                <button onClick={() => { if (window.confirm(`¿Eliminar la factura ${f.numeroFactura}? Esta acción no se puede deshacer.`)) onEliminar(f.id); }} title="Eliminar" className="w-7 h-7 rounded-[7px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ color: 'var(--pp-text3)' }}><Trash2 className="w-3.5 h-3.5" /></button>
+                                <button onClick={async () => { if (await confirmar(`¿Eliminar la factura ${f.numeroFactura}? Esta acción no se puede deshacer.`, { peligro: true })) onEliminar(f.id); }} title="Eliminar" className="w-7 h-7 rounded-[7px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors" style={{ color: 'var(--pp-text3)' }}><Trash2 className="w-3.5 h-3.5" /></button>
                               </>
                             )}
                           </div>

@@ -6,6 +6,7 @@ import { Header } from '../shared/Header';
 import { FormField } from '../shared/FormField';
 import { inputClass } from '../../constants/styles';
 import { fmtCur } from '../../utils/format';
+import { confirmar } from '../shared/Dialogs';
 
 const userTableCols = '1.3fr 0.85fr 1.3fr 56px';
 
@@ -101,7 +102,7 @@ export function TallerSubUsuarios({ tallerId, tallerEmail, usuarios, onCrear, on
                   className="w-6 h-6 rounded-[6px] flex items-center justify-center hover:bg-[#2a2a2a] transition-colors flex-shrink-0" style={{ color: 'var(--pp-text3)' }}>
                   <Pencil className="w-3 h-3" />
                 </button>
-                <button onClick={() => { if (window.confirm(`¿Eliminar a ${u.nombre}?`)) onEliminar(u.uid); }}
+                <button onClick={async () => { if (await confirmar(`¿Eliminar a ${u.nombre}?`, { peligro: true })) onEliminar(u.uid); }}
                   className="w-6 h-6 rounded-[6px] flex items-center justify-center hover:bg-red-900/30 hover:text-red-400 transition-colors flex-shrink-0" style={{ color: 'var(--pp-text3)' }}>
                   <X className="w-3 h-3" />
                 </button>
@@ -416,7 +417,7 @@ export function AdminTalleres({ facturas = [], talleres, pedidos, tallerUsuarios
                 <button onClick={() => startEdit(t)} className="w-8 h-8 rounded-[9px] flex items-center justify-center transition-colors hover:bg-[#1e1e1e] hover:text-[#C6202B]" style={{ color: 'var(--pp-text3)' }} title="Editar">
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
-                <button onClick={() => { if (window.confirm(`¿Eliminar el taller "${t.nombre}"? Esta acción no se puede deshacer.`)) onDeleteTaller(t.uid); }} className="w-8 h-8 rounded-[9px] flex items-center justify-center transition-colors hover:bg-red-900/30 hover:text-red-400" style={{ color: 'var(--pp-text3)' }} title="Eliminar">
+                <button onClick={async () => { if (await confirmar(`¿Eliminar el taller "${t.nombre}"? Esta acción no se puede deshacer.`, { peligro: true })) onDeleteTaller(t.uid); }} className="w-8 h-8 rounded-[9px] flex items-center justify-center transition-colors hover:bg-red-900/30 hover:text-red-400" style={{ color: 'var(--pp-text3)' }} title="Eliminar">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>

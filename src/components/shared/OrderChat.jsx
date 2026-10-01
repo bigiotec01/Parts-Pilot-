@@ -3,6 +3,7 @@ import {
   FileText, AlertCircle, Send, MessageSquare, Paperclip, Trash2, X
 } from 'lucide-react';
 import { inputClass } from '../../constants/styles';
+import { confirmar } from './Dialogs';
 
 function ImageLightbox({ attachment, onClose }) {
   return (
@@ -61,7 +62,7 @@ export function OrderChat({ order, role, otherPartyName, onSendMessage, onDelete
   const mensajes = order.mensajes || [];
 
   const handleDelete = async (index) => {
-    if (!window.confirm('¿Borrar este mensaje? Esta acción no se puede deshacer.')) return;
+    if (!(await confirmar('¿Borrar este mensaje? Esta acción no se puede deshacer.', { peligro: true, confirmarTexto: 'Borrar' }))) return;
     setDeletingIndex(index);
     setChatError('');
     try {

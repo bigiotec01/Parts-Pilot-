@@ -11,6 +11,7 @@ import { PiezasList } from '../shared/PiezasList';
 import { inputClass } from '../../constants/styles';
 import { avgDeliveryLeadDays, suggestDeliveryDate, cleanText, filesOf } from '../../utils/format';
 import { parsePiezasExcel, mergePiezas, agregarPiezaManual, editarPieza, eliminarPieza, contarPiezasEnTienda, ESTADOS_PIEZA } from '../../utils/piezasExcel';
+import { confirmar } from '../shared/Dialogs';
 
 const AUTO_DATE_STATES = ['en_transito', 'recibido'];
 
@@ -204,7 +205,7 @@ export function useAdminOrderContent({ order, taller, onChangeStatus, onGenerate
     }
   };
   const handleEliminarPieza = async (p, index) => {
-    if (!window.confirm(`¿Eliminar la pieza ${p.numeroPieza}?`)) return;
+    if (!(await confirmar(`¿Eliminar la pieza ${p.numeroPieza}?`, { peligro: true }))) return;
     await onImportarPiezas(order.id, eliminarPieza(order.piezas, index));
   };
 
@@ -385,7 +386,7 @@ export function useAdminOrderContent({ order, taller, onChangeStatus, onGenerate
         <button onClick={handleSave} disabled={saving} className="flex-1 py-[13px] rounded-[11px] text-white font-bold text-[14px] hover:bg-[#8E1620] disabled:opacity-60" style={{ background: 'var(--pp-accent)' }}>
           {saving ? 'Guardando…' : 'Guardar cambios'}
         </button>
-        <button onClick={() => { if (window.confirm('¿Eliminar este pedido?')) onDeleteOrder(order.id); }} title="Eliminar pedido" className="w-[46px] h-[46px] flex-shrink-0 rounded-[11px] flex items-center justify-center transition-colors" style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)', color: '#f87171' }}>
+        <button onClick={async () => { if (await confirmar('¿Eliminar este pedido? Esta acción no se puede deshacer.', { peligro: true })) onDeleteOrder(order.id); }} title="Eliminar pedido" className="w-[46px] h-[46px] flex-shrink-0 rounded-[11px] flex items-center justify-center transition-colors" style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)', color: '#f87171' }}>
           <Trash2 className="w-4 h-4" />
         </button>
       </div>

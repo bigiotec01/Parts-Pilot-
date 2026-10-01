@@ -6,6 +6,7 @@ import { ArrowLeft, Check, RotateCcw, StickyNote, Trash2 } from 'lucide-react';
 import { db, auth } from '../../firebase';
 import { inputClass } from '../../constants/styles';
 import { formatDate } from '../../utils/format';
+import { confirmar, avisar } from '../shared/Dialogs';
 
 export function NotasView({ onExit }) {
   const [notas, setNotas] = useState(null);
@@ -48,16 +49,16 @@ export function NotasView({ onExit }) {
         estado: nota.estado === 'hecho' ? 'pendiente' : 'hecho',
       });
     } catch (err) {
-      alert(err.message);
+      avisar(err.message, { titulo: 'Error' });
     }
   };
 
   const eliminar = async (nota) => {
-    if (!confirm('¿Eliminar esta nota?')) return;
+    if (!(await confirmar('¿Eliminar esta nota?', { peligro: true }))) return;
     try {
       await deleteDoc(doc(db, 'notasSuperAdmin', nota.id));
     } catch (err) {
-      alert(err.message);
+      avisar(err.message, { titulo: 'Error' });
     }
   };
 

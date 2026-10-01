@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { httpsCallable } from 'firebase/functions';
 import { AlertCircle, CheckCircle2, LogOut } from 'lucide-react';
 import { functions } from '../../firebase';
+import { confirmar as confirmarDialogo } from '../shared/Dialogs';
 
 const ETIQUETAS = {
   admins: 'Equipo (admins)',
@@ -38,9 +39,10 @@ export function MigrationScreen({ onLogout }) {
     }
   };
 
-  const confirmar = () => {
-    const ok = window.confirm(
-      'Esto va a modificar datos reales de producción: convierte a Mana Auto en el primer tenant del sistema. ¿Confirmas que quieres continuar?'
+  const confirmar = async () => {
+    const ok = await confirmarDialogo(
+      'Esto va a modificar datos reales de producción: convierte a Mana Auto en el primer tenant del sistema. ¿Confirmas que quieres continuar?',
+      { peligro: true, titulo: 'Migrar datos', confirmarTexto: 'Continuar' }
     );
     if (ok) llamar(false);
   };
