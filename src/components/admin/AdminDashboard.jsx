@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import {
-  Clock, FileText, Building2, ChevronRight, ClipboardList, CheckCircle2, ChevronUp, ChevronDown, ChevronsUpDown, Eye, ArrowRightCircle
+  Clock, FileText, Building2, ChevronRight, ClipboardList, CheckCircle2, ChevronUp, ChevronDown, ChevronsUpDown, Eye, ArrowRightCircle, Truck, PackageCheck, BadgeCheck, Sun
 } from 'lucide-react';
 import { hasNewActivity } from '../../utils/activity';
-import { formatDate, cleanText } from '../../utils/format';
+import { formatDate, cleanText, toDateAny, esHoy } from '../../utils/format';
 import { StatusBadge } from '../shared/StatusBadge';
 import { StatCard } from '../shared/StatCard';
 import { DashboardChart } from '../shared/DashboardChart';
@@ -18,7 +18,64 @@ const COLUMNS = [
   { key: 'fecha',  label: 'Fecha', align: 'right' },
 ];
 
-export function AdminDashboard({ pedidos, solicitudes, talleres, getTaller, onSelect, onGoToPedidos, onGoToEstimados, onGoToNuevo, onShowReporte, onChangeStatus }) {
+// Bloque "Para hoy": lo que hay que atender hoy, en una sola vista.
+function ParaHoy({ pedidos, aprobados, getTaller, onSelect, onGoToAprobados }) {
+  const finDeHoy = new Date(); finDeHoy.setHours(23, 59, 59, 999);
+  const entregas = pedidos
+    .filter(p => { const d = toDateAny(p.fechaEntrega); return d && d <= finDeHoy; })
+    .sort((a, b) => toDateAny(a.fechaEntrega) - toDateAny(b.fechaEntrega));
+  const conPiezasHoy = pedidos
+    .map(p => ({ p, n: (p.piezas || []).filter(pz => esHoy(pz.fechaRecibida)).length }))
+    .filter(x => x.n > 0);
+  const piezasHoy = conPiezasHoy.reduce((acc, x) => acc + x.n, 0);
+
+  const Item = ({ p, extra, tone }) => (
+    <button onClick={() => onSelect(p.id)} className="w-full text-left flex items-center gap-2 px-2.5 py-1.5 rounded-[9px] transition-colors hover:bg-[var(--pp-hover)] min-w-0">
+      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: tone }} />
+      <span className="text-[12px] font-semibold truncate flex-1 min-w-0" style={{ color: 'var(--pp-text)' }}>{p.numeroPO ? `PO# ${p.numeroPO}` : p.vehiculo || p.folio}</span>
+      <span className="text-[11px] flex-shrink-0 truncate max-w-[45%]" style={{ color: 'var(--pp-text3)' }}>{extra}</span>
+    </button>
+  );
+
+  const Col = ({ icon: Icon, tone, titulo, valor, vacio, children, onHeaderClick }) => (
+    <div className="rounded-[13px] p-3 border flex flex-col min-w-0" style={{ borderColor: 'var(--pp-border2)', background: 'var(--pp-surface)' }}>
+      <button type="button" onClick={onHeaderClick} disabled={!onHeaderClick} className="flex items-center gap-2.5 mb-2 text-left disabled:cursor-default">
+        <span className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0" style={{ background: `${tone}1f` }}><Icon className="w-4 h-4" style={{ color: tone }} /></span>
+        <span className="min-w-0">
+          <span className="block text-[20px] font-extrabold leading-none" style={{ color: valor ? 'var(--pp-text)' : 'var(--pp-text3)' }}>{valor}</span>
+          <span className="block text-[11.5px] font-semibold mt-0.5 truncate" style={{ color: 'var(--pp-text2)' }}>{titulo}</span>
+        </span>
+      </button>
+      {valor ? children : <p className="text-[11.5px] px-1" style={{ color: 'var(--pp-text3)' }}>{vacio}</p>}
+    </div>
+  );
+
+  return (
+    <div className="rounded-[16px] p-5 border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)', animation: 'ppRise .3s ease both' }}>
+      <div className="flex items-center gap-2 mb-3">
+        <Sun className="w-4 h-4" style={{ color: '#f59e0b' }} />
+        <h2 className="text-[15px] font-bold" style={{ color: 'var(--pp-text)' }}>Para hoy</h2>
+        <span className="text-[12px] capitalize" style={{ color: 'var(--pp-text3)' }}>· {new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+      </div>
+      <div className="grid sm:grid-cols-3 gap-3">
+        <Col icon={Truck} tone="#ef4444" titulo="Entregas hoy / vencidas" valor={entregas.length} vacio="Ninguna entrega para hoy.">
+          {entregas.slice(0, 3).map(p => <Item key={p.id} p={p} tone={esHoy(p.fechaEntrega) ? '#f59e0b' : '#ef4444'} extra={esHoy(p.fechaEntrega) ? 'hoy' : `vencida · ${formatDate(p.fechaEntrega)}`} />)}
+          {entregas.length > 3 && <p className="text-[11px] px-2.5 mt-0.5" style={{ color: 'var(--pp-text3)' }}>+{entregas.length - 3} más</p>}
+        </Col>
+        <Col icon={PackageCheck} tone="#10b981" titulo={`Pieza${piezasHoy === 1 ? '' : 's'} recibida${piezasHoy === 1 ? '' : 's'} hoy`} valor={piezasHoy} vacio="Aún no llegan piezas hoy.">
+          {conPiezasHoy.slice(0, 3).map(({ p, n }) => <Item key={p.id} p={p} tone="#10b981" extra={`${n} pieza${n === 1 ? '' : 's'} · ${getTaller(p.tallerId)?.nombre || ''}`} />)}
+          {conPiezasHoy.length > 3 && <p className="text-[11px] px-2.5 mt-0.5" style={{ color: 'var(--pp-text3)' }}>+{conPiezasHoy.length - 3} pedidos más</p>}
+        </Col>
+        <Col icon={BadgeCheck} tone="#6366f1" titulo="Aprobadas sin mover" valor={aprobados.length} vacio="Todas las órdenes aprobadas ya están en Pedidos." onHeaderClick={aprobados.length ? onGoToAprobados : undefined}>
+          {aprobados.slice(0, 3).map(p => <Item key={p.id} p={p} tone="#6366f1" extra={getTaller(p.tallerId)?.nombre || p.tallerNombre || ''} />)}
+          {aprobados.length > 3 && <button onClick={onGoToAprobados} className="text-[11px] font-semibold px-2.5 mt-0.5 text-left hover:underline" style={{ color: 'var(--pp-text2)' }}>Ver las {aprobados.length} →</button>}
+        </Col>
+      </div>
+    </div>
+  );
+}
+
+export function AdminDashboard({ pedidos, solicitudes, aprobados = [], onGoToAprobados, talleres, getTaller, onSelect, onGoToPedidos, onGoToEstimados, onGoToNuevo, onShowReporte, onChangeStatus }) {
   const [sort, setSort] = useState({ key: 'fecha', dir: 'desc' });
 
   const total = pedidos.length;
@@ -47,6 +104,8 @@ export function AdminDashboard({ pedidos, solicitudes, talleres, getTaller, onSe
 
   return (
     <div className="space-y-4">
+      <ParaHoy pedidos={pedidos} aprobados={aprobados} getTaller={getTaller} onSelect={onSelect} onGoToAprobados={onGoToAprobados} />
+
       {/* KPIs */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard label="Solicitudes nuevas" value={solicitudes.length} icon={FileText} iconBg="rgba(198,32,43,0.1)" iconColor="#c0c0c0" chipLabel="Atención" chipBg="rgba(198,32,43,0.12)" chipColor="#c0c0c0" highlight

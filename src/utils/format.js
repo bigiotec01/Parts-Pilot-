@@ -84,3 +84,39 @@ export function suggestDeliveryDate(estado, avgLeadDays) {
 /* ------------------------------------------------------------------ */
 /*  ADMIN FACTURAS                                                      */
 /* ------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------ */
+/*  Antigüedad / "hoy"                                                 */
+/* ------------------------------------------------------------------ */
+
+// Acepta Timestamp de Firestore, Date, 'YYYY-MM-DD' (fecha local) o ISO.
+export function toDateAny(d) {
+  if (!d) return null;
+  if (d?.toDate) return d.toDate();
+  if (d instanceof Date) return isNaN(d) ? null : d;
+  const s = String(d);
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(s + 'T00:00:00') : new Date(s);
+  return isNaN(date) ? null : date;
+}
+
+export function esHoy(d) {
+  const date = toDateAny(d);
+  if (!date) return false;
+  return date.toDateString() === new Date().toDateString();
+}
+
+// Cuánto lleva esperando algo, con un color según urgencia:
+// verde (≤1 día), ámbar (2–3 días), rojo (más de 3 días).
+export function antiguedad(d) {
+  const date = toDateAny(d);
+  if (!date) return null;
+  const horas = Math.max(0, (Date.now() - date.getTime()) / 3600000);
+  const dias = Math.floor(horas / 24);
+  const texto = horas < 1 ? 'hace un momento'
+    : horas < 24 ? `hace ${Math.floor(horas)} h`
+    : dias === 1 ? 'hace 1 día' : `hace ${dias} días`;
+  const tono = dias <= 1 ? { color: '#059669', bg: 'rgba(16,185,129,0.12)' }
+    : dias <= 3 ? { color: '#d97706', bg: 'rgba(245,158,11,0.14)' }
+    : { color: '#dc2626', bg: 'rgba(239,68,68,0.12)' };
+  return { texto, dias, ...tono };
+}

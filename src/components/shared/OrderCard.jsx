@@ -6,6 +6,7 @@ import { formatDate } from '../../utils/format';
 import { StatusBadge } from './StatusBadge';
 import { QuickActionsMenu } from './QuickActionsMenu';
 import { CopyChip } from './CopyChip';
+import { TagLogicBadge, PiezasProgress } from './OrderBadges';
 import { STATUS_CONFIG, getNextStatus } from '../../constants/status';
 
 const isEntregaVencida = (order) => {
@@ -51,6 +52,7 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
             ) : (
               <h3 className="font-bold text-[14.5px] truncate min-w-0 max-w-full" style={{ color: 'var(--pp-text)' }}>{cardTitle}</h3>
             )}
+            <TagLogicBadge order={order} />
             {hasActivity && (
               <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>
                 <span className="relative flex h-2 w-2">
@@ -118,6 +120,7 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
           {showTaller && order.notasInternas && <StickyNote className="w-3.5 h-3.5" style={{ color: 'var(--pp-text3)' }} />}
         </div>
       </div>
+      <PiezasProgress piezas={order.piezas} className="mt-2.5" />
       {order.fechaEntrega && (
         <div className="mt-2 flex items-center gap-1 text-[11.5px] font-semibold" style={{ color: '#2563eb' }}>
           <Truck className="w-3.5 h-3.5 flex-shrink-0" /> Entrega est.: {formatDate(order.fechaEntrega)}
@@ -198,6 +201,7 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
           ) : (
             <span className="font-bold text-[13.5px] truncate" style={{ color: 'var(--pp-text)' }}>{title}</span>
           )}
+          <TagLogicBadge order={order} />
           {hasActivity && (
             <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>Actualizado</span>
           )}
@@ -210,6 +214,7 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
             {title}
           </p>
         )}
+        <PiezasProgress piezas={order.piezas} className="mt-1.5 max-w-[260px]" />
       </div>
 
       {showTaller && taller ? (

@@ -4,15 +4,15 @@ import {
 } from 'lucide-react';
 import { hasNewActivity } from '../../utils/activity';
 import { formatDate, cleanText, filesOf } from '../../utils/format';
+import { EmptyState } from '../shared/FormField';
+import { AgeBadge, TagLogicBadge } from '../shared/OrderBadges';
 
-export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
+export function AdminEstimados({ solicitudes, getTaller, onSelect, onGoToNuevaCotizacion }) {
   const [view, setView] = useState('lista');
 
   if (solicitudes.length === 0) return (
-    <div className="text-center py-14" style={{ color: 'var(--pp-text9)' }}>
-      <FileText className="w-10 h-10 mx-auto mb-2 opacity-40" />
-      <p className="text-sm">No hay estimados pendientes.</p>
-    </div>
+    <EmptyState icon={FileText} tone="#3b82f6" title="Todo cotizado" text="No hay solicitudes esperando estimado ni respuesta del taller."
+      actionLabel={onGoToNuevaCotizacion ? 'Crear nueva cotización' : undefined} onAction={onGoToNuevaCotizacion} />
   );
 
   const sinEstimado = solicitudes.filter(p => p.estado === 'pendiente');
@@ -69,7 +69,10 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
             </p>
           );
         })()}
-        <p className="font-mono text-[11.5px] mt-2.5" style={{ color: 'var(--pp-text3)' }}>{p.folio || p.id?.slice(0,8)} · {formatDate(p.fecha)}</p>
+        <div className="flex items-center justify-between gap-2 mt-2.5">
+          <p className="font-mono text-[11.5px]" style={{ color: 'var(--pp-text3)' }}>{p.folio || p.id?.slice(0,8)} · {formatDate(p.fecha)}</p>
+          <AgeBadge fecha={p.fecha} />
+        </div>
       </button>
     );
   };
@@ -94,6 +97,8 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect }) {
           </p>
         </div>
         {hasAct && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#f59e0b' }} />}
+        <TagLogicBadge order={p} />
+        <AgeBadge fecha={p.fecha} />
         {isCotizando ? (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold flex-shrink-0" style={{ background: '#eef4ff', color: '#2563eb' }}>
             <FileText className="w-3 h-3" /> Esperando aprobación

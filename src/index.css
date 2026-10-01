@@ -146,6 +146,12 @@ body { overflow-x: hidden; }
 @keyframes ppSlide { from { transform: translateX(24px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes ppRise  { from { transform: translateY(8px); opacity: 0; }  to { transform: translateY(0); opacity: 1; } }
 @keyframes ppSheet { from { transform: translateY(100%); }             to { transform: translateY(0); } }
+/* Fila recién llegada: destello verde que se desvanece */
+@keyframes ppNuevo {
+  0%   { background-color: rgba(16, 185, 129, 0.28); box-shadow: inset 4px 0 0 #10b981; }
+  70%  { background-color: rgba(16, 185, 129, 0.10); box-shadow: inset 4px 0 0 #10b981; }
+  100% { background-color: transparent;              box-shadow: inset 0 0 0 transparent; }
+}
 @keyframes ppAlertBlink {
   0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.2), 0 0 0 1px rgba(239, 68, 68, 0.35); }
   50% { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.32), 0 0 0 1px rgba(239, 68, 68, 0.65); }

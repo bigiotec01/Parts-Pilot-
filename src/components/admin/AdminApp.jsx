@@ -16,6 +16,8 @@ import { ReporteModal } from './ReporteModal';
 import { openCalcularWindow } from './CalcularWindow';
 import { AdminEstimados } from './AdminEstimados';
 import { AdminAprobados } from './AdminAprobados';
+import { NotifToast } from '../shared/NotifToast';
+import { toDateAny } from '../../utils/format';
 import { AdminFacturas } from './AdminFacturas';
 import { AdminEmpresas } from './AdminEmpresas';
 import { AdminInvoices } from './AdminInvoices';
@@ -106,6 +108,43 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
     setSelectedDrawerTab(drawerTab);
   };
 
+  // Aviso cuando llega una orden nueva de Tag Logic: toast + la fila queda
+  // resaltada unos segundos en Aprobados. Solo cuenta como "nueva" si llegó hace
+  // menos de 10 min, para no avisar de todo lo existente al abrir la app.
+  const [toastAprobado, setToastAprobado] = useState(null);
+  const [nuevosAprobados, setNuevosAprobados] = useState(() => new Set());
+  const avisadosRef = useRef(new Set());
+  const toastTimerRef = useRef(null);
+  useEffect(() => {
+    const recientes = aprobados.filter(p => {
+      if (avisadosRef.current.has(p.id)) return false;
+      avisadosRef.current.add(p.id);
+      const d = toDateAny(p.fecha);
+      return d && Date.now() - d.getTime() < 10 * 60 * 1000;
+    });
+    if (!recientes.length) return;
+    const ids = recientes.map(p => p.id);
+    const primera = recientes[0];
+    setToastAprobado({
+      title: recientes.length === 1 ? 'Nueva orden aprobada' : `${recientes.length} órdenes aprobadas nuevas`,
+      body: recientes.length === 1
+        ? `${primera.vehiculo || primera.folio || ''}${(getTaller(primera.tallerId)?.nombre || primera.tallerNombre) ? ` · ${getTaller(primera.tallerId)?.nombre || primera.tallerNombre}` : ''}`
+        : 'Desde Tag Logic · toca para verlas',
+      icon: BadgeCheck,
+      color: 'linear-gradient(160deg, #10b981, #047857)',
+    });
+    clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToastAprobado(null), 8000);
+    setNuevosAprobados(prev => new Set([...prev, ...ids]));
+    setTimeout(() => setNuevosAprobados(prev => { const n = new Set(prev); ids.forEach(id => n.delete(id)); return n; }), 6000);
+  }, [aprobados]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => clearTimeout(toastTimerRef.current), []);
+
+  const toastAprobadoEl = toastAprobado && (
+    <NotifToast toast={toastAprobado} placement="bottom" onClose={() => setToastAprobado(null)}
+      onClick={() => { setToastAprobado(null); goTo('aprobados'); }} />
+  );
+
   const allPedidos = pedidos;
   const notifications = useMemo(() => getAdminNotifications(allPedidos, getTaller), [allPedidos, getTaller]);
 
@@ -173,10 +212,10 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
             />
           ) : (
             <>
-              {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
+              {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} aprobados={aprobados} onGoToAprobados={() => goTo('aprobados')} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
               {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} todosLosPedidos={pedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={selectOrder} onExport={() => setShowReporte(true)} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
-              {activeTab === 'aprobados' && <AdminAprobados aprobados={aprobados} getTaller={getTaller} onSelect={selectOrder} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
-            {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={selectOrder} />}
+              {activeTab === 'aprobados' && <AdminAprobados aprobados={aprobados} nuevosIds={nuevosAprobados} onGoToPedidos={() => goTo('pedidos')} getTaller={getTaller} onSelect={selectOrder} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
+            {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={selectOrder} onGoToNuevaCotizacion={canEdit('estimados') ? () => goTo('cotizacion') : undefined} />}
               {activeTab === 'talleres' && <AdminTalleres facturas={facturas} talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} onActualizarSubUsuario={onActualizarSubUsuario} onResetPassword={onResetPassword} />}
               {activeTab === 'empresas' && <AdminEmpresas empresasClientes={empresasClientes} onCrear={onCrearEmpresaCliente} onActualizar={onActualizarEmpresaCliente} onEliminar={onEliminarEmpresaCliente} readOnly={!canEdit('empresas')} />}
               {activeTab === 'nuevo' && <AdminNuevoPedido talleres={talleres} pedidos={todosPedidos} onCreate={(data) => { onCreateOrder(data); goTo('pedidos'); }} />}
@@ -229,10 +268,10 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
         {/* Contenido */}
         <main className="pb-24 px-4 py-4">
           <div className="max-w-2xl mx-auto">
-            {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} />}
+            {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} aprobados={aprobados} onGoToAprobados={() => goTo('aprobados')} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} />}
             {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} todosLosPedidos={pedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={selectOrder} onExport={() => setShowReporte(true)} />}
-            {activeTab === 'aprobados' && <AdminAprobados aprobados={aprobados} getTaller={getTaller} onSelect={selectOrder} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
-            {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={selectOrder} />}
+            {activeTab === 'aprobados' && <AdminAprobados aprobados={aprobados} nuevosIds={nuevosAprobados} onGoToPedidos={() => goTo('pedidos')} getTaller={getTaller} onSelect={selectOrder} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
+            {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={selectOrder} onGoToNuevaCotizacion={canEdit('estimados') ? () => goTo('cotizacion') : undefined} />}
             {activeTab === 'talleres' && <AdminTalleres facturas={facturas} talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} onActualizarSubUsuario={onActualizarSubUsuario} onResetPassword={onResetPassword} />}
             {activeTab === 'empresas' && <AdminEmpresas empresasClientes={empresasClientes} onCrear={onCrearEmpresaCliente} onActualizar={onActualizarEmpresaCliente} onEliminar={onEliminarEmpresaCliente} readOnly={!canEdit('empresas')} />}
             {activeTab === 'nuevo' && <AdminNuevoPedido talleres={talleres} pedidos={todosPedidos} onCreate={(data) => { onCreateOrder(data); goTo('pedidos'); }} />}
@@ -282,6 +321,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
           />
         )}
         {showReporte && <ReporteModal pedidos={pedidos} talleres={talleres} onClose={() => setShowReporte(false)} />}
+        {toastAprobadoEl}
       </div>
     );
   }
@@ -307,6 +347,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
       />
       {mainContent}
       {showReporte && <ReporteModal pedidos={pedidos} talleres={talleres} onClose={() => setShowReporte(false)} />}
+      {toastAprobadoEl}
     </div>
   );
 }

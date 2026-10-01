@@ -188,7 +188,9 @@ export function AdminPedidos({ pedidos, todosLosPedidos, talleres, getTaller, fi
       )}
 
       {pedidos.length === 0 ? (
-        <EmptyState text="No hay pedidos que coincidan con los filtros." />
+        chips.length > 0
+          ? <EmptyState icon={Search} title="Sin resultados" text="No hay pedidos que coincidan con los filtros." actionLabel="Limpiar filtros" onAction={() => { setFilterTaller('todos'); setFilterEstado('todos'); setSearch(''); }} />
+          : <EmptyState title="Sin pedidos activos" text="Cuando registres un pedido o pases una orden aprobada, aparecerá aquí." />
       ) : view === 'tablero' ? (
         <KanbanBoard pedidos={pedidos} getTaller={getTaller} onSelect={onSelect} onChangeStatus={onChangeStatus} hideEmpty={hideEmpty} />
       ) : view === 'lista' ? (
