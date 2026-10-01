@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  FileText, LogOut, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt, ChevronUp, Building2, Calculator, FileSpreadsheet
+  FileText, LogOut, LayoutDashboard, ClipboardList, Users, History, ClipboardCheck, Receipt, ChevronUp, Building2, Calculator, FileSpreadsheet, BadgeCheck
 } from 'lucide-react';
 import { APP_VERSION } from '../../constants/app';
 import { ThemeToggleBtn } from '../shared/ThemeToggleBtn';
 
-export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onLogout, canView, canEdit, canManageEquipo, tenantHasModulo, perfil, isSuperadmin, isPlatformSuperAdmin, onOpenSuperAdmin, onOpenCalcular }) {
+export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, aprobadosCount, onLogout, canView, canEdit, canManageEquipo, tenantHasModulo, perfil, isSuperadmin, isPlatformSuperAdmin, onOpenSuperAdmin, onOpenCalcular }) {
   // tenantHasModulo: si la empresa no tiene esa sección habilitada (según su compra
   // del sistema), no se muestra aunque el admin individual tenga permiso — se
   // combina con canView/canEdit/canManageEquipo, que siguen siendo el permiso por
@@ -14,6 +14,7 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
   const primaryItems = [
     { id: 'dashboard',                     label: 'Resumen',    icon: LayoutDashboard },
     canView('pedidos')   && tHas('pedidos')   && { id: 'pedidos',    label: 'Pedidos',    icon: ClipboardList, badge: pedidosCount },
+    canView('pedidos')   && tHas('pedidos')   && { id: 'aprobados',  label: 'Aprobados',  icon: BadgeCheck, badge: aprobadosCount },
     canView('estimados') && tHas('estimados') && { id: 'estimados',  label: 'Estimados',  icon: FileText, badge: solicitudesCount, accent: true },
     canView('talleres')  && tHas('talleres')  && { id: 'talleres',   label: 'Talleres',   icon: Users },
     canView('empresas')  && tHas('empresas')  && { id: 'empresas',   label: 'Empresas',   icon: Building2 },

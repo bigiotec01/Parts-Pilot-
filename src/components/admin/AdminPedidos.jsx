@@ -1,11 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import {
-  Search, Printer, X, LayoutGrid, Columns3, List
+  Search, Printer, X, LayoutGrid, Columns3, List, DatabaseBackup, FileSpreadsheet, FileJson
 } from 'lucide-react';
 import { STATUS_CONFIG, STATUS_ORDER } from '../../constants/status';
 import { OrderCard, OrderListHeader, OrderListRow } from '../shared/OrderCard';
 import { EmptyState } from '../shared/FormField';
 import { inputClass } from '../../constants/styles';
+import { descargarBackupExcel, descargarBackupJSON } from '../../utils/pedidosBackup';
+import { avisar } from '../shared/Dialogs';
 
 const toTime = (d) => {
   if (!d) return 0;
@@ -53,7 +55,49 @@ function KanbanBoard({ pedidos, getTaller, onSelect, onChangeStatus, hideEmpty }
   );
 }
 
-export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFilterTaller, filterEstado, setFilterEstado, search, setSearch, onSelect, onExport, onChangeStatus }) {
+// Descarga un respaldo de TODOS los pedidos de la empresa (activos, estimados,
+// aprobados e historial), no solo los que se ven con los filtros actuales.
+function BackupButton({ todosLosPedidos, getTaller }) {
+  const [open, setOpen] = useState(false);
+  const [generando, setGenerando] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const run = async (fn) => {
+    setOpen(false);
+    setGenerando(true);
+    try { await fn(); }
+    catch (err) { avisar('No se pudo generar el backup: ' + (err.message || err)); }
+    finally { setGenerando(false); }
+  };
+
+  return (
+    <div className="relative flex-shrink-0" ref={ref}>
+      <button onClick={() => setOpen(v => !v)} disabled={generando} className="flex items-center justify-center gap-2 text-sm font-medium px-4 py-2.5 rounded-lg border transition-colors disabled:opacity-60 w-full" style={{ borderColor: 'var(--pp-border4)', color: 'var(--pp-text)', background: 'var(--pp-surface)' }} title="Descargar un respaldo de todos los pedidos">
+        <DatabaseBackup className="w-4 h-4" /> {generando ? 'Generando…' : 'Backup'}
+      </button>
+      {open && (
+        <div className="absolute right-0 top-[calc(100%+4px)] min-w-[230px] rounded-[12px] border py-1.5 z-30" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border3)', boxShadow: '0 16px 40px rgba(0,0,0,0.45)' }}>
+          <p className="px-3.5 pt-1 pb-2 text-[11px]" style={{ color: 'var(--pp-text3)' }}>{todosLosPedidos.length} pedidos en total</p>
+          <button onClick={() => run(() => descargarBackupExcel(todosLosPedidos, getTaller))} className="w-full flex items-center gap-2.5 text-left px-3.5 py-2 text-[12.5px] font-semibold transition-colors hover:bg-[#1e1e1e]" style={{ color: 'var(--pp-text)' }}>
+            <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0" /> Excel (para revisar)
+          </button>
+          <button onClick={() => run(() => descargarBackupJSON(todosLosPedidos))} className="w-full flex items-center gap-2.5 text-left px-3.5 py-2 text-[12.5px] font-semibold transition-colors hover:bg-[#1e1e1e]" style={{ color: 'var(--pp-text)' }}>
+            <FileJson className="w-3.5 h-3.5 flex-shrink-0" /> JSON (copia completa)
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function AdminPedidos({ pedidos, todosLosPedidos, talleres, getTaller, filterTaller, setFilterTaller, filterEstado, setFilterEstado, search, setSearch, onSelect, onExport, onChangeStatus }) {
   const [view, setView] = useState('lista');
   const [hideEmpty, setHideEmpty] = useState(true);
   const [sortBy, setSortBy] = useState('fecha');
@@ -128,6 +172,7 @@ export function AdminPedidos({ pedidos, talleres, getTaller, filterTaller, setFi
         <button onClick={onExport} className="flex items-center justify-center gap-2 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex-shrink-0 hover:bg-[#8E1620]" style={{ background: 'var(--pp-accent)' }} title="Vista previa e impresión/PDF de los pedidos activos">
           <Printer className="w-4 h-4" /> Reporte
         </button>
+        {todosLosPedidos && <BackupButton todosLosPedidos={todosLosPedidos} getTaller={getTaller} />}
       </div>
 
       {chips.length > 0 && (

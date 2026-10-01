@@ -5,6 +5,7 @@ import { hasNewActivity } from '../../utils/activity';
 import { formatDate } from '../../utils/format';
 import { StatusBadge } from './StatusBadge';
 import { QuickActionsMenu } from './QuickActionsMenu';
+import { CopyChip } from './CopyChip';
 import { STATUS_CONFIG, getNextStatus } from '../../constants/status';
 
 const isEntregaVencida = (order) => {
@@ -42,9 +43,14 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-bold text-[14.5px] truncate min-w-0 max-w-full" style={{ color: 'var(--pp-text)' }}>
-              {hasNewIds ? [order.numeroPO && `PO# ${order.numeroPO}`, order.numeroOrden && `Orden ${order.numeroOrden}`].filter(Boolean).join('  ·  ') : cardTitle}
-            </h3>
+            {hasNewIds ? (
+              <>
+                <CopyChip label="PO#" value={order.numeroPO} />
+                <CopyChip label="Orden" value={order.numeroOrden} />
+              </>
+            ) : (
+              <h3 className="font-bold text-[14.5px] truncate min-w-0 max-w-full" style={{ color: 'var(--pp-text)' }}>{cardTitle}</h3>
+            )}
             {hasActivity && (
               <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>
                 <span className="relative flex h-2 w-2">
@@ -184,9 +190,14 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
     >
       <div className="min-w-0">
         <div className="flex items-center gap-2 flex-wrap min-w-0">
-          <span className="font-bold text-[13.5px] truncate" style={{ color: 'var(--pp-text)' }}>
-            {hasNewIds ? [order.numeroPO && `PO# ${order.numeroPO}`, order.numeroOrden && `Orden ${order.numeroOrden}`].filter(Boolean).join('  ·  ') : title}
-          </span>
+          {hasNewIds ? (
+            <>
+              <CopyChip label="PO#" value={order.numeroPO} size="sm" />
+              <CopyChip label="Orden" value={order.numeroOrden} size="sm" />
+            </>
+          ) : (
+            <span className="font-bold text-[13.5px] truncate" style={{ color: 'var(--pp-text)' }}>{title}</span>
+          )}
           {hasActivity && (
             <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>Actualizado</span>
           )}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  FileText, LogOut, LayoutDashboard, ClipboardList, History, Receipt, Building2
+  FileText, LogOut, LayoutDashboard, ClipboardList, History, Receipt, Building2, BadgeCheck
 } from 'lucide-react';
 import { APP_VERSION } from '../../constants/app';
 import { getAdminNotifications, hasNewActivity, saveOrderSeen } from '../../utils/activity';
@@ -15,6 +15,7 @@ import { AdminNuevaCotizacion } from './AdminNuevaCotizacion';
 import { ReporteModal } from './ReporteModal';
 import { openCalcularWindow } from './CalcularWindow';
 import { AdminEstimados } from './AdminEstimados';
+import { AdminAprobados } from './AdminAprobados';
 import { AdminFacturas } from './AdminFacturas';
 import { AdminEmpresas } from './AdminEmpresas';
 import { AdminInvoices } from './AdminInvoices';
@@ -59,11 +60,15 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
   // 'pendiente' pero con tipo 'pedido' — no necesita cotización, así que no debe entrar aquí.
   // Una vez que el admin avanza el estado a mano (sin pasar por "Enviar estimado", que es
   // lo único que cambia tipo a 'pedido'), estado ya no es 'pendiente' y el pedido sale solo.
-  const esperandoCotizar = (p) => p.estado === 'pendiente' && p.tipo === 'solicitud';
+  // Las órdenes de Tag Logic llegan ya aprobadas: no se cotizan, van a "Aprobados"
+  // hasta que el admin las pasa a Pedidos (cualquier cambio de estado las saca de ahí).
+  const esAprobadoTagLogic = (p) => p.estado === 'pendiente' && p.origen === 'taglogic';
+  const esperandoCotizar = (p) => p.estado === 'pendiente' && p.tipo === 'solicitud' && !esAprobadoTagLogic(p);
+  const aprobados    = pedidos.filter(esAprobadoTagLogic);
   const solicitudes  = pedidos.filter(esperandoCotizar);
   const cotizando    = pedidos.filter(p => p.estado === 'cotizando');
   const enEstimados  = [...solicitudes, ...cotizando];
-  const todosPedidos = pedidos.filter(p => !esperandoCotizar(p) && p.estado !== 'cotizando');
+  const todosPedidos = pedidos.filter(p => !esperandoCotizar(p) && !esAprobadoTagLogic(p) && p.estado !== 'cotizando');
   const solosPedidos = todosPedidos.filter(p => p.estado !== 'entregado' && p.estado !== 'rechazado');
   const pedidosCount     = solosPedidos.filter(p => hasNewActivity('admin', p)).length;
   const solicitudesCount = enEstimados.filter(p => hasNewActivity('admin', p)).length;
@@ -78,6 +83,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
   const PAGE_META = {
     dashboard:  { title: 'Resumen',           sub: 'Vista general de la operación' },
     pedidos:    { title: 'Pedidos',            sub: solosPedidos.length === 1 ? '1 pedido en total' : `${solosPedidos.length} pedidos en total` },
+    aprobados:  { title: 'Aprobados',          sub: 'Órdenes de Tag Logic listas para pasar a pedidos' },
     estimados:  { title: 'Estimados',          sub: 'Solicitudes esperando cotización' },
     talleres:   { title: 'Talleres',           sub: talleres.length === 1 ? '1 taller registrado' : `${talleres.length} talleres registrados` },
     empresas:   { title: 'Empresas',           sub: 'Cuentas de facturación distintas de tus talleres' },
@@ -168,8 +174,9 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
           ) : (
             <>
               {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
-              {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={selectOrder} onExport={() => setShowReporte(true)} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
-              {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={selectOrder} />}
+              {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} todosLosPedidos={pedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={selectOrder} onExport={() => setShowReporte(true)} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
+              {activeTab === 'aprobados' && <AdminAprobados aprobados={aprobados} getTaller={getTaller} onSelect={selectOrder} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
+            {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={selectOrder} />}
               {activeTab === 'talleres' && <AdminTalleres facturas={facturas} talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} onActualizarSubUsuario={onActualizarSubUsuario} onResetPassword={onResetPassword} />}
               {activeTab === 'empresas' && <AdminEmpresas empresasClientes={empresasClientes} onCrear={onCrearEmpresaCliente} onActualizar={onActualizarEmpresaCliente} onEliminar={onEliminarEmpresaCliente} readOnly={!canEdit('empresas')} />}
               {activeTab === 'nuevo' && <AdminNuevoPedido talleres={talleres} pedidos={todosPedidos} onCreate={(data) => { onCreateOrder(data); goTo('pedidos'); }} />}
@@ -190,6 +197,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
     const mobileNav = [
       { id: 'dashboard', label: 'Resumen',   icon: LayoutDashboard },
       canView('pedidos')   && tenantHasModulo('pedidos')   && { id: 'pedidos',  label: 'Pedidos',   icon: ClipboardList, badge: pedidosCount },
+      canView('pedidos')   && tenantHasModulo('pedidos')   && { id: 'aprobados', label: 'Aprobados', icon: BadgeCheck, badge: aprobados.length },
       canView('estimados') && tenantHasModulo('estimados') && { id: 'estimados',label: 'Estimados', icon: FileText, badge: solicitudesCount, accent: true },
       canView('facturas')  && tenantHasModulo('facturas')  && { id: 'facturas',  label: 'Facturas',  icon: Receipt },
       canView('pedidos')   && tenantHasModulo('historial') && { id: 'historial', label: 'Historial', icon: History },
@@ -222,7 +230,8 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
         <main className="pb-24 px-4 py-4">
           <div className="max-w-2xl mx-auto">
             {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} />}
-            {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={selectOrder} onExport={() => setShowReporte(true)} />}
+            {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} todosLosPedidos={pedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={selectOrder} onExport={() => setShowReporte(true)} />}
+            {activeTab === 'aprobados' && <AdminAprobados aprobados={aprobados} getTaller={getTaller} onSelect={selectOrder} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
             {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={selectOrder} />}
             {activeTab === 'talleres' && <AdminTalleres facturas={facturas} talleres={talleres} pedidos={pedidos} tallerUsuarios={tallerUsuarios} onCreateTaller={onCreateTaller} onDeleteTaller={onDeleteTaller} onUpdateTaller={onUpdateTaller} onVerPedidos={(tallerId) => { setFilterTaller(String(tallerId)); setFilterEstado('todos'); setSearch(''); goTo('pedidos'); }} onCrearSubUsuario={onCrearSubUsuario} onEliminarSubUsuario={onEliminarSubUsuario} onActualizarSubUsuario={onActualizarSubUsuario} onResetPassword={onResetPassword} />}
             {activeTab === 'empresas' && <AdminEmpresas empresasClientes={empresasClientes} onCrear={onCrearEmpresaCliente} onActualizar={onActualizarEmpresaCliente} onEliminar={onEliminarEmpresaCliente} readOnly={!canEdit('empresas')} />}
@@ -284,6 +293,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
         onChange={goTo}
         solicitudesCount={solicitudesCount}
         pedidosCount={pedidosCount}
+        aprobadosCount={aprobados.length}
         onLogout={onLogout}
         canView={canView}
         canEdit={canEdit}

@@ -8,6 +8,7 @@ import { FormField } from '../shared/FormField';
 import { Modal } from '../shared/Modal';
 import { QuickActionsMenu } from '../shared/QuickActionsMenu';
 import { PiezasList } from '../shared/PiezasList';
+import { CopyChip } from '../shared/CopyChip';
 import { inputClass } from '../../constants/styles';
 import { avgDeliveryLeadDays, suggestDeliveryDate, cleanText, filesOf } from '../../utils/format';
 import { parsePiezasExcel, mergePiezas, agregarPiezaManual, editarPieza, eliminarPieza, contarPiezasEnTienda, ESTADOS_PIEZA } from '../../utils/piezasExcel';
@@ -338,6 +339,13 @@ export function useAdminOrderContent({ order, taller, onChangeStatus, onGenerate
         <FormField label="No. PO"><input value={numeroPO} onChange={e => setNumeroPO(e.target.value)} placeholder="ej. Emma" className={inputClass} /></FormField>
         <FormField label="No. Orden"><input value={numeroOrden} onChange={e => setNumeroOrden(e.target.value)} placeholder="ej. M26243" className={inputClass} /></FormField>
       </div>
+      {(numeroPO.trim() || numeroOrden.trim()) && (
+        <div className="flex items-center gap-2 flex-wrap -mt-1">
+          <span className="text-[11px] font-semibold" style={{ color: 'var(--pp-text3)' }}>Copiar:</span>
+          <CopyChip label="PO#" value={numeroPO.trim()} size="sm" />
+          <CopyChip label="Orden" value={numeroOrden.trim()} size="sm" />
+        </div>
+      )}
 
       {order.notas && <TallerNotes text={order.notas} />}
 
