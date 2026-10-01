@@ -108,7 +108,7 @@ export function AdminNuevoPedido({ talleres, pedidos = [], onCreate }) {
               <input value={piezaDescripcion} onChange={e => setPiezaDescripcion(e.target.value)} onKeyDown={piezaEnterAgrega} placeholder="Descripción (opcional)" className={inputClass} />
             </div>
             <div className="flex items-center gap-1 rounded-[10px] border p-1" style={{ borderColor: 'var(--pp-border4)' }}>
-              {ESTADOS_PIEZA.map(op => (
+              {ESTADOS_PIEZA.filter(op => op.value !== 'entregada').map(op => (
                 <button
                   key={op.value}
                   type="button"

@@ -62,7 +62,7 @@ export function GuestTrackingScreen({ pedidoId, token }) {
                   <p className="text-[10.5px] font-bold uppercase mb-2 flex items-center gap-1.5" style={{ color: 'var(--pp-text9)', letterSpacing: '.05em' }}>
                     <Hourglass className="w-3.5 h-3.5" /> Piezas en espera
                     <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>
-                      · {pedido.piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda').length} de {pedido.piezas.length} en tienda
+                      · {pedido.piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda' || p.estado === 'entregada').length} de {pedido.piezas.length} en tienda
                     </span>
                   </p>
                   <PiezasList piezas={pedido.piezas} />

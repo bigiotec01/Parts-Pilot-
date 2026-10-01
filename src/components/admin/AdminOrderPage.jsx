@@ -278,7 +278,7 @@ export function AdminOrderPage({ order, taller, onClose, onChangeStatus, onGener
             <Hourglass className="w-3.5 h-3.5" /> Piezas en espera
             {order.piezas?.length > 0 && (
               <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>
-                · {order.piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda').length} de {order.piezas.length} en tienda
+                · {order.piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda' || p.estado === 'entregada').length} de {order.piezas.length} en tienda
               </span>
             )}
           </p>

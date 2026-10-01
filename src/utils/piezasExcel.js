@@ -6,6 +6,7 @@ export const ESTADOS_PIEZA = [
   { value: 'pendiente', label: 'En espera' },
   { value: 'en_tienda', label: 'En tienda' },
   { value: 'recibida', label: 'Recibida' },
+  { value: 'entregada', label: 'Entregada' },
 ];
 
 // Los encabezados del reporte (ej. "Last Recv \nDate") traen saltos de línea y
@@ -145,6 +146,8 @@ export function editarPieza(piezasActuales, index, { numeroPieza, descripcion, e
     // mostrar en la lista — se usa "ahora" ya que se está marcando a mano.
     // Al sacarla de "recibida" esa fecha ya no aplica.
     pieza.fechaRecibida = estado === 'recibida' ? (pieza.fechaRecibida || new Date()) : null;
+    // Igual con "Entregada": se registra cuándo se le entregó al cliente.
+    pieza.fechaEntregada = estado === 'entregada' ? new Date() : null;
   }
   pieza.ultimaActualizacion = new Date();
   return piezas;

@@ -64,7 +64,7 @@ export function ClientOrderDetail({ order, onRespond }) {
             <span className="font-medium text-sm flex items-center gap-2" style={{ color: 'var(--pp-text)' }}>
               <Hourglass className="w-4 h-4" /> Estatus de piezas
               <span className="text-xs font-normal" style={{ color: 'var(--pp-text3)' }}>
-                · {order.piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda').length} de {order.piezas.length} en tienda
+                · {order.piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda' || p.estado === 'entregada').length} de {order.piezas.length} en tienda
               </span>
             </span>
           </div>

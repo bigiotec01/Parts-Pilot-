@@ -13,6 +13,7 @@ function PiezaRow({ p, i, onEdit, onDelete }) {
         <span className="flex items-center gap-1 text-[11.5px] font-semibold whitespace-nowrap">
           {p.estado === 'recibida' && <span style={{ color: '#059669' }}>🟢 Recibida{p.fechaRecibida && <span className="font-normal" style={{ color: 'var(--pp-text3)' }}> · {formatDate(p.fechaRecibida)}</span>}</span>}
           {p.estado === 'en_tienda' && <span style={{ color: '#2563eb' }}>🔵 En tienda</span>}
+          {p.estado === 'entregada' && <span style={{ color: 'var(--pp-text3)' }}>✅ Entregada{p.fechaEntregada && <span className="font-normal"> · {formatDate(p.fechaEntregada)}</span>}</span>}
           {p.estado === 'pendiente' && (
             <span style={{ color: '#d97706' }}>
               🟡 En espera{dias != null && dias > 0 ? <span className="font-normal"> · hace {dias} día{dias === 1 ? '' : 's'}</span> : ''}
@@ -40,8 +41,8 @@ function PiezaRow({ p, i, onEdit, onDelete }) {
 
 // Un solo despliegue con todas las piezas juntas, ordenadas con las
 // pendientes primero (para priorizar reclamos a proveedor) y las ya
-// recibidas/en tienda después.
-const ORDEN_ESTADO = { pendiente: 0, en_tienda: 1, recibida: 2 };
+// recibidas/en tienda después y las ya entregadas al final.
+const ORDEN_ESTADO = { pendiente: 0, en_tienda: 1, recibida: 2, entregada: 3 };
 
 export function PiezasList({ piezas, onEdit, onDelete }) {
   // Se guarda el índice original (posición real en order.piezas) junto con
