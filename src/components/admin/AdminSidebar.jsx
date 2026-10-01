@@ -5,7 +5,7 @@ import {
 import { APP_VERSION } from '../../constants/app';
 import { ThemeToggleBtn } from '../shared/ThemeToggleBtn';
 
-export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, mensajesCount, onLogout, canView, canEdit, canManageEquipo, tenantHasModulo, perfil, isSuperadmin, isPlatformSuperAdmin, onOpenSuperAdmin, onOpenCalcular }) {
+export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCount, onLogout, canView, canEdit, canManageEquipo, tenantHasModulo, perfil, isSuperadmin, isPlatformSuperAdmin, onOpenSuperAdmin, onOpenCalcular }) {
   // tenantHasModulo: si la empresa no tiene esa sección habilitada (según su compra
   // del sistema), no se muestra aunque el admin individual tenga permiso — se
   // combina con canView/canEdit/canManageEquipo, que siguen siendo el permiso por

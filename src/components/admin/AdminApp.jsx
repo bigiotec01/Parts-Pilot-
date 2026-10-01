@@ -22,7 +22,6 @@ import { AdminEquipo } from './AdminEquipo';
 import { AdminOrderDrawer } from './AdminOrderDrawer';
 import { AdminOrderPage } from './AdminOrderPage';
 import { AdminHistorial } from './AdminHistorial';
-import { AdminMensajes, unreadTallerCount } from './AdminMensajes';
 
 export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, empresa, onActualizarMarcasFactura, currentUid, onLogout, onChangeStatus, onGenerateGuestLink, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onDeleteMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onImportarPiezas, onAgregarFactura, onActualizarFactura, onEliminarFactura, backups, onCrearBackup, onRestaurarBackup, onEliminarBackup, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario, onResetPassword, isPlatformSuperAdmin, onOpenSuperAdmin, empresasClientes, onCrearEmpresaCliente, onActualizarEmpresaCliente, onEliminarEmpresaCliente, facturasPro, onCrearFacturaPro, onActualizarFacturaPro, onEliminarFacturaPro, onActualizarFacturacionConfig }) {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -66,13 +65,8 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
   const enEstimados  = [...solicitudes, ...cotizando];
   const todosPedidos = pedidos.filter(p => !esperandoCotizar(p) && p.estado !== 'cotizando');
   const solosPedidos = todosPedidos.filter(p => p.estado !== 'entregado' && p.estado !== 'rechazado');
-  // Pedidos "activos" para Mensajes: incluye estimados/solicitudes (a diferencia de
-  // solosPedidos), pero deja fuera lo ya completado o rechazado — esas conversaciones
-  // ya cerraron y no deben seguir apareciendo en la bandeja.
-  const pedidosActivosParaMensajes = pedidos.filter(p => p.estado !== 'entregado' && p.estado !== 'rechazado');
   const pedidosCount     = solosPedidos.filter(p => hasNewActivity('admin', p)).length;
   const solicitudesCount = enEstimados.filter(p => hasNewActivity('admin', p)).length;
-  const mensajesCount    = pedidosActivosParaMensajes.filter(p => unreadTallerCount(p) > 0).length;
 
   const filteredPedidos = solosPedidos.filter(p => {
     if (filterTaller !== 'todos' && String(p.tallerId) !== filterTaller) return false;
@@ -93,7 +87,6 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
     invoices:   { title: 'Invoice',            sub: 'Facturas profesionales imprimibles y en PDF' },
     equipo:     { title: 'Equipo',             sub: 'Usuarios y permisos de acceso' },
     historial:  { title: 'Historial',          sub: 'Órdenes completadas y estimados rechazados' },
-    mensajes:   { title: 'Mensajes',           sub: 'Conversaciones de todos los pedidos' },
   };
   const meta = PAGE_META[activeTab] || PAGE_META.dashboard;
 
@@ -185,7 +178,6 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
               {activeTab === 'invoices' && <AdminInvoices talleres={talleres} empresasClientes={empresasClientes} facturasPro={facturasPro} facturacionConfig={empresa?.facturacionConfig} onCrear={onCrearFacturaPro} onActualizar={onActualizarFacturaPro} onEliminar={onEliminarFacturaPro} onActualizarConfig={onActualizarFacturacionConfig} readOnly={!canEdit('facturas')} />}
               {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} talleres={talleres} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
               {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} />}
-              {activeTab === 'mensajes' && <AdminMensajes pedidos={pedidosActivosParaMensajes} getTaller={getTaller} onSelect={(id) => selectOrder(id, 'mensajes')} />}
             </>
           )}
         </div>
@@ -240,7 +232,6 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
             {activeTab === 'invoices' && <AdminInvoices talleres={talleres} empresasClientes={empresasClientes} facturasPro={facturasPro} facturacionConfig={empresa?.facturacionConfig} onCrear={onCrearFacturaPro} onActualizar={onActualizarFacturaPro} onEliminar={onEliminarFacturaPro} onActualizarConfig={onActualizarFacturacionConfig} readOnly={!canEdit('facturas')} />}
             {activeTab === 'equipo' && canManageEquipo && <AdminEquipo equipo={equipo} talleres={talleres} currentUid={currentUid} perfil={perfil} onCrear={onCrearAdmin} onActualizar={onActualizarAdmin} onEliminar={onEliminarAdmin} />}
           {activeTab === 'historial' && <AdminHistorial pedidos={todosPedidos} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} />}
-            {activeTab === 'mensajes' && <AdminMensajes pedidos={pedidosActivosParaMensajes} getTaller={getTaller} onSelect={(id) => selectOrder(id, 'mensajes')} />}
           </div>
         </main>
 
@@ -293,7 +284,6 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
         onChange={goTo}
         solicitudesCount={solicitudesCount}
         pedidosCount={pedidosCount}
-        mensajesCount={mensajesCount}
         onLogout={onLogout}
         canView={canView}
         canEdit={canEdit}
