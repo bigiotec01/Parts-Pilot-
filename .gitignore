@@ -21,3 +21,11 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Credenciales de Firebase Admin (nunca subir)
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
+
+# Archivos de trabajo locales
+Claude outputs/
+/*.xlsx
