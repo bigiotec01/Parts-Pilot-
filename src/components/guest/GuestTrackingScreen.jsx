@@ -3,6 +3,7 @@ import { AlertCircle, Calendar, Car, Hourglass } from 'lucide-react';
 import { StatusBadge } from '../shared/StatusBadge';
 import { PiezasList } from '../shared/PiezasList';
 import { formatDate } from '../../utils/format';
+import { contarPiezasEnTienda } from '../../utils/piezasExcel';
 
 export function GuestTrackingScreen({ pedidoId, token }) {
   const [estadoCarga, setEstadoCarga] = useState('cargando'); // cargando | ok | error
@@ -62,7 +63,7 @@ export function GuestTrackingScreen({ pedidoId, token }) {
                   <p className="text-[10.5px] font-bold uppercase mb-2 flex items-center gap-1.5" style={{ color: 'var(--pp-text9)', letterSpacing: '.05em' }}>
                     <Hourglass className="w-3.5 h-3.5" /> Piezas en espera
                     <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>
-                      · {pedido.piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda' || p.estado === 'entregada').length} de {pedido.piezas.length} en tienda
+                      · {contarPiezasEnTienda(pedido.piezas)} de {pedido.piezas.length} en tienda
                     </span>
                   </p>
                   <PiezasList piezas={pedido.piezas} />

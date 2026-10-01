@@ -8,6 +8,7 @@ import { InfoItem } from '../shared/FormField';
 import { PiezasList } from '../shared/PiezasList';
 import { EstimateActions } from './ClientEstimados';
 import { ClientProgressBar } from './ClientHistorial';
+import { contarPiezasEnTienda } from '../../utils/piezasExcel';
 
 export function ClientOrderDetail({ order, onRespond }) {
   const handlePrint = () => {
@@ -64,7 +65,7 @@ export function ClientOrderDetail({ order, onRespond }) {
             <span className="font-medium text-sm flex items-center gap-2" style={{ color: 'var(--pp-text)' }}>
               <Hourglass className="w-4 h-4" /> Estatus de piezas
               <span className="text-xs font-normal" style={{ color: 'var(--pp-text3)' }}>
-                · {order.piezas.filter(p => p.estado === 'recibida' || p.estado === 'en_tienda' || p.estado === 'entregada').length} de {order.piezas.length} en tienda
+                · {contarPiezasEnTienda(order.piezas)} de {order.piezas.length} en tienda
               </span>
             </span>
           </div>

@@ -1,5 +1,3 @@
-import * as XLSX from 'xlsx';
-
 // Estados posibles de una pieza y su etiqueta para mostrar — se usa tanto en
 // la lista (PiezasList) como en el selector del modal de editar.
 export const ESTADOS_PIEZA = [
@@ -8,6 +6,12 @@ export const ESTADOS_PIEZA = [
   { value: 'recibida', label: 'Recibida' },
   { value: 'entregada', label: 'Entregada' },
 ];
+
+// Piezas que ya llegaron (recibidas, en tienda o ya entregadas al cliente) —
+// para el resumen "X de Y en tienda" del pedido.
+export function contarPiezasEnTienda(piezas) {
+  return (piezas || []).filter(p => p.estado === 'recibida' || p.estado === 'en_tienda' || p.estado === 'entregada').length;
+}
 
 // Los encabezados del reporte (ej. "Last Recv \nDate") traen saltos de línea y
 // espacios variables — se normalizan para no depender del formato exacto del archivo.
@@ -25,7 +29,9 @@ function findCol(headers, matchers) {
 
 // Lee un ArrayBuffer de un .xlsx y devuelve las filas relevantes: número de
 // pieza, descripción y si ya fue recibida (Last Recv Date con fecha válida).
-export function parsePiezasExcel(arrayBuffer) {
+// La librería xlsx es pesada: se carga solo al leer un archivo, no al abrir la app.
+export async function parsePiezasExcel(arrayBuffer) {
+  const XLSX = await import('xlsx');
   const wb = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
   const ws = wb.Sheets[wb.SheetNames[0]];
   if (!ws) throw new Error('El archivo no tiene hojas con datos.');

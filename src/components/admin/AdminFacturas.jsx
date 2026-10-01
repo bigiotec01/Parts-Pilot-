@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import {
   CheckCircle2, Plus, X, ChevronRight, Archive, RotateCcw, Trash2, Settings, Printer, Calculator
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { Modal } from '../shared/Modal';
 import { CalculadoraPopover } from '../shared/CalculadoraPopover';
 import { inputClass } from '../../constants/styles';
@@ -351,8 +350,10 @@ export function AdminFacturas({ facturas, talleres, onAgregar, onActualizar, onE
     if (!file) return;
     e.target.value = '';
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       try {
+        // xlsx se carga solo al importar, para no hacer pesada la carga inicial.
+        const XLSX = await import('xlsx');
         const wb = XLSX.read(ev.target.result, { type: 'array', cellDates: true });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
