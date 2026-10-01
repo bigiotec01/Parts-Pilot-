@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useAuth } from './useAuth';
 import {
   usePedidos, useTalleres, crearPedido, crearCotizacion, cambiarEstatus, enviarEstimado,
@@ -16,12 +16,26 @@ import { ThemeProvider } from './theme/ThemeContext';
 import { LoginScreen } from './components/shared/LoginScreen';
 import { NotifToast } from './components/shared/NotifToast';
 import { WhatsNewModal } from './components/shared/WhatsNewModal';
-import { AdminApp } from './components/admin/AdminApp';
-import { ClientApp } from './components/client/ClientApp';
-import { SuperAdminApp } from './components/superadmin/SuperAdminApp';
-import { MigrationScreen } from './components/superadmin/MigrationScreen';
 import { UpdatePrompt } from './components/shared/UpdatePrompt';
-import { GuestTrackingScreen } from './components/guest/GuestTrackingScreen';
+
+// Cada tipo de usuario descarga solo su parte de la app: un taller no baja el
+// código del admin ni del super admin, y el link de seguimiento guest no baja nada de eso.
+const AdminApp            = lazy(() => import('./components/admin/AdminApp').then(m => ({ default: m.AdminApp })));
+const ClientApp           = lazy(() => import('./components/client/ClientApp').then(m => ({ default: m.ClientApp })));
+const SuperAdminApp       = lazy(() => import('./components/superadmin/SuperAdminApp').then(m => ({ default: m.SuperAdminApp })));
+const MigrationScreen     = lazy(() => import('./components/superadmin/MigrationScreen').then(m => ({ default: m.MigrationScreen })));
+const GuestTrackingScreen = lazy(() => import('./components/guest/GuestTrackingScreen').then(m => ({ default: m.GuestTrackingScreen })));
+
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--pp-bg)' }}>
+      <div className="text-center">
+        <img src="/pwa-192x192.png" alt="Parts Pilot" className="w-16 h-16 rounded-2xl mx-auto mb-4 animate-pulse" />
+        <p className="text-sm" style={{ color: 'var(--pp-text4)' }}>Cargando Parts Pilot…</p>
+      </div>
+    </div>
+  );
+}
 
 function AppContent() {
   const { user, perfil, cargando, error, login, logout, resetPassword, setError } = useAuth();
@@ -78,16 +92,7 @@ function AppContent() {
     return <GuestTrackingScreen pedidoId={trackId} token={trackToken} />;
   }
 
-  if (cargando) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--pp-bg)' }}>
-        <div className="text-center">
-          <img src="/pwa-192x192.png" alt="Parts Pilot" className="w-16 h-16 rounded-2xl mx-auto mb-4 animate-pulse" />
-          <p className="text-sm" style={{ color: 'var(--pp-text4)' }}>Cargando Parts Pilot…</p>
-        </div>
-      </div>
-    );
-  }
+  if (cargando) return <LoadingScreen />;
 
   if (!user) {
     return (
@@ -203,7 +208,9 @@ function AppContent() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <Suspense fallback={<LoadingScreen />}>
+        <AppContent />
+      </Suspense>
       <UpdatePrompt />
     </ThemeProvider>
   );

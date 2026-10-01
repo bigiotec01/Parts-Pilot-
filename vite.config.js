@@ -41,4 +41,18 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    // El chunk de Firebase (~535 KB) es el SDK de Google y no se puede achicar más.
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        // Firebase y React casi nunca cambian: en archivos propios el navegador
+        // los conserva en caché entre actualizaciones de la app.
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage', 'firebase/functions'],
+        },
+      },
+    },
+  },
 })
