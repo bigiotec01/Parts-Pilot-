@@ -21,11 +21,17 @@ import { DialogHost } from './components/shared/Dialogs';
 
 // Cada tipo de usuario descarga solo su parte de la app: un taller no baja el
 // código del admin ni del super admin, y el link de seguimiento guest no baja nada de eso.
-const AdminApp            = lazy(() => import('./components/admin/AdminApp').then(m => ({ default: m.AdminApp })));
-const ClientApp           = lazy(() => import('./components/client/ClientApp').then(m => ({ default: m.ClientApp })));
-const SuperAdminApp       = lazy(() => import('./components/superadmin/SuperAdminApp').then(m => ({ default: m.SuperAdminApp })));
-const MigrationScreen     = lazy(() => import('./components/superadmin/MigrationScreen').then(m => ({ default: m.MigrationScreen })));
-const GuestTrackingScreen = lazy(() => import('./components/guest/GuestTrackingScreen').then(m => ({ default: m.GuestTrackingScreen })));
+// Si el chunk no carga (deploy nuevo que borró el archivo de la versión en caché),
+// se limpia el SW/caché y se recarga en vez de dejar la pantalla en blanco.
+const lazyPart = (load, name) => lazy(() => load().then(m => ({ default: m[name] })).catch(err => {
+  window.__ppRecover?.();
+  throw err;
+}));
+const AdminApp            = lazyPart(() => import('./components/admin/AdminApp'), 'AdminApp');
+const ClientApp           = lazyPart(() => import('./components/client/ClientApp'), 'ClientApp');
+const SuperAdminApp       = lazyPart(() => import('./components/superadmin/SuperAdminApp'), 'SuperAdminApp');
+const MigrationScreen     = lazyPart(() => import('./components/superadmin/MigrationScreen'), 'MigrationScreen');
+const GuestTrackingScreen = lazyPart(() => import('./components/guest/GuestTrackingScreen'), 'GuestTrackingScreen');
 
 function LoadingScreen() {
   return (

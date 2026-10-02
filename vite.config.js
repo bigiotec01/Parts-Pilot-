@@ -28,10 +28,19 @@ export default defineConfig({
       },
       workbox: {
         clientsClaim: true,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // index.html NO va en el precache: si el SW sirve una copia vieja, esa página pide
+        // JS/CSS de un deploy anterior que Vercel ya no tiene y la app queda en blanco.
+        // Se pide siempre a la red (con copia de respaldo solo para cuando no hay conexión).
+        globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
         globIgnores: ['firebase-messaging-sw-init.js'],
+        navigateFallback: null,
         importScripts: ['/firebase-messaging-sw-init.js'],
         runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: { cacheName: 'pp-pages', networkTimeoutSeconds: 5 },
+          },
           {
             urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*/i,
             handler: 'NetworkFirst',

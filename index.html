@@ -13,6 +13,26 @@
     <meta name="apple-mobile-web-app-title" content="Parts Pilot" />
     <meta name="mobile-web-app-capable" content="yes" />
     <title>Parts Pilot</title>
+    <script>
+      // Si un JS/CSS de la app no carga (versión vieja en caché que pide archivos de un
+      // deploy anterior), se limpia el service worker y la caché y se recarga una sola
+      // vez — lo mismo que hacía Ctrl+Shift+R a mano. El guardado evita recargas en bucle.
+      window.__ppRecover = function () {
+        try {
+          var last = Number(sessionStorage.getItem('pp_recover') || 0);
+          if (Date.now() - last < 30000) return;
+          sessionStorage.setItem('pp_recover', String(Date.now()));
+        } catch (e) {}
+        var regs = navigator.serviceWorker ? navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); }) : Promise.resolve();
+        var cs = window.caches ? caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }) : Promise.resolve();
+        Promise.all([regs, cs]).catch(function () {}).then(function () { location.reload(); });
+      };
+      window.addEventListener('error', function (e) {
+        var t = e.target;
+        if (t && (t.tagName === 'SCRIPT' || (t.tagName === 'LINK' && t.rel === 'stylesheet')) && /\/assets\//.test(t.src || t.href || '')) window.__ppRecover();
+      }, true);
+      window.addEventListener('vite:preloadError', function () { window.__ppRecover(); });
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
