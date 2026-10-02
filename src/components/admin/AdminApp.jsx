@@ -174,6 +174,15 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
     }
   }, [pedidos]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const verFacturas = canView('facturas') && tenantHasModulo('facturas');
+  const dashboardProps = {
+    pedidos: solosPedidos, todos: pedidos, solicitudes, aprobados, getTaller, onSelect: selectOrder,
+    facturas: verFacturas ? facturas : null,
+    onGoToAprobados: () => goTo('aprobados'), onGoToPedidos: () => goTo('pedidos'), onGoToEstimados: () => goTo('estimados'),
+    onGoToFacturas: verFacturas ? () => goTo('facturas') : undefined,
+    onFilterEstado: (estado) => { setFilterTaller('todos'); setFilterEstado(estado); setSearch(''); goTo('pedidos'); },
+  };
+
   const mainContent = (
     <div className="flex-1 min-w-0 flex flex-col">
       {!isMobile && !selectedOrder && (
@@ -212,7 +221,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
             />
           ) : (
             <>
-              {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} aprobados={aprobados} onGoToAprobados={() => goTo('aprobados')} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
+              {activeTab === 'dashboard' && <AdminDashboard {...dashboardProps} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
               {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} todosLosPedidos={pedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={selectOrder} onExport={() => setShowReporte(true)} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
               {activeTab === 'aprobados' && <AdminAprobados aprobados={aprobados} nuevosIds={nuevosAprobados} onGoToPedidos={() => goTo('pedidos')} getTaller={getTaller} onSelect={selectOrder} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
             {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={selectOrder} onGoToNuevaCotizacion={canEdit('estimados') ? () => goTo('cotizacion') : undefined} />}
@@ -268,7 +277,7 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
         {/* Contenido */}
         <main className="pb-24 px-4 py-4">
           <div className="max-w-2xl mx-auto">
-            {activeTab === 'dashboard' && <AdminDashboard pedidos={solosPedidos} solicitudes={solicitudes} aprobados={aprobados} onGoToAprobados={() => goTo('aprobados')} talleres={talleres} getTaller={getTaller} onSelect={selectOrder} onGoToPedidos={() => goTo('pedidos')} onGoToEstimados={() => goTo('estimados')} onGoToNuevo={() => goTo('nuevo')} onShowReporte={() => setShowReporte(true)} />}
+            {activeTab === 'dashboard' && <AdminDashboard {...dashboardProps} />}
             {activeTab === 'pedidos' && <AdminPedidos pedidos={filteredPedidos} todosLosPedidos={pedidos} talleres={talleres} getTaller={getTaller} filterTaller={filterTaller} setFilterTaller={setFilterTaller} filterEstado={filterEstado} setFilterEstado={setFilterEstado} search={search} setSearch={setSearch} onSelect={selectOrder} onExport={() => setShowReporte(true)} />}
             {activeTab === 'aprobados' && <AdminAprobados aprobados={aprobados} nuevosIds={nuevosAprobados} onGoToPedidos={() => goTo('pedidos')} getTaller={getTaller} onSelect={selectOrder} onChangeStatus={canEdit('pedidos') ? onChangeStatus : undefined} />}
             {activeTab === 'estimados' && <AdminEstimados solicitudes={enEstimados} getTaller={getTaller} onSelect={selectOrder} onGoToNuevaCotizacion={canEdit('estimados') ? () => goTo('cotizacion') : undefined} />}

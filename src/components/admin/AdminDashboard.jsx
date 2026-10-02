@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
 import {
-  Clock, FileText, Building2, ChevronRight, ClipboardList, CheckCircle2, ChevronUp, ChevronDown, ChevronsUpDown, Eye, ArrowRightCircle, Truck, PackageCheck, BadgeCheck, Sun
+  Clock, ChevronRight, CheckCircle2, ChevronUp, ChevronDown, ChevronsUpDown, Eye, ArrowRightCircle, Truck, PackageCheck, BadgeCheck, Sun, AlertTriangle, Package
 } from 'lucide-react';
 import { hasNewActivity } from '../../utils/activity';
-import { formatDate, cleanText, toDateAny, esHoy } from '../../utils/format';
+import { formatDate, toDateAny, esHoy } from '../../utils/format';
+import { contarPiezasEnTienda } from '../../utils/piezasExcel';
 import { StatusBadge } from '../shared/StatusBadge';
 import { StatCard } from '../shared/StatCard';
 import { DashboardChart } from '../shared/DashboardChart';
@@ -75,13 +76,99 @@ function ParaHoy({ pedidos, aprobados, getTaller, onSelect, onGoToAprobados }) {
   );
 }
 
-export function AdminDashboard({ pedidos, solicitudes, aprobados = [], onGoToAprobados, talleres, getTaller, onSelect, onGoToPedidos, onGoToEstimados, onGoToNuevo, onShowReporte, onChangeStatus }) {
+// Último movimiento conocido: cambio de estado, pieza recibida o creación del pedido.
+// Los pedidos anteriores a que existiera fechaEstado usan la fecha de creación.
+function ultimoMovimiento(p) {
+  const fechas = [p.fechaEstado, p.fecha, ...(p.piezas || []).map(pz => pz.fechaRecibida)]
+    .map(toDateAny).filter(Boolean).map(d => d.getTime());
+  return fechas.length ? Math.max(...fechas) : null;
+}
+
+const DIAS_DETENIDO = 5;
+const ESTADOS_EMBUDO = ['pendiente', 'pedido_fabrica', 'ordenadas', 'esperando_piezas', 'en_transito', 'recibido'];
+const fmtCur = (n) => `$${Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+function Panel({ titulo, sub, accion, children, className = '' }) {
+  return (
+    <div className={`rounded-[16px] p-6 border flex flex-col min-w-0 ${className}`} style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="min-w-0">
+          <h2 className="text-[15px] font-bold" style={{ color: 'var(--pp-text)' }}>{titulo}</h2>
+          {sub && <p className="text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>{sub}</p>}
+        </div>
+        {accion}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// Cuántos pedidos hay en cada etapa; al tocar una, abre Pedidos filtrado por ese estado.
+function Embudo({ pedidos, solicitudes, onFilterEstado, onGoToEstimados }) {
+  const filas = [
+    { key: 'solicitudes', label: 'Esperando cotizar', dot: '#C6202B', n: solicitudes.length, onClick: onGoToEstimados },
+    ...ESTADOS_EMBUDO.map(e => ({ key: e, label: STATUS_CONFIG[e].short, dot: STATUS_CONFIG[e].dot, n: pedidos.filter(p => p.estado === e).length, onClick: () => onFilterEstado?.(e) })),
+  ];
+  const max = Math.max(...filas.map(f => f.n), 1);
+  return (
+    <div className="flex flex-col gap-1">
+      {filas.map(f => (
+        <button key={f.key} onClick={f.onClick} disabled={!f.n} className="flex items-center gap-3 px-2 py-1.5 rounded-[9px] text-left transition-colors hover:bg-[var(--pp-hover)] disabled:hover:bg-transparent disabled:cursor-default">
+          <span className="w-[120px] flex-shrink-0 flex items-center gap-2 text-[12.5px] font-semibold truncate" style={{ color: f.n ? 'var(--pp-text)' : 'var(--pp-text3)' }}>
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: f.dot }} />{f.label}
+          </span>
+          <span className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--pp-border2)' }}>
+            <span className="block h-full rounded-full transition-all duration-500" style={{ width: `${(f.n / max) * 100}%`, background: f.dot }} />
+          </span>
+          <span className="w-7 text-right text-[13px] font-extrabold flex-shrink-0" style={{ color: f.n ? 'var(--pp-text)' : 'var(--pp-text3)', fontVariantNumeric: 'tabular-nums' }}>{f.n}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function AdminDashboard({ pedidos, todos = [], solicitudes, aprobados = [], facturas, onGoToAprobados, getTaller, onSelect, onGoToPedidos, onGoToEstimados, onGoToFacturas, onFilterEstado, onChangeStatus }) {
   const [sort, setSort] = useState({ key: 'fecha', dir: 'desc' });
 
-  const total = pedidos.length;
-  const enProceso = pedidos.filter(p => ['cotizando', 'pedido_fabrica', 'en_transito', 'recibido'].includes(p.estado));
+  const enProceso = pedidos.filter(p => ['pedido_fabrica', 'ordenadas', 'esperando_piezas', 'en_transito', 'recibido'].includes(p.estado));
   const enProcesoConActividad = enProceso.filter(p => hasNewActivity('admin', p)).length;
   const toMs = f => f?.toDate ? f.toDate().getTime() : new Date(f).getTime();
+
+  const detenidos = useMemo(() => pedidos
+    .map(p => ({ p, ms: ultimoMovimiento(p) }))
+    .filter(x => x.ms && Date.now() - x.ms >= DIAS_DETENIDO * 86400000)
+    .sort((a, b) => a.ms - b.ms), [pedidos]);
+
+  const piezas = useMemo(() => {
+    let pendientes = 0, conPendientes = 0;
+    pedidos.forEach(p => {
+      const n = (p.piezas || []).length - contarPiezasEnTienda(p.piezas);
+      if (n > 0) { pendientes += n; conPendientes++; }
+    });
+    return { pendientes, conPendientes };
+  }, [pedidos]);
+
+  const entregadosMes = useMemo(() => {
+    const hoy = new Date();
+    const lista = todos.filter(p => {
+      if (p.estado !== 'entregado') return false;
+      const d = toDateAny(p.fechaEntregado);
+      return d && d.getFullYear() === hoy.getFullYear() && d.getMonth() === hoy.getMonth();
+    });
+    const dias = lista.map(p => (toDateAny(p.fechaEntregado) - toDateAny(p.fecha)) / 86400000).filter(n => n >= 0);
+    return { n: lista.length, promedio: dias.length ? Math.round(dias.reduce((a, b) => a + b, 0) / dias.length) : null };
+  }, [todos]);
+
+  // Saldo pendiente de facturas no archivadas, agrupado por taller.
+  const saldo = useMemo(() => {
+    if (!facturas) return null;
+    const porTaller = {};
+    facturas.filter(f => !f.archivada && Number(f.pendiente || 0) > 0).forEach(f => {
+      porTaller[f.tallerId] = (porTaller[f.tallerId] || 0) + Number(f.pendiente);
+    });
+    const filas = Object.entries(porTaller).map(([tallerId, monto]) => ({ tallerId, monto })).sort((a, b) => b.monto - a.monto);
+    return { total: filas.reduce((a, f) => a + f.monto, 0), filas };
+  }, [facturas]);
 
   const recientes = useMemo(() => {
     const base = [...pedidos].sort((a, b) => toMs(b.fecha) - toMs(a.fecha)).slice(0, 6);
@@ -108,55 +195,71 @@ export function AdminDashboard({ pedidos, solicitudes, aprobados = [], onGoToApr
 
       {/* KPIs */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Solicitudes nuevas" value={solicitudes.length} icon={FileText} iconBg="rgba(198,32,43,0.1)" iconColor="#c0c0c0" chipLabel="Atención" chipBg="rgba(198,32,43,0.12)" chipColor="#c0c0c0" highlight
-          hint={solicitudes.length === 0 ? 'Todo al día' : `${solicitudes.length} esperando estimado`} hintTone={solicitudes.length === 0 ? 'ok' : 'warn'} />
-        <StatCard label="En proceso" value={enProceso.length} icon={Clock} iconBg="rgba(198,32,43,0.1)" iconColor="#C6202B" chipLabel="hoy" chipBg="rgba(198,32,43,0.1)" chipColor="#C6202B"
-          hint={enProcesoConActividad === 0 ? 'Sin pendientes' : `${enProcesoConActividad} con actividad nueva`} hintTone={enProcesoConActividad === 0 ? 'ok' : 'warn'} />
-        <StatCard label="Total pedidos" value={total} icon={ClipboardList} iconBg="rgba(120,120,120,0.1)" iconColor="#888888" chipLabel="Año" chipBg="rgba(120,120,120,0.1)" chipColor="#888888" />
-        <StatCard label="Talleres activos" value={talleres.length} icon={Building2} iconBg="rgba(198,32,43,0.1)" iconColor="#C6202B" chipLabel="Todos" chipBg="rgba(198,32,43,0.1)" chipColor="#C6202B" />
+        <StatCard label="Pedidos detenidos" value={detenidos.length} icon={AlertTriangle} iconBg="rgba(239,68,68,0.1)" iconColor="#ef4444" chipLabel={`+${DIAS_DETENIDO} días`} chipBg="rgba(239,68,68,0.1)" chipColor="#ef4444" highlight={detenidos.length > 0}
+          hint={detenidos.length === 0 ? 'Todo se está moviendo' : 'Sin cambios recientes'} hintTone={detenidos.length === 0 ? 'ok' : 'warn'} />
+        <StatCard label="En proceso" value={enProceso.length} icon={Clock} iconBg="rgba(198,32,43,0.1)" iconColor="#C6202B"
+          hint={enProcesoConActividad === 0 ? 'Sin actividad nueva' : `${enProcesoConActividad} con actividad nueva`} hintTone={enProcesoConActividad === 0 ? 'ok' : 'warn'} />
+        <StatCard label="Piezas por llegar" value={piezas.pendientes} icon={Package} iconBg="rgba(245,158,11,0.1)" iconColor="#f59e0b"
+          hint={piezas.pendientes === 0 ? 'Nada pendiente' : `En ${piezas.conPendientes} pedido${piezas.conPendientes === 1 ? '' : 's'}`} hintTone={piezas.pendientes === 0 ? 'ok' : undefined} />
+        <StatCard label="Entregados este mes" value={entregadosMes.n} icon={CheckCircle2} iconBg="rgba(20,184,166,0.1)" iconColor="#14b8a6" chipLabel={new Date().toLocaleDateString('es-MX', { month: 'short' })} chipBg="rgba(20,184,166,0.1)" chipColor="#14b8a6"
+          hint={entregadosMes.promedio != null ? `Promedio ${entregadosMes.promedio} día${entregadosMes.promedio === 1 ? '' : 's'} por orden` : undefined} hintTone="ok" />
       </div>
 
-      {/* Chart + atención */}
-      <div className="grid xl:grid-cols-[1.7fr_1fr] gap-4">
-        <div className="rounded-[16px] p-6 border" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
-          <div className="flex items-start justify-between mb-1">
-            <div>
-              <h2 className="text-[15px] font-bold" style={{ color: 'var(--pp-text)' }}>Volumen de pedidos</h2>
-              <p className="text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>Últimos 6 meses</p>
-            </div>
-          </div>
-          <DashboardChart pedidos={[...pedidos, ...solicitudes]} />
-        </div>
+      {/* Embudo + gráfica */}
+      <div className="grid xl:grid-cols-[1fr_1.4fr] gap-4">
+        <Panel titulo="Pedidos por estado" sub="Toca un estado para ver esos pedidos">
+          <Embudo pedidos={pedidos} solicitudes={solicitudes} onFilterEstado={onFilterEstado} onGoToEstimados={onGoToEstimados} />
+        </Panel>
+        <Panel titulo="Volumen de pedidos" sub="Últimos 6 meses">
+          <DashboardChart pedidos={todos.filter(p => p.estado !== 'rechazado')} />
+        </Panel>
+      </div>
 
-        <div className="rounded-[16px] p-6 border flex flex-col" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="text-[15px] font-bold" style={{ color: 'var(--pp-text)' }}>Requiere atención</h2>
-            {solicitudes.length > 0 && <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-[7px]" style={{ background: 'var(--pp-active-bg)', color: 'var(--pp-text8)' }}>{solicitudes.length}</span>}
-          </div>
-          <p className="text-[12.5px] mb-3" style={{ color: 'var(--pp-text2)' }}>Solicitudes esperando estimado</p>
-          <div className="flex flex-col gap-2.5 flex-1">
-            {solicitudes.slice(0, 3).map(p => (
-              <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[12px] p-3 flex gap-2.5 items-center border transition-colors hover:border-[#C6202B]" style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border)' }}>
-                <span className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5" style={{ background: 'var(--pp-accent)' }} />
-                <div className="min-w-0 flex-1">
-                  <div className="text-[13px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{p.vehiculo}</div>
-                  <div className="text-[11.5px] truncate" style={{ color: 'var(--pp-text2)' }}>{getTaller(p.tallerId)?.nombre} · {p.pieza || cleanText(p.notas)?.slice(0,30)}</div>
-                </div>
-                <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--pp-text3)' }} />
-              </button>
-            ))}
-            {solicitudes.length === 0 && (
-              <div className="flex flex-col items-center justify-center gap-2 py-6 flex-1 text-center">
-                <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(20,184,166,0.12)' }}>
-                  <CheckCircle2 className="w-6 h-6" style={{ color: '#14b8a6' }} />
-                </div>
-                <p className="text-[13px] font-bold" style={{ color: 'var(--pp-text)' }}>¡Buen trabajo!</p>
-                <p className="text-[12px]" style={{ color: 'var(--pp-text3)' }}>Estás al día, no hay solicitudes pendientes.</p>
+      {/* Detenidos + saldo */}
+      <div className={`grid gap-4 ${saldo ? 'xl:grid-cols-[1.4fr_1fr]' : ''}`}>
+        <Panel titulo="Pedidos detenidos" sub={`Sin cambio de estado ni piezas recibidas en ${DIAS_DETENIDO}+ días`}
+          accion={detenidos.length > 0 && <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-[7px] flex-shrink-0" style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444' }}>{detenidos.length}</span>}>
+          {detenidos.length === 0 ? (
+            <div className="flex items-center gap-2.5 py-3">
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0" style={{ color: '#14b8a6' }} />
+              <p className="text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>Ningún pedido lleva más de {DIAS_DETENIDO} días sin moverse.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              {detenidos.slice(0, 5).map(({ p, ms }) => (
+                <button key={p.id} onClick={() => onSelect(p.id)} className="w-full text-left rounded-[11px] px-3 py-2.5 flex gap-3 items-center border transition-colors hover:border-[#C6202B] min-w-0" style={{ borderColor: 'var(--pp-border)' }}>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[13px] font-bold truncate" style={{ color: 'var(--pp-text)' }}>{p.numeroPO ? `PO# ${p.numeroPO}` : p.vehiculo || p.folio}</div>
+                    <div className="text-[11.5px] truncate" style={{ color: 'var(--pp-text2)' }}>{getTaller(p.tallerId)?.nombre || p.tallerNombre || '—'}{p.numeroPO && p.vehiculo ? ` · ${p.vehiculo}` : ''}</div>
+                  </div>
+                  <span className="hidden sm:inline-flex"><StatusBadge estado={p.estado} /></span>
+                  <span className="text-[11.5px] font-bold flex-shrink-0 w-[52px] text-right" style={{ color: '#ef4444' }}>{Math.floor((Date.now() - ms) / 86400000)} días</span>
+                </button>
+              ))}
+              {detenidos.length > 5 && <button onClick={onGoToPedidos} className="text-[11.5px] font-semibold px-1 mt-0.5 text-left hover:underline" style={{ color: 'var(--pp-text3)' }}>+{detenidos.length - 5} más</button>}
+            </div>
+          )}
+        </Panel>
+
+        {saldo && (
+          <Panel titulo="Saldo por cobrar" sub="Facturas pendientes de pago"
+            accion={onGoToFacturas && <button onClick={onGoToFacturas} className="flex items-center gap-1 text-[12.5px] font-bold flex-shrink-0 hover:opacity-70" style={{ color: 'var(--pp-text8)' }}>Facturas <ChevronRight className="w-4 h-4" /></button>}>
+            <p className="text-[28px] font-extrabold leading-none mb-3" style={{ color: saldo.total ? 'var(--pp-text)' : 'var(--pp-text3)', fontVariantNumeric: 'tabular-nums', letterSpacing: '-.02em' }}>{fmtCur(saldo.total)}</p>
+            {saldo.filas.length === 0 ? (
+              <p className="text-[12.5px]" style={{ color: 'var(--pp-text2)' }}>No hay facturas pendientes.</p>
+            ) : (
+              <div className="flex flex-col gap-1">
+                {saldo.filas.slice(0, 5).map(f => (
+                  <div key={f.tallerId} className="flex items-center justify-between gap-3 px-1 py-1 text-[12.5px]">
+                    <span className="truncate font-semibold" style={{ color: 'var(--pp-text)' }}>{getTaller(f.tallerId)?.nombre || '—'}</span>
+                    <span className="font-bold flex-shrink-0" style={{ color: '#b7791f', fontVariantNumeric: 'tabular-nums' }}>{fmtCur(f.monto)}</span>
+                  </div>
+                ))}
+                {saldo.filas.length > 5 && <p className="text-[11.5px] px-1" style={{ color: 'var(--pp-text3)' }}>+{saldo.filas.length - 5} talleres más</p>}
               </div>
             )}
-          </div>
-          <button onClick={onGoToEstimados} className="mt-3 w-full py-[9px] rounded-[10px] text-[12.5px] font-semibold border transition-colors hover:bg-[#1e1e1e]" style={{ borderColor: 'var(--pp-border)', color: 'var(--pp-text2)' }}>Ver todos los estimados</button>
-        </div>
+          </Panel>
+        )}
       </div>
 
       {/* Tabla recientes */}

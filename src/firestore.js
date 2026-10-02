@@ -210,7 +210,9 @@ export async function crearCotizacion(data) {
 // ── Cambiar estatus ─────────────────────────────────────────────────
 export async function cambiarEstatus(pedidoId, estado, fechaEntrega) {
   const ref = doc(db, 'pedidos', pedidoId);
-  const data = { estado };
+  // fechaEstado/fechaEntregado alimentan "Pedidos detenidos" y "Entregados del mes" en Resumen.
+  const data = { estado, fechaEstado: serverTimestamp() };
+  if (estado === 'entregado') data.fechaEntregado = serverTimestamp();
   if (fechaEntrega !== undefined) data.fechaEntrega = fechaEntrega === '' ? deleteField() : fechaEntrega;
   // Al marcar el pedido como entregado, el link de seguimiento del cliente guest deja de funcionar.
   if (estado === 'entregado') data.guestTokenActivo = false;
