@@ -521,7 +521,8 @@ function tokensPorUid(snap) {
   const byUid = {};
   snap.docs.forEach(d => {
     const data = d.data();
-    const uid = data.uid || d.id;
+    // Un token por dispositivo de cada usuario (iPhone + computadora reciben ambos).
+    const uid = `${data.uid || d.id}|${data.deviceId || 'legacy'}`;
     const ts = data.updatedAt?.toMillis?.() ?? 0;
     if (!byUid[uid] || ts > byUid[uid].ts) byUid[uid] = { token: data.token, ts };
   });

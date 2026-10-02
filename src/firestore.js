@@ -499,13 +499,33 @@ export async function eliminarBackupFacturas(backupId) {
 // El ID del documento es el token mismo (sanitizado) para que un
 // mismo dispositivo nunca tenga 2 entradas aunque cambien de cuenta.
 
+// Id estable por navegador/dispositivo, para distinguir los tokens push de cada uno.
+function getDeviceId() {
+  try {
+    let id = localStorage.getItem('pp_device_id');
+    if (!id) {
+      id = crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('pp_device_id', id);
+    }
+    return id;
+  } catch {
+    return null;
+  }
+}
+
 export async function guardarFCMToken(uid, token, role, tallerId = null, tenantId = null) {
   const tokenId = token.replace(/\//g, '_');
-  // Borrar tokens viejos del mismo uid para que el dispositivo no quede con múltiples tokens activos
+  const deviceId = getDeviceId();
+  // Borrar solo los tokens viejos de ESTE dispositivo (y los legados sin deviceId, que
+  // cada dispositivo vuelve a registrar al abrir la app). Antes se borraban todos los del
+  // uid, así que abrir la app en la computadora dejaba al iPhone sin notificaciones.
   const viejos = await getDocs(query(collection(db, 'fcmTokens'), where('uid', '==', uid)));
   const batch = writeBatch(db);
-  viejos.docs.forEach(d => { if (d.id !== tokenId) batch.delete(d.ref); });
-  batch.set(doc(db, 'fcmTokens', tokenId), { token, uid, role, tallerId, tenantId, updatedAt: serverTimestamp() });
+  viejos.docs.forEach(d => {
+    const dev = d.data().deviceId;
+    if (d.id !== tokenId && (!dev || dev === deviceId)) batch.delete(d.ref);
+  });
+  batch.set(doc(db, 'fcmTokens', tokenId), { token, uid, role, tallerId, tenantId, deviceId, updatedAt: serverTimestamp() });
   await batch.commit();
 }
 
