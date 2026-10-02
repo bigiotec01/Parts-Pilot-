@@ -66,10 +66,18 @@ function AppContent() {
         const token = await getFCMToken();
         if (token) await guardarFCMToken(user.uid, token, user.role, user.tallerId || null, perfil?.tenantId || null);
         unsub = listenForeground((payload) => {
-          setNotifToast({
-            title: payload.notification?.title || 'Parts Pilot',
-            body:  payload.notification?.body  || '',
-          });
+          // El servidor manda mensajes data-only: título y cuerpo vienen en payload.data.
+          const title = payload.data?.title || payload.notification?.title || 'Parts Pilot';
+          const body  = payload.data?.body  || payload.notification?.body  || '';
+          setNotifToast({ title, body });
+          // Con la app abierta pero en otra pestaña/ventana, el aviso dentro de la app
+          // no se ve: se muestra también como notificación del sistema.
+          if (document.visibilityState !== 'visible' || !document.hasFocus()) {
+            navigator.serviceWorker?.ready.then(reg => reg.showNotification(title, {
+              body, icon: '/pwa-192x192.png', badge: '/pwa-64x64.png',
+              tag: payload.data?.pedidoId || 'pp-notif', data: payload.data || {},
+            })).catch(() => {});
+          }
           clearTimeout(notifTimerRef.current);
           notifTimerRef.current = setTimeout(() => setNotifToast(null), 6000);
         });

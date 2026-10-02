@@ -1,16 +1,42 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { MoreVertical } from 'lucide-react';
 
+// El menú se monta en <body> con position: fixed para que ningún contenedor con
+// overflow (tarjetas, tablas) lo recorte, y se abre hacia arriba si no cabe abajo.
 export function QuickActionsMenu({ items, size = 'md' }) {
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState(null);
   const ref = useRef(null);
+  const menuRef = useRef(null);
   const visibleItems = items.filter(Boolean);
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const handler = (e) => {
+      if (ref.current?.contains(e.target) || menuRef.current?.contains(e.target)) return;
+      setOpen(false);
+    };
+    const close = () => setOpen(false);
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [open]);
+
+  useLayoutEffect(() => {
+    if (!open) { setPos(null); return; }
+    const btn = ref.current?.getBoundingClientRect();
+    const menuH = menuRef.current?.offsetHeight || 0;
+    if (!btn) return;
+    const gap = 4;
+    const cabeAbajo = btn.bottom + gap + menuH <= window.innerHeight - 8;
+    const top = cabeAbajo || btn.top - gap - menuH < 8 ? btn.bottom + gap : btn.top - gap - menuH;
+    setPos({ top, right: Math.max(8, window.innerWidth - btn.right) });
   }, [open]);
 
   if (visibleItems.length === 0) return null;
@@ -27,11 +53,15 @@ export function QuickActionsMenu({ items, size = 'md' }) {
       >
         <MoreVertical className="w-4 h-4" />
       </button>
-      {open && (
+      {open && createPortal(
         <div
+          ref={menuRef}
           onClick={(e) => e.stopPropagation()}
-          className="absolute right-0 top-[calc(100%+4px)] min-w-[190px] rounded-[12px] border py-1.5 z-30"
-          style={{ background: 'var(--pp-card)', borderColor: 'var(--pp-border3)', boxShadow: '0 16px 40px rgba(0,0,0,0.45)' }}
+          className="fixed min-w-[190px] rounded-[12px] border py-1.5 z-[1000]"
+          style={{
+            top: pos?.top ?? 0, right: pos?.right ?? 0, visibility: pos ? 'visible' : 'hidden',
+            background: 'var(--pp-card)', borderColor: 'var(--pp-border3)', boxShadow: '0 16px 40px rgba(0,0,0,0.45)',
+          }}
         >
           {visibleItems.map((item, i) => (
             <button
@@ -45,7 +75,8 @@ export function QuickActionsMenu({ items, size = 'md' }) {
               {item.label}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

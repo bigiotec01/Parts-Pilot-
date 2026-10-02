@@ -601,14 +601,18 @@ exports.onNuevoPedido = onDocumentCreated('pedidos/{pedidoId}', async (event) =>
   const pedido    = event.data.data();
   const pedidoId  = event.params.pedidoId;
   const topic = await suscribirAdmins(pedido.tenantId);
+  // Las órdenes de Tag Logic llegan ya aprobadas y van a la sección "Aprobados".
+  const esTagLogic = pedido.origen === 'taglogic';
   await enviarOnce(
     `${pedidoId}_nuevo`,
     topic,
     {
-      title: `Nuevo pedido — ${pedido.tallerNombre || 'Taller'}`,
-      body:  `${pedido.folio} · ${pedido.pieza || pedido.vehiculo || 'Solicitud nueva'}`,
+      title: esTagLogic
+        ? `Nueva orden aprobada — ${pedido.tallerNombre || 'Tag Logic'}`
+        : `Nuevo pedido — ${pedido.tallerNombre || 'Taller'}`,
+      body:  `${pedido.folio} · ${(esTagLogic ? pedido.vehiculo || pedido.pieza : pedido.pieza || pedido.vehiculo) || 'Solicitud nueva'}`,
     },
-    { pedidoId, tipo: 'nuevo_pedido' }
+    { pedidoId, tipo: esTagLogic ? 'nuevo_aprobado' : 'nuevo_pedido' }
   );
 });
 
