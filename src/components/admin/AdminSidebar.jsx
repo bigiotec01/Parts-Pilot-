@@ -16,14 +16,14 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
     canView('pedidos')   && tHas('pedidos')   && { id: 'pedidos',    label: 'Pedidos',    icon: ClipboardList, badge: pedidosCount },
     canView('pedidos')   && tHas('pedidos')   && { id: 'aprobados',  label: 'Aprobados',  icon: BadgeCheck, badge: aprobadosCount },
     canView('estimados') && tHas('estimados') && { id: 'estimados',  label: 'Estimados',  icon: FileText, badge: solicitudesCount, accent: true },
-    canView('talleres')  && tHas('talleres')  && { id: 'talleres',   label: 'Talleres',   icon: Users },
-    canView('empresas')  && tHas('empresas')  && { id: 'empresas',   label: 'Empresas',   icon: Building2 },
     canView('pedidos')   && tHas('historial') && { id: 'historial',  label: 'Historial',  icon: History },
   ].filter(Boolean);
   const secondaryItems = [
     canEdit('estimados') && tHas('estimados') && { id: 'cotizacion', label: 'Nueva cotización', icon: ClipboardCheck },
     canView('facturas')  && tHas('facturas')  && { id: 'facturas',   label: 'Facturas',         icon: Receipt },
     canView('facturas')  && tHas('invoices')  && { id: 'invoices',   label: 'Invoice',          icon: FileSpreadsheet },
+    canView('talleres')  && tHas('talleres')  && { id: 'talleres',   label: 'Talleres',         icon: Users },
+    canView('empresas')  && tHas('empresas')  && { id: 'empresas',   label: 'Empresas',         icon: Building2 },
     canManageEquipo      && tHas('equipo')    && { id: 'equipo',     label: 'Equipo',           icon: Users },
     isPlatformSuperAdmin && { id: 'calcular', label: 'Calcular', icon: Calculator, onClick: onOpenCalcular },
   ].filter(Boolean);
