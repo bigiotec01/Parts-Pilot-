@@ -18,7 +18,6 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
     canView('estimados') && tHas('estimados') && { id: 'estimados',  label: 'Estimados',  icon: FileText, badge: solicitudesCount, accent: true },
     canView('talleres')  && tHas('talleres')  && { id: 'talleres',   label: 'Talleres',   icon: Users },
     canView('empresas')  && tHas('empresas')  && { id: 'empresas',   label: 'Empresas',   icon: Building2 },
-    isPlatformSuperAdmin && { id: 'calcular', label: 'Calcular', icon: Calculator, onClick: onOpenCalcular },
     canView('pedidos')   && tHas('historial') && { id: 'historial',  label: 'Historial',  icon: History },
   ].filter(Boolean);
   const secondaryItems = [
@@ -26,6 +25,7 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
     canView('facturas')  && tHas('facturas')  && { id: 'facturas',   label: 'Facturas',         icon: Receipt },
     canView('facturas')  && tHas('invoices')  && { id: 'invoices',   label: 'Invoice',          icon: FileSpreadsheet },
     canManageEquipo      && tHas('equipo')    && { id: 'equipo',     label: 'Equipo',           icon: Users },
+    isPlatformSuperAdmin && { id: 'calcular', label: 'Calcular', icon: Calculator, onClick: onOpenCalcular },
   ].filter(Boolean);
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
