@@ -70,7 +70,7 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
   };
 
   return (
-    <aside className="w-[252px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: '#151519' }}>
+    <aside className="w-[252px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: 'var(--pp-side)' }}>
       <div className="px-5 py-[22px] flex items-center gap-2.5">
         <img src="/pwa-192x192.png" alt="Parts Pilot" className="w-9 h-9 rounded-[10px] flex-shrink-0" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }} />
         <div>
@@ -96,7 +96,7 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
       <div className="px-3.5 pt-3.5">
         <div className="relative" ref={profileRef}>
           {showProfileMenu && (
-            <div className="absolute left-0 right-0 bottom-[calc(100%+8px)] rounded-[13px] border p-1.5 z-30" style={{ background: '#1C1D22', borderColor: 'rgba(255,255,255,0.09)', boxShadow: '0 16px 40px rgba(0,0,0,0.45)', animation: 'ppRise .18s cubic-bezier(.2,.8,.2,1) both' }}>
+            <div className="absolute left-0 right-0 bottom-[calc(100%+8px)] rounded-[13px] border p-1.5 z-30" style={{ background: 'var(--pp-side2)', borderColor: 'rgba(255,255,255,0.09)', boxShadow: '0 16px 40px rgba(0,0,0,0.45)', animation: 'ppRise .18s cubic-bezier(.2,.8,.2,1) both' }}>
               <div className="flex items-center justify-between px-2.5 py-2">
                 <span className="text-[12.5px] font-semibold" style={{ color: '#D5D7DC' }}>Apariencia</span>
                 <ThemeToggleBtn small />
@@ -132,9 +132,9 @@ export function AdminSidebar({ activeTab, onChange, solicitudesCount, pedidosCou
           <button
             onClick={() => setShowProfileMenu(v => !v)}
             className="w-full rounded-[13px] p-3 flex items-center gap-2.5 transition-colors pp-sidebar-hover"
-            style={{ background: '#1C1D22' }}
+            style={{ background: 'var(--pp-side2)' }}
           >
-            <div className="w-9 h-9 rounded-[9px] flex items-center justify-center text-[13px] font-bold flex-shrink-0" style={{ background: '#2A2B32', color: '#C7CAD1' }}>{iniciales}</div>
+            <div className="w-9 h-9 rounded-[9px] flex items-center justify-center text-[13px] font-bold flex-shrink-0" style={{ background: 'var(--pp-side3)', color: '#C7CAD1' }}>{iniciales}</div>
             <div className="min-w-0 flex-1 text-left">
               <div className="text-[12.5px] font-bold truncate" style={{ color: '#F4F5F7' }}>{nombre}</div>
               <div className="text-[11px] truncate" style={{ color: '#6E7280' }}>{rol}</div>

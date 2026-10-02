@@ -50,6 +50,12 @@
   /* Stepper / progreso */
   --pp-step-inactive: #2a2a2a;
   --pp-progress-bg:   #1e1e1e;
+  --pp-progress-track: rgba(255,255,255,0.10);
+
+  /* Barra lateral (oscura en ambos temas) */
+  --pp-side:         #171B24;
+  --pp-side2:        #1F2430;
+  --pp-side3:        #2A3040;
 
   /* Color scheme para inputs de fecha */
   --pp-color-scheme: dark;
@@ -58,34 +64,34 @@
 /* ── MODO CLARO ── */
 html.light {
   /* Fondos */
-  --pp-bg:           #F6EFDF;
-  --pp-nav:          #EFE6D2;
-  --pp-card:         #FFFDF7;
-  --pp-surface:      #EFE7D5;
-  --pp-hover:        #E7DDC5;
-  --pp-input-bg:     #FFFDF7;
-  --pp-topbar:       rgba(246,239,223,0.92);
-  --pp-topbar2:      rgba(246,239,223,0.93);
-  --pp-topbar3:      rgba(246,239,223,0.9);
+  --pp-bg:           #F5F6F8;
+  --pp-nav:          #EEF0F3;
+  --pp-card:         #FFFFFF;
+  --pp-surface:      #F0F2F5;
+  --pp-hover:        #EAEDF1;
+  --pp-input-bg:     #FFFFFF;
+  --pp-topbar:       rgba(245,246,248,0.92);
+  --pp-topbar2:      rgba(245,246,248,0.93);
+  --pp-topbar3:      rgba(245,246,248,0.9);
 
   /* Texto */
-  --pp-text:         #241F17;
-  --pp-text2:        #8A8172;
-  --pp-text3:        #A69C87;
-  --pp-text4:        #A69C87;
-  --pp-text5:        #D9CFB8;
-  --pp-text6:        #5C5647;
-  --pp-text7:        #4A4436;
+  --pp-text:         #161A21;
+  --pp-text2:        #454C59;
+  --pp-text3:        #646B78;
+  --pp-text4:        #646B78;
+  --pp-text5:        #CDD2DA;
+  --pp-text6:        #363C48;
+  --pp-text7:        #2A2F39;
   --pp-text8:        #C6202B;
-  --pp-text9:        #5C5647;
-  --pp-text10:       #8A8172;
-  --pp-text11:       #4A4436;
+  --pp-text9:        #363C48;
+  --pp-text10:       #4E5563;
+  --pp-text11:       #2A2F39;
 
   /* Bordes */
-  --pp-border:       rgba(120,95,60,0.14);
-  --pp-border2:      rgba(120,95,60,0.10);
-  --pp-border3:      rgba(120,95,60,0.16);
-  --pp-border4:      #DCD0B4;
+  --pp-border:       rgba(17,24,39,0.10);
+  --pp-border2:      rgba(17,24,39,0.08);
+  --pp-border3:      rgba(17,24,39,0.12);
+  --pp-border4:      #D3D8E0;
 
   /* Acento */
   --pp-accent:       #C6202B;
@@ -97,12 +103,13 @@ html.light {
   --pp-active-border:rgba(198,32,43,0.18);
 
   /* Overlay */
-  --pp-overlay:      rgba(30,22,12,0.4);
-  --pp-overlay2:     rgba(30,22,12,0.35);
+  --pp-overlay:      rgba(15,20,30,0.4);
+  --pp-overlay2:     rgba(15,20,30,0.35);
 
   /* Stepper / progreso */
-  --pp-step-inactive: #DCD0B4;
-  --pp-progress-bg:   #EFE7D5;
+  --pp-step-inactive: #D3D8E0;
+  --pp-progress-bg:   #EEF0F3;
+  --pp-progress-track: #E1E5EB;
 
   /* Color scheme para inputs de fecha */
   --pp-color-scheme: light;

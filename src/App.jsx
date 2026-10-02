@@ -154,7 +154,7 @@ function AppContent() {
           onActualizarMarcasFactura={actualizarMarcasFactura}
           currentUid={user.uid}
           onLogout={logout}
-          onChangeStatus={(id, estado, fechaEntrega) => cambiarEstatus(id, estado, fechaEntrega)}
+          onChangeStatus={(id, estado, fechaEntrega, extra) => cambiarEstatus(id, estado, fechaEntrega, extra)}
           onGenerateGuestLink={(id) => generarGuestToken(id)}
           onSendEstimate={(id, data) => enviarEstimado(id, data)}
           onCreateOrder={(data) => crearPedido({ ...data, tipo: 'pedido', tenantId: perfil?.tenantId })}

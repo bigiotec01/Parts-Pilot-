@@ -18,16 +18,18 @@ export const STATUS_CONFIG = {
   rechazado:        { label: 'Estimado rechazado',   short: 'Rechazado',  dot: '#ef4444', bg: 'rgba(239,68,68,0.15)',  tx: '#ef4444', icon: XCircle },
 };
 
+// Modo claro: píldoras de fondo pastel con texto oscuro del mismo tono, para
+// que el estado se lea de un vistazo sin perder contraste.
 export const STATUS_CONFIG_LIGHT = {
-  pendiente:        { ...STATUS_CONFIG.pendiente,        bg: 'rgba(148,163,184,0.12)', tx: '#64748B' },
-  cotizando:        { ...STATUS_CONFIG.cotizando,        bg: '#EFF6FF',  dot: '#2563EB', tx: '#2563EB' },
-  pedido_fabrica:   { ...STATUS_CONFIG.pedido_fabrica,   bg: '#F5F3FF',  dot: '#7C3AED', tx: '#7C3AED' },
-  ordenadas:        { ...STATUS_CONFIG.ordenadas,        bg: '#DCE7F6',  dot: '#2B6CB0', tx: '#2B6CB0' },
-  esperando_piezas: { ...STATUS_CONFIG.esperando_piezas, bg: '#FFF7ED',  dot: '#C2410C', tx: '#C2410C' },
-  en_transito:      { ...STATUS_CONFIG.en_transito,      bg: '#FEFCE8',  dot: '#A16207', tx: '#A16207' },
-  recibido:         { ...STATUS_CONFIG.recibido,         bg: '#ECFDF5',  dot: '#059669', tx: '#059669' },
-  entregado:        { ...STATUS_CONFIG.entregado,        bg: '#F0FDFA',  dot: '#0D9488', tx: '#0D9488' },
-  rechazado:        { ...STATUS_CONFIG.rechazado,        bg: '#FEF2F2',  dot: '#DC2626', tx: '#DC2626' },
+  pendiente:        { ...STATUS_CONFIG.pendiente,        bg: '#EEF1F5', dot: '#64748B', tx: '#334155' },
+  cotizando:        { ...STATUS_CONFIG.cotizando,        bg: '#DBEAFE', dot: '#2563EB', tx: '#1E40AF' },
+  pedido_fabrica:   { ...STATUS_CONFIG.pedido_fabrica,   bg: '#EDE9FE', dot: '#7C3AED', tx: '#5B21B6' },
+  ordenadas:        { ...STATUS_CONFIG.ordenadas,        bg: '#E0E7FF', dot: '#4F46E5', tx: '#3730A3' },
+  esperando_piezas: { ...STATUS_CONFIG.esperando_piezas, bg: '#FFEDD5', dot: '#EA580C', tx: '#9A3412' },
+  en_transito:      { ...STATUS_CONFIG.en_transito,      bg: '#FEF3C7', dot: '#D97706', tx: '#92400E' },
+  recibido:         { ...STATUS_CONFIG.recibido,         bg: '#D1FAE5', dot: '#059669', tx: '#065F46' },
+  entregado:        { ...STATUS_CONFIG.entregado,        bg: '#CCFBF1', dot: '#0D9488', tx: '#115E59' },
+  rechazado:        { ...STATUS_CONFIG.rechazado,        bg: '#FEE2E2', dot: '#DC2626', tx: '#991B1B' },
 };
 
 /* ── Avance rápido de estado ── */

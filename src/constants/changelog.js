@@ -2,6 +2,15 @@
 // audience: 'admin' | 'taller' | 'all' — a quién se le muestra cada línea en el pop-up de Novedades.
 export const CHANGELOG = [
   {
+    version: '1.9.0',
+    items: [
+      { audience: 'admin', text: 'Al aprobar una orden de Tag Logic, los números de pieza de la orden y de las notas del taller pasan solos a "Piezas en espera", con descripción y número de referencia.' },
+      { audience: 'all', text: 'Las piezas ahora muestran su número de referencia.' },
+      { audience: 'all', text: 'Nuevo look más limpio: fondo claro neutro, textos con más contraste y estados en etiquetas de color más fáciles de leer.' },
+      { audience: 'all', text: 'La lista de pedidos separa en columnas el vehículo, PO#/Orden y el avance de piezas; los pedidos sin piezas muestran una barra gris.' },
+    ],
+  },
+  {
     version: '1.8.6',
     items: [
       { audience: 'admin', text: 'Corregido el resaltado rojo: ahora las tarjetas de pedidos con entrega vencida o hoy se marcan en rojo, sin afectar la vista de talleres.' },

@@ -732,9 +732,13 @@ exports.ingestTagLogic = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res)
       const snap = await tx.get(ref);
       if (snap.exists) {
         // Reenvío (suplemento): refresca lo visible, respeta folio/estado/estimado/chat.
+        // Una orden ya aprobada tiene sus "Piezas en espera" con estado propio
+        // (recibida, en tienda…): el reenvío no las pisa, solo guarda las de Tag Logic aparte.
+        const aprobada = snap.data().estado !== 'pendiente';
         tx.set(ref, {
           vehiculo: b.vehiculo || '', pieza: b.pieza || '', notas: b.notas || '', archivos,
-          tag: b.tag || null, piezas: b.piezas || [],
+          tag: b.tag || null, piezasTagLogic: b.piezas || [],
+          ...(aprobada ? {} : { piezas: b.piezas || [] }),
           vehiculoDetalle: b.vehiculoDetalle || null, reclamacion: b.reclamacion || null,
           enlaceTagLogic: b.enlaceTagLogic || '',
         }, { merge: true });
@@ -754,7 +758,7 @@ exports.ingestTagLogic = onRequest({ secrets: [TAGLOGIC_KEY] }, async (req, res)
         archivos, estado: 'pendiente', estimado: null, mensajes: [],
         fecha: admin.firestore.FieldValue.serverTimestamp(),
         folio: nuevoFolio,
-        piezas: b.piezas || [], vehiculoDetalle: b.vehiculoDetalle || null,
+        piezas: b.piezas || [], piezasTagLogic: b.piezas || [], vehiculoDetalle: b.vehiculoDetalle || null,
         reclamacion: b.reclamacion || null, enlaceTagLogic: b.enlaceTagLogic || '',
       });
       return nuevoFolio;
@@ -822,8 +826,9 @@ exports.pedidoGuestEstado = onRequest({ cors: true }, async (req, res) => {
     fecha: p.fecha || null,
     fechaEntrega: p.fechaEntrega || null,
     piezas: (p.piezas || []).map(pz => ({
-      numeroPieza: pz.numeroPieza || null,
+      numeroPieza: pz.numeroPieza || pz.partNumber || null,
       descripcion: pz.descripcion || null,
+      referencia: pz.referencia || null,
       estado: pz.estado || null,
       fechaRecibida: pz.fechaRecibida || null,
       primeraDeteccion: pz.primeraDeteccion || null,

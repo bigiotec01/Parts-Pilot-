@@ -11,7 +11,7 @@ import { PiezasList } from '../shared/PiezasList';
 import { CopyChip } from '../shared/CopyChip';
 import { inputClass } from '../../constants/styles';
 import { avgDeliveryLeadDays, suggestDeliveryDate, cleanText, filesOf } from '../../utils/format';
-import { parsePiezasExcel, mergePiezas, agregarPiezaManual, editarPieza, eliminarPieza, contarPiezasEnTienda, ESTADOS_PIEZA } from '../../utils/piezasExcel';
+import { parsePiezasExcel, mergePiezas, agregarPiezaManual, editarPieza, eliminarPieza, contarPiezasEnTienda, ESTADOS_PIEZA, piezasDesdeTagLogic } from '../../utils/piezasExcel';
 import { confirmar } from '../shared/Dialogs';
 
 const AUTO_DATE_STATES = ['en_transito', 'recibido'];
@@ -181,22 +181,23 @@ export function useAdminOrderContent({ order, taller, onChangeStatus, onGenerate
   const [piezaModal, setPiezaModal] = useState(null); // null | { mode: 'add' } | { mode: 'edit', index }
   const [manualNumero, setManualNumero] = useState('');
   const [manualDescripcion, setManualDescripcion] = useState('');
+  const [manualReferencia, setManualReferencia] = useState('');
   const [manualEstado, setManualEstado] = useState('pendiente');
   const [manualError, setManualError] = useState('');
   const [manualGuardando, setManualGuardando] = useState(false);
-  const abrirAgregarPieza = () => { setManualNumero(''); setManualDescripcion(''); setManualError(''); setPiezaModal({ mode: 'add' }); };
+  const abrirAgregarPieza = () => { setManualNumero(''); setManualDescripcion(''); setManualReferencia(order.ref || ''); setManualError(''); setPiezaModal({ mode: 'add' }); };
   // Se guarda el índice (posición en order.piezas), no numeroPieza — así
   // editar/eliminar afecta siempre a la pieza exacta que se tocó, aunque
   // otra pieza distinta comparta el mismo número.
-  const abrirEditarPieza = (p, index) => { setManualNumero(p.numeroPieza); setManualDescripcion(p.descripcion || ''); setManualEstado(p.estado || 'pendiente'); setManualError(''); setPiezaModal({ mode: 'edit', index }); };
+  const abrirEditarPieza = (p, index) => { setManualNumero(p.numeroPieza); setManualDescripcion(p.descripcion || ''); setManualReferencia(p.referencia || ''); setManualEstado(p.estado || 'pendiente'); setManualError(''); setPiezaModal({ mode: 'edit', index }); };
   const handleGuardarPieza = async (e) => {
     e.preventDefault();
     setManualError('');
     setManualGuardando(true);
     try {
       const piezas = piezaModal.mode === 'edit'
-        ? editarPieza(order.piezas, piezaModal.index, { numeroPieza: manualNumero, descripcion: manualDescripcion, estado: manualEstado })
-        : agregarPiezaManual(order.piezas, { numeroPieza: manualNumero, descripcion: manualDescripcion });
+        ? editarPieza(order.piezas, piezaModal.index, { numeroPieza: manualNumero, descripcion: manualDescripcion, referencia: manualReferencia, estado: manualEstado })
+        : agregarPiezaManual(order.piezas, { numeroPieza: manualNumero, descripcion: manualDescripcion, referencia: manualReferencia });
       await onImportarPiezas(order.id, piezas);
       setManualNumero(''); setManualDescripcion(''); setPiezaModal(null);
     } catch (err) {
@@ -209,6 +210,11 @@ export function useAdminOrderContent({ order, taller, onChangeStatus, onGenerate
     if (!(await confirmar(`¿Eliminar la pieza ${p.numeroPieza}?`, { peligro: true }))) return;
     await onImportarPiezas(order.id, eliminarPieza(order.piezas, index));
   };
+
+  // Una orden de Tag Logic sin aprobar todavía muestra las piezas que se van a
+  // registrar (incluidas las detectadas en las notas del taller), solo lectura.
+  const tagLogicSinAprobar = order.origen === 'taglogic' && order.estado === 'pendiente';
+  const piezasPrevia = useMemo(() => tagLogicSinAprobar ? piezasDesdeTagLogic(order) : [], [tagLogicSinAprobar, order.piezas, order.notas, order.ref]);
 
   const openDatePicker = (e) => { try { e.target.showPicker(); } catch (_) {} };
 
@@ -277,7 +283,7 @@ export function useAdminOrderContent({ order, taller, onChangeStatus, onGenerate
         <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
           <p className="text-[10.5px] font-bold uppercase flex items-center gap-1.5" style={{ color: 'var(--pp-text9)', letterSpacing: '.05em' }}>
             <Hourglass className="w-3.5 h-3.5" /> Piezas en espera
-            {order.piezas?.length > 0 && (
+            {order.piezas?.length > 0 && !tagLogicSinAprobar && (
               <span className="normal-case font-medium" style={{ color: 'var(--pp-text3)' }}>
                 · {contarPiezasEnTienda(order.piezas)} de {order.piezas.length} en tienda
               </span>
@@ -290,10 +296,17 @@ export function useAdminOrderContent({ order, taller, onChangeStatus, onGenerate
           ]} />
         </div>
         {piezasError && <p className="text-[12px] mb-2" style={{ color: '#dc2626' }}>{piezasError}</p>}
-        {!order.piezas?.length ? (
+        {tagLogicSinAprobar ? (
+          piezasPrevia.length ? (
+            <>
+              <p className="text-[11.5px] mb-2" style={{ color: 'var(--pp-text3)' }}>Detectadas en la orden y notas del taller · se registrarán en espera al aprobar.</p>
+              <PiezasList piezas={piezasPrevia} />
+            </>
+          ) : <p className="text-[12.5px]" style={{ color: 'var(--pp-text3)' }}>No se detectaron números de pieza en la orden ni en las notas del taller.</p>
+        ) : !order.piezas?.length ? (
           <p className="text-[12.5px]" style={{ color: 'var(--pp-text3)' }}>Sube el reporte de piezas (.xlsx) o agrega una pieza manualmente para verla aquí.</p>
         ) : (
-          <PiezasList piezas={order.piezas} onEdit={abrirEditarPieza} onDelete={handleEliminarPieza} />
+          <PiezasList piezas={order.piezas} referencia={order.ref} onEdit={abrirEditarPieza} onDelete={handleEliminarPieza} />
         )}
       </div>
 
@@ -306,6 +319,9 @@ export function useAdminOrderContent({ order, taller, onChangeStatus, onGenerate
             </FormField>
             <FormField label="Descripción (opcional)">
               <input value={manualDescripcion} onChange={e => setManualDescripcion(e.target.value)} placeholder="ej. Cover-Rr Bumper, Upr" className={inputClass} />
+            </FormField>
+            <FormField label="Número de referencia (opcional)">
+              <input value={manualReferencia} onChange={e => setManualReferencia(e.target.value)} placeholder="ej. Ref. Tag Logic, RO, claim…" className={inputClass} />
             </FormField>
             {piezaModal.mode === 'edit' && (
               <FormField label="Estado">

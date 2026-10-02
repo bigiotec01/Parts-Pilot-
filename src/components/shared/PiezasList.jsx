@@ -1,13 +1,15 @@
 import { formatDate, daysSince } from '../../utils/format';
 import { Pencil, Trash2 } from 'lucide-react';
+import { normalizarPieza } from '../../utils/piezasExcel';
 
 function PiezaRow({ p, i, onEdit, onDelete }) {
   const dias = p.estado === 'pendiente' ? daysSince(p.primeraDeteccion) : null;
   return (
     <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-[8px]" style={{ background: 'var(--pp-input-bg)' }}>
       <div className="min-w-0">
-        <p className="text-[12.5px] font-mono font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.numeroPieza}</p>
-        {p.descripcion && <p className="text-[11px] truncate" style={{ color: 'var(--pp-text3)' }}>{p.descripcion}</p>}
+        <p className="text-[12.5px] font-mono font-semibold truncate" style={{ color: 'var(--pp-text)' }}>{p.numeroPieza || <span className="font-sans font-normal italic" style={{ color: 'var(--pp-text3)' }}>Sin número</span>}</p>
+        {p.descripcion && <p className="text-[11.5px] truncate" style={{ color: 'var(--pp-text2)' }}>{p.descripcion}</p>}
+        {p.referencia && <p className="text-[11px] truncate" style={{ color: 'var(--pp-text3)' }}>Ref. <span className="font-mono font-semibold" style={{ color: 'var(--pp-text2)' }}>{p.referencia}</span></p>}
       </div>
       <div className="flex items-center gap-1.5 flex-shrink-0">
         <span className="flex items-center gap-1 text-[11.5px] font-semibold whitespace-nowrap">
@@ -44,14 +46,15 @@ function PiezaRow({ p, i, onEdit, onDelete }) {
 // recibidas/en tienda después y las ya entregadas al final.
 const ORDEN_ESTADO = { pendiente: 0, en_tienda: 1, recibida: 2, entregada: 3 };
 
-export function PiezasList({ piezas, onEdit, onDelete }) {
+// referencia: ref. por defecto para piezas que llegaron con el formato de Tag Logic.
+export function PiezasList({ piezas, onEdit, onDelete, referencia }) {
   // Se guarda el índice original (posición real en order.piezas) junto con
   // cada pieza ANTES de ordenar para mostrar — es lo que se le pasa a
   // onEdit/onDelete, en vez de numeroPieza: dos piezas distintas podían
   // compartir el mismo número y entonces editar/eliminar "una" afectaba a
   // todas las que tuvieran ese número.
   const ordenadas = piezas
-    .map((p, i) => ({ p, i }))
+    .map((p, i) => ({ p: normalizarPieza(p, referencia), i }))
     .sort((a, b) => (ORDEN_ESTADO[a.p.estado] ?? 99) - (ORDEN_ESTADO[b.p.estado] ?? 99));
 
   return (

@@ -130,8 +130,14 @@ export function OrderCard({ order, taller, showTaller, onClick, unreadCount = 0,
   );
 }
 
+// Rejilla de la vista de lista (encabezado + filas comparten columnas vía subgrid).
+export const LIST_GRID_CLASS = 'sm:grid sm:grid-cols-[minmax(150px,1.5fr)_minmax(110px,1fr)_minmax(110px,0.9fr)_minmax(0,1fr)_auto_minmax(0,1fr)_auto_36px]';
+
+// sortable: false → solo etiqueta de columna, sin orden.
 const LIST_SORT_COLUMNS = [
   { key: 'vehiculo', label: 'Vehículo' },
+  { key: 'refs', label: 'PO# / Orden', sortable: false },
+  { key: 'piezas', label: 'Piezas', sortable: false },
   { key: 'taller', label: 'Taller' },
   { key: 'folio', label: 'Folio' },
   { key: 'fecha', label: 'Fechas' },
@@ -151,6 +157,7 @@ export function OrderListHeader({ showTaller, sortBy, sortDir, onSort }) {
     >
       {LIST_SORT_COLUMNS.map(col => {
         if (col.key === 'taller' && !showTaller) return <span key={col.key} />;
+        if (col.sortable === false) return <span key={col.key}>{col.label}</span>;
         return (
           <button
             key={col.key}
@@ -174,7 +181,8 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
   const entregaVencida = isEntregaVencida(order);
   const alertaEntregaAdmin = entregaVencida && activityRole === 'admin';
   const hasNewIds = order.numeroPO || order.numeroOrden;
-  const title = !hasNewIds ? (order.referencia || order.vehiculo) : order.vehiculo;
+  // PO#/Orden van en su propia columna: aquí siempre el vehículo (o la referencia si no hay vehículo).
+  const title = order.vehiculo || order.referencia;
   const next = getNextStatus(order.estado);
 
   return (
@@ -193,14 +201,7 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
     >
       <div className="min-w-0">
         <div className="flex items-center gap-2 flex-wrap min-w-0">
-          {hasNewIds ? (
-            <>
-              <CopyChip label="PO#" value={order.numeroPO} size="sm" />
-              <CopyChip label="Orden" value={order.numeroOrden} size="sm" />
-            </>
-          ) : (
-            <span className="font-bold text-[13.5px] truncate" style={{ color: 'var(--pp-text)' }}>{title}</span>
-          )}
+          <span className="font-bold text-[13.5px] truncate min-w-0" style={{ color: 'var(--pp-text)' }}>{title || '—'}</span>
           <TagLogicBadge order={order} />
           {hasActivity && (
             <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>Actualizado</span>
@@ -209,12 +210,24 @@ export function OrderListRow({ order, taller, showTaller, onClick, unreadCount =
             <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-bold text-white flex-shrink-0" style={{ background: '#f59e0b' }}>{unreadCount} nuevo{unreadCount !== 1 ? 's' : ''}</span>
           )}
         </div>
-        {hasNewIds && (
-          <p className="text-[11px] mt-0.5 truncate font-medium" style={{ color: 'var(--pp-text3)' }}>
-            {title}
+        {order.referencia && order.referencia !== title && (
+          <p className="text-[11.5px] mt-0.5 truncate font-medium" style={{ color: 'var(--pp-text2)' }}>
+            {order.referencia}
           </p>
         )}
-        <PiezasProgress piezas={order.piezas} className="mt-1.5 max-w-[260px]" />
+      </div>
+
+      <div className="flex sm:flex-col items-start gap-1 flex-wrap min-w-0 sm:pt-px">
+        {hasNewIds ? (
+          <>
+            <CopyChip label="PO#" value={order.numeroPO} size="sm" />
+            <CopyChip label="Orden" value={order.numeroOrden} size="sm" />
+          </>
+        ) : <span className="hidden sm:inline text-[12px]" style={{ color: 'var(--pp-text3)' }}>—</span>}
+      </div>
+
+      <div className="min-w-0 sm:pt-1">
+        <PiezasProgress piezas={order.piezas} showEmpty className="max-w-[260px]" />
       </div>
 
       {showTaller && taller ? (

@@ -18,6 +18,7 @@ import { AdminEstimados } from './AdminEstimados';
 import { AdminAprobados } from './AdminAprobados';
 import { NotifToast } from '../shared/NotifToast';
 import { toDateAny } from '../../utils/format';
+import { piezasDesdeTagLogic } from '../../utils/piezasExcel';
 import { AdminFacturas } from './AdminFacturas';
 import { AdminEmpresas } from './AdminEmpresas';
 import { AdminInvoices } from './AdminInvoices';
@@ -26,7 +27,7 @@ import { AdminOrderDrawer } from './AdminOrderDrawer';
 import { AdminOrderPage } from './AdminOrderPage';
 import { AdminHistorial } from './AdminHistorial';
 
-export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, empresa, onActualizarMarcasFactura, currentUid, onLogout, onChangeStatus, onGenerateGuestLink, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onDeleteMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onImportarPiezas, onAgregarFactura, onActualizarFactura, onEliminarFactura, backups, onCrearBackup, onRestaurarBackup, onEliminarBackup, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario, onResetPassword, isPlatformSuperAdmin, onOpenSuperAdmin, empresasClientes, onCrearEmpresaCliente, onActualizarEmpresaCliente, onEliminarEmpresaCliente, facturasPro, onCrearFacturaPro, onActualizarFacturaPro, onEliminarFacturaPro, onActualizarFacturacionConfig }) {
+export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, perfil, empresa, onActualizarMarcasFactura, currentUid, onLogout, onChangeStatus: onChangeStatusBase, onGenerateGuestLink, onSendEstimate, onCreateOrder, onCreateCotizacion, onSendMessage, onDeleteMessage, onCreateTaller, onDeleteTaller, onDeleteOrder, onUpdateTaller, onUpdateNotes, onUpdateReferencias, onImportarPiezas, onAgregarFactura, onActualizarFactura, onEliminarFactura, backups, onCrearBackup, onRestaurarBackup, onEliminarBackup, onCrearAdmin, onActualizarAdmin, onEliminarAdmin, onCrearSubUsuario, onEliminarSubUsuario, onActualizarSubUsuario, onResetPassword, isPlatformSuperAdmin, onOpenSuperAdmin, empresasClientes, onCrearEmpresaCliente, onActualizarEmpresaCliente, onEliminarEmpresaCliente, facturasPro, onCrearFacturaPro, onActualizarFacturaPro, onEliminarFacturaPro, onActualizarFacturacionConfig }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
   const [filterTaller, setFilterTaller] = useState('todos');
@@ -54,6 +55,17 @@ export function AdminApp({ pedidos, talleres, facturas, equipo, tallerUsuarios, 
   }, []);
 
   const getTaller = (id) => talleres.find(t => t.uid === id);
+
+  // Al aprobar una orden de Tag Logic (sale de "pendiente" por cualquier vía), sus
+  // piezas — las estructuradas y las que vienen en las notas del taller — pasan a
+  // "Piezas en espera" con número de pieza, descripción y número de referencia.
+  const onChangeStatus = (id, estado, fechaEntrega) => {
+    const p = pedidos.find(x => x.id === id);
+    if (p?.origen === 'taglogic' && p.estado === 'pendiente' && estado !== 'pendiente') {
+      return onChangeStatusBase(id, estado, fechaEntrega, { piezas: piezasDesdeTagLogic(p) });
+    }
+    return onChangeStatusBase(id, estado, fechaEntrega);
+  };
   const selectedOrder = pedidos.find(p => p.id === selectedId);
 
   // Qué pestaña muestra un pedido: "esperando cotizar" es estado 'pendiente' Y tipo

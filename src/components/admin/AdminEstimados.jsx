@@ -6,6 +6,7 @@ import { hasNewActivity } from '../../utils/activity';
 import { formatDate, cleanText, filesOf } from '../../utils/format';
 import { EmptyState } from '../shared/FormField';
 import { AgeBadge, TagLogicBadge } from '../shared/OrderBadges';
+import { SEG_ACTIVE, SEG_IDLE } from '../../constants/styles';
 
 export function AdminEstimados({ solicitudes, getTaller, onSelect, onGoToNuevaCotizacion }) {
   const [view, setView] = useState('lista');
@@ -117,11 +118,11 @@ export function AdminEstimados({ solicitudes, getTaller, onSelect, onGoToNuevaCo
     <div className="space-y-6">
       <div className="flex gap-1 p-1 rounded-[10px] w-fit" style={{ background: 'var(--pp-card)' }}>
         <button onClick={() => setView('lista')} title="Vista de lista" className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12.5px] font-bold transition-all"
-          style={view === 'lista' ? { background: 'var(--pp-accent)', color: '#fff' } : { background: 'transparent', color: 'var(--pp-text3)' }}>
+          style={view === 'lista' ? SEG_ACTIVE : SEG_IDLE}>
           <List className="w-3.5 h-3.5" /> Lista
         </button>
         <button onClick={() => setView('tarjetas')} title="Vista de tarjetas" className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12.5px] font-bold transition-all"
-          style={view === 'tarjetas' ? { background: 'var(--pp-accent)', color: '#fff' } : { background: 'transparent', color: 'var(--pp-text3)' }}>
+          style={view === 'tarjetas' ? SEG_ACTIVE : SEG_IDLE}>
           <LayoutGrid className="w-3.5 h-3.5" /> Tarjetas
         </button>
       </div>

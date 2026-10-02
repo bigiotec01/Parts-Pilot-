@@ -24,19 +24,30 @@ export function TagLogicBadge({ order }) {
 }
 
 // Barra "3 de 5 en tienda" — se pone verde cuando ya llegaron todas.
-export function PiezasProgress({ piezas, className = '' }) {
+// showEmpty: en la lista, un pedido sin piezas muestra una barra gris vacía
+// para que todas las filas tengan el mismo indicador.
+export function PiezasProgress({ piezas, className = '', showEmpty = false }) {
   const total = piezas?.length || 0;
-  if (!total) return null;
+  if (!total) {
+    if (!showEmpty) return null;
+    return (
+      <div className={`flex items-center gap-2 min-w-0 ${className}`} title="Sin piezas registradas">
+        <div className="flex-1 h-1.5 rounded-full min-w-[60px]" style={{ background: 'var(--pp-progress-track)' }} />
+        <span className="text-[10.5px] font-semibold whitespace-nowrap flex-shrink-0" style={{ color: 'var(--pp-text3)' }}>Sin piezas</span>
+      </div>
+    );
+  }
   const enTienda = contarPiezasEnTienda(piezas);
   const pct = Math.round((enTienda / total) * 100);
   const completo = enTienda === total;
   const color = completo ? '#10b981' : pct >= 50 ? '#3b82f6' : '#f59e0b';
   return (
     <div className={`flex items-center gap-2 min-w-0 ${className}`} title={`${enTienda} de ${total} piezas en tienda`}>
-      <div className="flex-1 h-1.5 rounded-full overflow-hidden min-w-[60px]" style={{ background: 'var(--pp-border2)' }}>
-        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: color }} />
+      <div className="flex-1 h-1.5 rounded-full overflow-hidden min-w-[60px]" style={{ background: 'var(--pp-progress-track)' }}>
+        {/* Con 0 en tienda se deja ver un punto del color para que la barra no se lea como vacía/rota. */}
+        <div className="h-full rounded-full transition-all duration-500" style={{ width: pct > 0 ? `${pct}%` : '6px', background: color, opacity: pct > 0 ? 1 : 0.7 }} />
       </div>
-      <span className="text-[10.5px] font-bold whitespace-nowrap flex-shrink-0" style={{ color: completo ? '#059669' : 'var(--pp-text3)' }}>
+      <span className="text-[10.5px] font-bold whitespace-nowrap flex-shrink-0" style={{ color: completo ? '#059669' : 'var(--pp-text2)' }}>
         {enTienda}/{total} piezas
       </span>
     </div>

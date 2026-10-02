@@ -208,10 +208,12 @@ export async function crearCotizacion(data) {
 }
 
 // ── Cambiar estatus ─────────────────────────────────────────────────
-export async function cambiarEstatus(pedidoId, estado, fechaEntrega) {
+// extra: campos adicionales a guardar junto con el cambio (ej. las piezas en
+// espera que se generan al aprobar una orden de Tag Logic).
+export async function cambiarEstatus(pedidoId, estado, fechaEntrega, extra) {
   const ref = doc(db, 'pedidos', pedidoId);
   // fechaEstado/fechaEntregado alimentan "Pedidos detenidos" y "Entregados del mes" en Resumen.
-  const data = { estado, fechaEstado: serverTimestamp() };
+  const data = { ...(extra || {}), estado, fechaEstado: serverTimestamp() };
   if (estado === 'entregado') data.fechaEntregado = serverTimestamp();
   if (fechaEntrega !== undefined) data.fechaEntrega = fechaEntrega === '' ? deleteField() : fechaEntrega;
   // Al marcar el pedido como entregado, el link de seguimiento del cliente guest deja de funcionar.

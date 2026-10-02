@@ -6,7 +6,7 @@ import { APP_VERSION } from '../../constants/app';
 import { STATUS_ORDER } from '../../constants/status';
 import { hasNewActivity, saveOrderSeen } from '../../utils/activity';
 import { ThemeToggleBtn } from '../shared/ThemeToggleBtn';
-import { OrderCard, OrderListHeader, OrderListRow } from '../shared/OrderCard';
+import { OrderCard, OrderListHeader, OrderListRow, LIST_GRID_CLASS } from '../shared/OrderCard';
 import { ViewToggle } from '../shared/ViewToggle';
 import { OrderPage } from '../shared/OrderPage';
 import { OrderSheet } from '../shared/OrderSheet';
@@ -193,7 +193,7 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
           {pedidosFiltrados.length === 0 ? (
             <EmptyState text={search ? 'Sin resultados.' : 'Aún no tienes pedidos activos.'} />
           ) : pedidosView === 'lista' ? (
-            <div className="rounded-[15px] border overflow-hidden sm:grid sm:grid-cols-[1.9fr_1fr_0.85fr_1fr_auto_36px]" style={{ borderColor: 'var(--pp-border)', background: 'var(--pp-card)' }}>
+            <div className={`rounded-[15px] border overflow-hidden ${LIST_GRID_CLASS}`} style={{ borderColor: 'var(--pp-border)', background: 'var(--pp-card)' }}>
               <OrderListHeader sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
               {pedidosFiltrados.map(p => <OrderListRow key={p.id} order={p} onClick={() => handleSelect(p.id)} unreadCount={getUnread(p)} activityRole="taller" />)}
             </div>
@@ -247,7 +247,7 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
         {/* Sidebar — siempre oscuro (igual que el de Admin), sin importar el tema
             claro/oscuro de la app: antes usaba variables de tema que en modo claro
             quedaban casi del mismo color que el fondo principal. */}
-        <aside className="w-[230px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: '#151519' }}>
+        <aside className="w-[230px] flex-shrink-0 flex flex-col sticky top-0 h-screen" style={{ background: 'var(--pp-side)' }}>
           <div className="px-5 py-[22px] flex items-center gap-2.5">
             <img src="/pwa-192x192.png" alt="Parts Pilot" className="w-9 h-9 rounded-[10px] flex-shrink-0" style={{ boxShadow: '0 6px 16px -6px rgba(0,0,0,0.3)' }} />
             <div className="min-w-0">
@@ -304,8 +304,8 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
           </div>
 
           <div className="p-3.5">
-            <div className="rounded-[13px] p-3 flex items-center gap-2.5" style={{ background: '#1C1D22' }}>
-              <div className="w-9 h-9 rounded-[9px] flex items-center justify-center text-[12px] font-bold flex-shrink-0" style={{ background: '#2A2B32', color: '#C7CAD1' }}>
+            <div className="rounded-[13px] p-3 flex items-center gap-2.5" style={{ background: 'var(--pp-side2)' }}>
+              <div className="w-9 h-9 rounded-[9px] flex items-center justify-center text-[12px] font-bold flex-shrink-0" style={{ background: 'var(--pp-side3)', color: '#C7CAD1' }}>
                 {initials(taller.nombre)}
               </div>
               <div className="min-w-0 flex-1">
@@ -314,7 +314,7 @@ export function ClientApp({ taller, pedidos, facturas, onLogout, onCreateOrder, 
               </div>
               <div className="flex gap-1 flex-shrink-0">
                 <ThemeToggleBtn small />
-                <button onClick={onLogout} className="w-[28px] h-[28px] rounded-[7px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: '#1C1D22', color: '#9297A3' }} title="Salir">
+                <button onClick={onLogout} className="w-[28px] h-[28px] rounded-[7px] flex items-center justify-center flex-shrink-0 hover:bg-[#30343c] transition-colors" style={{ background: 'var(--pp-side2)', color: '#9297A3' }} title="Salir">
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
               </div>

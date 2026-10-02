@@ -78,7 +78,7 @@ export async function parsePiezasExcel(arrayBuffer) {
 // las piezas existentes que no aparecen en este archivo (no se eliminan).
 export function mergePiezas(piezasActuales, filasExcel) {
   const ahora = new Date();
-  const piezas = (piezasActuales || []).map(p => ({ ...p }));
+  const piezas = normalizarPiezas(piezasActuales).map(p => ({ ...p }));
 
   for (const fila of filasExcel) {
     const existente = piezas.find(p => p.numeroPieza === fila.numeroPieza);
@@ -110,10 +110,10 @@ export function mergePiezas(piezasActuales, filasExcel) {
 // anterior, stock propio, no pasó por el reporte del proveedor), pero admite
 // otro estado explícito (ej. "pendiente" al registrar de una vez las piezas
 // en espera desde el formulario de un pedido nuevo).
-export function agregarPiezaManual(piezasActuales, { numeroPieza, descripcion, estado = 'en_tienda' }) {
+export function agregarPiezaManual(piezasActuales, { numeroPieza, descripcion, referencia, estado = 'en_tienda' }) {
   const numero = String(numeroPieza || '').trim();
   if (!numero) throw new Error('Ingresa un número de pieza.');
-  const piezas = (piezasActuales || []).map(p => ({ ...p }));
+  const piezas = normalizarPiezas(piezasActuales).map(p => ({ ...p }));
   if (piezas.some(p => p.numeroPieza === numero)) {
     throw new Error(`La pieza ${numero} ya está en la lista.`);
   }
@@ -121,6 +121,7 @@ export function agregarPiezaManual(piezasActuales, { numeroPieza, descripcion, e
   piezas.push({
     numeroPieza: numero,
     descripcion: String(descripcion || '').trim(),
+    referencia: String(referencia || '').trim(),
     estado,
     fechaRecibida: estado === 'recibida' ? ahora : null,
     primeraDeteccion: ahora,
@@ -135,10 +136,10 @@ export function agregarPiezaManual(piezasActuales, { numeroPieza, descripcion, e
 // ubica por posición (index) y no por numeroPieza: si dos piezas distintas
 // llegaran a compartir el mismo número, buscar por valor editaba/eliminaba
 // a las dos a la vez.
-export function editarPieza(piezasActuales, index, { numeroPieza, descripcion, estado }) {
+export function editarPieza(piezasActuales, index, { numeroPieza, descripcion, referencia, estado }) {
   const numero = String(numeroPieza || '').trim();
   if (!numero) throw new Error('Ingresa un número de pieza.');
-  const piezas = (piezasActuales || []).map(p => ({ ...p }));
+  const piezas = normalizarPiezas(piezasActuales).map(p => ({ ...p }));
   if (piezas.some((p, i) => i !== index && p.numeroPieza === numero)) {
     throw new Error(`La pieza ${numero} ya está en la lista.`);
   }
@@ -146,6 +147,7 @@ export function editarPieza(piezasActuales, index, { numeroPieza, descripcion, e
   if (!pieza) throw new Error('No se encontró la pieza a editar.');
   pieza.numeroPieza = numero;
   pieza.descripcion = String(descripcion || '').trim();
+  if (referencia !== undefined) pieza.referencia = String(referencia || '').trim();
   if (estado && estado !== pieza.estado) {
     pieza.estado = estado;
     // "Recibida" sin fecha del reporte todavía necesita una fecha para
@@ -162,5 +164,96 @@ export function editarPieza(piezasActuales, index, { numeroPieza, descripcion, e
 // Quita una pieza de la lista (ej. se agregó por error), por su posición
 // (index) — ver nota arriba sobre por qué no se busca por numeroPieza.
 export function eliminarPieza(piezasActuales, index) {
-  return (piezasActuales || []).filter((_, i) => i !== index);
+  return normalizarPiezas(piezasActuales).filter((_, i) => i !== index);
+}
+
+// ── Piezas de órdenes Tag Logic ─────────────────────────────────────
+// Tag Logic manda sus piezas como { descripcion, partNumber, lado } y/o las
+// escribe en las notas del taller ("• Bumper — Part# 86511-J5000 (izq)").
+// Al aprobar la orden se convierten en "Piezas en espera" con número de
+// pieza, descripción y número de referencia (la ref. de Tag Logic si la pieza
+// no trae una propia).
+
+// "Part#", "Part No.", "P/N", "No. de pieza", "Núm. pieza" seguidos del número.
+const PART_LABEL_RE = /(?:part\s*(?:#|no\.?|num(?:ber)?\.?)|p\s*\/\s*n|(?:n[uú]m(?:ero)?|no)\.?\s*(?:de\s+)?pieza)\s*[:#.]?\s*([A-Z0-9][A-Z0-9-]{3,})/i;
+// Sin etiqueta: formato típico Kia/Hyundai (86511-J5000) o un código largo con dígitos y guiones.
+const PART_BARE_RE = /\b(\d{5}-?[A-Z0-9]{5}(?:-?[A-Z0-9]{2,3})?|[A-Z0-9]{2,}-[A-Z0-9]{2,}(?:-[A-Z0-9]{2,})*)\b/;
+
+function limpiarDescripcion(texto) {
+  return String(texto || '')
+    .replace(/^[\s•*·\-–—\d.)]+/, '')
+    .replace(/[\s\-–—:,|]+$/, '')
+    .trim();
+}
+
+// Extrae { numeroPieza, descripcion } de cada línea de las notas que tenga un número de pieza.
+export function extraerPiezasDeNotas(notas) {
+  const out = [];
+  for (const linea of String(notas || '').split(/\r?\n/)) {
+    if (!linea.trim()) continue;
+    let m = linea.match(PART_LABEL_RE);
+    if (!m) {
+      m = linea.toUpperCase().match(PART_BARE_RE);
+      // Un código sin etiqueta debe tener dígitos (evita "PRE-PINTADO", fechas, etc.).
+      if (!m || !/\d{3,}/.test(m[1]) || /^\d{1,4}-\d{1,2}-\d{1,4}$/.test(m[1])) continue;
+    }
+    const numeroPieza = m[1].toUpperCase();
+    const antes = linea.slice(0, m.index);
+    const despues = linea.slice(m.index + m[0].length);
+    let descripcion = limpiarDescripcion(antes);
+    const extra = limpiarDescripcion(despues);
+    if (!descripcion) descripcion = extra;
+    else if (/^\(.*\)$/.test(extra)) descripcion = `${descripcion} ${extra}`;
+    out.push({ numeroPieza, descripcion });
+  }
+  return out;
+}
+
+// Normaliza una pieza con el formato de Tag Logic al formato de "Piezas en espera".
+// Las piezas que ya tienen estado (importadas por Excel o editadas) se dejan igual.
+export function normalizarPieza(p, referencia = '') {
+  if (!p || p.estado) return p;
+  const numeroPieza = String(p.numeroPieza || p.partNumber || p.numero || '').trim();
+  const desc = String(p.descripcion || p.description || p.nombre || '').trim();
+  return {
+    numeroPieza,
+    descripcion: p.lado && desc ? `${desc} (${p.lado})` : desc,
+    referencia: String(p.referencia || p.ref || referencia || '').trim(),
+    estado: 'pendiente',
+    fechaRecibida: null,
+    primeraDeteccion: p.primeraDeteccion || null,
+    ultimaActualizacion: p.ultimaActualizacion || null,
+  };
+}
+
+// Normaliza todo el arreglo conservando posiciones (los índices se usan para editar/eliminar).
+export function normalizarPiezas(piezas, referencia = '') {
+  return (piezas || []).map(p => normalizarPieza(p, referencia));
+}
+
+// Piezas en espera para una orden Tag Logic recién aprobada: une las piezas
+// estructuradas y las que aparecen en las notas, sin duplicar números.
+export function piezasDesdeTagLogic(order) {
+  const ahora = new Date();
+  const referencia = order?.ref || '';
+  const piezas = (order?.piezas || []).map(p => {
+    const n = normalizarPieza(p, referencia);
+    return n.estado === 'pendiente' && !n.primeraDeteccion ? { ...n, primeraDeteccion: ahora, ultimaActualizacion: ahora } : n;
+  });
+  const vistos = new Set(piezas.map(p => p.numeroPieza).filter(Boolean));
+  for (const { numeroPieza, descripcion } of extraerPiezasDeNotas(order?.notas)) {
+    if (vistos.has(numeroPieza)) {
+      // Completa la descripción si la pieza estructurada venía sin ella.
+      const ex = piezas.find(p => p.numeroPieza === numeroPieza);
+      if (ex && !ex.descripcion && descripcion) ex.descripcion = descripcion;
+      continue;
+    }
+    vistos.add(numeroPieza);
+    piezas.push({
+      numeroPieza, descripcion, referencia, estado: 'pendiente',
+      fechaRecibida: null, primeraDeteccion: ahora, ultimaActualizacion: ahora,
+    });
+  }
+  // Piezas sin número ni descripción no aportan nada a la lista.
+  return piezas.filter(p => p.numeroPieza || p.descripcion);
 }

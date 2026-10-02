@@ -70,7 +70,7 @@ export function ClientOrderDetail({ order, onRespond }) {
             </span>
           </div>
           <div className="px-3 pb-3">
-            <PiezasList piezas={order.piezas} />
+            <PiezasList piezas={order.piezas} referencia={order.ref} />
           </div>
         </div>
       )}
