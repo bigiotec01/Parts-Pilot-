@@ -140,11 +140,15 @@ export function editarPieza(piezasActuales, index, { numeroPieza, descripcion, r
   const numero = String(numeroPieza || '').trim();
   if (!numero) throw new Error('Ingresa un número de pieza.');
   const piezas = normalizarPiezas(piezasActuales).map(p => ({ ...p }));
-  if (piezas.some((p, i) => i !== index && p.numeroPieza === numero)) {
-    throw new Error(`La pieza ${numero} ya está en la lista.`);
-  }
   const pieza = piezas[index];
   if (!pieza) throw new Error('No se encontró la pieza a editar.');
+  // Solo se bloquea si el número que se está guardando CAMBIA y choca con otra
+  // pieza. Si ya traía ese número desde antes (ej. Tag Logic mandó dos líneas
+  // con el mismo part#) no se bloquea el resto de la edición (estado, etc.) —
+  // de lo contrario esas piezas quedarían sin poder editarse nunca.
+  if (numero !== pieza.numeroPieza && piezas.some((p, i) => i !== index && p.numeroPieza === numero)) {
+    throw new Error(`La pieza ${numero} ya está en la lista.`);
+  }
   pieza.numeroPieza = numero;
   pieza.descripcion = String(descripcion || '').trim();
   if (referencia !== undefined) pieza.referencia = String(referencia || '').trim();
