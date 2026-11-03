@@ -300,11 +300,26 @@ export async function actualizarReferencias(pedidoId, { numeroPO, numeroOrden })
 }
 
 // ── Piezas en espera (importación de Excel "Esperando piezas") ─────
-// Reescribe el arreglo completo de piezas ya fusionado (ver mergePiezas en
-// utils/piezasExcel.js) — mismo patrón que eliminarMensaje: el merge se
-// calcula en el cliente y aquí solo se persiste el resultado.
-export async function importarPiezas(pedidoId, piezas) {
-  await updateDoc(doc(db, 'pedidos', pedidoId), { piezas, piezasUltimaImportacion: serverTimestamp() });
+// `piezasOrUpdater` puede ser el arreglo ya calculado (compatibilidad), o —
+// preferido — una función (piezasEnServidor => nuevoArreglo). Con función se
+// lee el arreglo más reciente DENTRO de una transacción antes de aplicar el
+// cambio: si se guarda sin esto, dos ediciones seguidas (ej. cambiar el
+// estado de una pieza y, antes de que el navegador reciba de vuelta ese
+// cambio, editar otra) pisan una a la otra, porque cada guardado reescribe
+// el arreglo completo a partir de lo que el navegador tenía cargado, que
+// puede estar un paso atrás de lo que ya quedó en la base de datos.
+export async function importarPiezas(pedidoId, piezasOrUpdater) {
+  const ref = doc(db, 'pedidos', pedidoId);
+  if (typeof piezasOrUpdater === 'function') {
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(ref);
+      const piezasActuales = snap.exists() ? (snap.data().piezas || []) : [];
+      const piezas = piezasOrUpdater(piezasActuales);
+      tx.update(ref, { piezas, piezasUltimaImportacion: serverTimestamp() });
+    });
+    return;
+  }
+  await updateDoc(ref, { piezas: piezasOrUpdater, piezasUltimaImportacion: serverTimestamp() });
 }
 
 // ── Eliminar pedido (admin) ─────────────────────────────────────────

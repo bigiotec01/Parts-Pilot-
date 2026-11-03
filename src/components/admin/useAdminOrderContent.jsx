@@ -169,8 +169,9 @@ export function useAdminOrderContent({ order, taller, onChangeStatus, onGenerate
     try {
       const buffer = await file.arrayBuffer();
       const filas = await parsePiezasExcel(buffer);
-      const piezas = mergePiezas(order.piezas, filas);
-      await onImportarPiezas(order.id, piezas);
+      // Se fusiona contra el arreglo más reciente en el servidor (no el que
+      // tiene cargado el navegador) para no pisar una edición reciente.
+      await onImportarPiezas(order.id, (fresh) => mergePiezas(fresh, filas));
     } catch (err) {
       setPiezasError(err.message || 'No se pudo leer el archivo.');
     } finally {
@@ -195,10 +196,14 @@ export function useAdminOrderContent({ order, taller, onChangeStatus, onGenerate
     setManualError('');
     setManualGuardando(true);
     try {
-      const piezas = piezaModal.mode === 'edit'
-        ? editarPieza(order.piezas, piezaModal.index, { numeroPieza: manualNumero, descripcion: manualDescripcion, referencia: manualReferencia, estado: manualEstado })
-        : agregarPiezaManual(order.piezas, { numeroPieza: manualNumero, descripcion: manualDescripcion, referencia: manualReferencia });
-      await onImportarPiezas(order.id, piezas);
+      // Se lee el arreglo más reciente DENTRO de la transacción (no
+      // order.piezas, que puede estar un paso atrás si se acaba de guardar
+      // otra edición) — así dos ediciones seguidas nunca se pisan entre sí.
+      const modo = piezaModal.mode;
+      const index = piezaModal.index;
+      await onImportarPiezas(order.id, (fresh) => modo === 'edit'
+        ? editarPieza(fresh, index, { numeroPieza: manualNumero, descripcion: manualDescripcion, referencia: manualReferencia, estado: manualEstado })
+        : agregarPiezaManual(fresh, { numeroPieza: manualNumero, descripcion: manualDescripcion, referencia: manualReferencia }));
       setManualNumero(''); setManualDescripcion(''); setPiezaModal(null);
     } catch (err) {
       setManualError(err.message || 'No se pudo guardar la pieza.');
@@ -208,7 +213,7 @@ export function useAdminOrderContent({ order, taller, onChangeStatus, onGenerate
   };
   const handleEliminarPieza = async (p, index) => {
     if (!(await confirmar(`¿Eliminar la pieza ${p.numeroPieza}?`, { peligro: true }))) return;
-    await onImportarPiezas(order.id, eliminarPieza(order.piezas, index));
+    await onImportarPiezas(order.id, (fresh) => eliminarPieza(fresh, index));
   };
 
   // Una orden de Tag Logic sin aprobar todavía muestra las piezas que se van a
